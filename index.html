@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mendoza Sol y Nieve — Reservas</title>
+<style>
+:root{
+  --pr:#0f4c81;--pr2:#0d3f6b;--ac:#f59e0b;--ok:#15803d;--er:#b91c1c;
+  --wa:#b45309;--bk:#1d4ed8;--dp:#6d28d9;
+  --bd:#e2e8f0;--bd2:#cbd5e1;--txt:#1f2937;--txt2:#475569;--txt3:#94a3b8;
+  --bg:#f1f5f9;--bg2:#ffffff;--bg3:#f8fafc;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--txt);font-size:13px}
+
+/* SYNC INDICATOR */
+#sync-bar{position:fixed;top:0;left:0;right:0;height:3px;background:transparent;z-index:9999;transition:.3s}
+#sync-bar.syncing{background:linear-gradient(90deg,#0f4c81,#f59e0b,#0f4c81);background-size:200%;animation:syncAnim 1s linear infinite}
+#sync-bar.ok{background:#15803d}
+@keyframes syncAnim{0%{background-position:0%}100%{background-position:200%}}
+#sync-status{position:fixed;bottom:12px;right:12px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:var(--txt2);box-shadow:0 2px 8px rgba(0,0,0,.1);z-index:9998;display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:#94a3b8;flex-shrink:0}
+.dot.verde{background:#15803d}
+.dot.amarillo{background:#f59e0b;animation:pulse .8s infinite}
+.dot.rojo{background:#b91c1c}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.topbar{background:var(--bg2);border-bottom:1px solid var(--bd);padding:10px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-top:3px}
+.brand{display:flex;align-items:center;gap:10px}
+.sun{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,#ffe066,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.bn{font-size:15px;font-weight:700;color:var(--pr)}
+.bs{font-size:11px;color:var(--txt3)}
+.cinfo{font-size:11px;color:var(--txt3);text-align:right;line-height:1.7}
+
+.nav{background:var(--bg2);border-bottom:1px solid var(--bd);padding:0 18px;display:flex;gap:2px;overflow-x:auto}
+.nav button{padding:10px 14px;border:none;border-bottom:3px solid transparent;background:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--txt2);white-space:nowrap;transition:.15s}
+.nav button:hover{color:var(--pr);background:var(--bg3)}
+.nav button.act{color:var(--pr);border-bottom-color:var(--pr);font-weight:700}
+
+.sc{display:none}.sc.on{display:block}
+.wrap{max-width:1280px;margin:0 auto;padding:14px}
+
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;margin-bottom:12px;overflow:hidden}
+.ch{padding:10px 16px;border-bottom:1px solid var(--bd);font-weight:600;font-size:12px;color:var(--pr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.cb{padding:14px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:12px}
+.stat{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px}
+.st-l{font-size:11px;color:var(--txt3);margin-bottom:4px;font-weight:500}
+.st-v{font-size:22px;font-weight:700;line-height:1}
+.st-s{font-size:11px;color:var(--txt3);margin-top:3px}
+
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:var(--bg3);padding:8px 10px;font-size:11px;font-weight:600;border:1px solid var(--bd);color:var(--txt2);text-align:left;white-space:nowrap}
+.tbl td{padding:7px 10px;border:1px solid var(--bd);vertical-align:middle}
+.tbl tr:hover td{background:#f0f7ff}
+.tbl tr.cancelada td{background:#fff1f2;opacity:.85}
+.empty{text-align:center;padding:28px;color:var(--txt3);font-size:12px}
+.num{text-align:right}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-ok{background:#dcfce7;color:#14532d}
+.b-pres{background:#fef3c7;color:#78350f}
+.b-canc{background:#fee2e2;color:#7f1d1d}
+.b-bk{background:#dbeafe;color:#1e3a8a}
+.b-dp{background:#ede9fe;color:#4c1d95}
+.b-mn{background:#f1f5f9;color:#334155}
+.b-paid{background:#dcfce7;color:#14532d}
+.b-part{background:#fef3c7;color:#78350f}
+.b-nopay{background:#fee2e2;color:#7f1d1d}
+.b-pre{background:#dbeafe;color:#1e3a8a}
+.b-hotel{background:#fef3c7;color:#78350f}
+.b-liq{background:#dcfce7;color:#14532d}
+.b-noliq{background:#fef3c7;color:#78350f}
+
+.btn{padding:7px 13px;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;background:var(--bg2);color:var(--txt);transition:.15s;display:inline-flex;align-items:center;gap:5px;line-height:1}
+.btn:hover{background:var(--bg3)}
+.btn.pr{background:var(--pr);color:#fff;border-color:var(--pr)}.btn.pr:hover{background:var(--pr2)}
+.btn.ok{background:var(--ok);color:#fff;border-color:var(--ok)}.btn.ok:hover{background:#166534}
+.btn.wa{background:var(--wa);color:#fff;border-color:var(--wa)}.btn.wa:hover{background:#92400e}
+.btn.er{background:var(--er);color:#fff;border-color:var(--er)}.btn.er:hover{background:#991b1b}
+.btn.bk{background:var(--bk);color:#fff;border-color:var(--bk)}.btn.bk:hover{background:#1e40af}
+.btn.dp{background:var(--dp);color:#fff;border-color:var(--dp)}.btn.dp:hover{background:#5b21b6}
+.btn.sm{padding:4px 9px;font-size:11px}
+.btn.xs{padding:3px 7px;font-size:10px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 14px;border-top:1px solid var(--bd);background:var(--bg3)}
+
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg.s2{grid-column:span 2}.fg.s3{grid-column:span 3}.fg.s6{grid-column:1/-1}
+.fg label{font-size:11px;font-weight:600;color:var(--txt2)}
+.fg input,.fg select,.fg textarea{padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt);width:100%}
+.fg input[readonly]{background:var(--bg3);color:var(--txt2)}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--pr);box-shadow:0 0 0 2px rgba(15,76,129,.12)}
+.total-f{background:#fef9c3!important;border-color:#d97706!important;font-weight:700!important}
+.sena-f{background:#dcfce7!important;border-color:#16a34a!important;font-weight:700!important}
+.saldo-f{background:#fee2e2!important;border-color:#dc2626!important;font-weight:700!important}
+.alo{border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--bg3)}
+.alo-h{font-size:12px;font-weight:600;color:var(--pr);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+
+.imp{border:1px solid;border-radius:8px;padding:14px;margin-bottom:10px;display:none}
+.imp.bk-i{border-color:#93c5fd;background:#eff6ff}
+.imp.dp-i{border-color:#c4b5fd;background:#f5f3ff}
+.imp h4{font-size:12px;font-weight:700;margin-bottom:6px}
+.imp p{font-size:11px;color:var(--txt2);margin-bottom:6px;line-height:1.5}
+.imp textarea{width:100%;padding:7px;border:1px solid var(--bd2);border-radius:5px;font-family:monospace;font-size:11px;min-height:70px;background:var(--bg2);color:var(--txt)}
+.cotiz{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;margin:6px 0;flex-wrap:wrap}
+.cotiz input{width:120px;padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)}
+.cotiz-show{background:#fef9c3;border:1px solid #d97706;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:600;color:#78350f}
+
+.cal-wrap{overflow-x:auto}
+.cal-tbl{border-collapse:collapse;font-size:11px;min-width:100%}
+.cal-tbl th{background:var(--bg3);padding:5px 4px;border:1px solid var(--bd);font-weight:600;min-width:72px;text-align:center;white-space:nowrap}
+.cal-tbl th.cu{min-width:155px;text-align:left;padding-left:10px;position:sticky;left:0;z-index:2;background:var(--bg3)}
+.cal-tbl td{border:1px solid var(--bd);vertical-align:top;min-width:72px;height:58px;padding:2px}
+.cu-td{font-weight:600;text-align:left!important;padding-left:10px!important;background:var(--bg3)!important;position:sticky;left:0;z-index:1;font-size:11px}
+.cel{font-size:10px;line-height:1.35;padding:2px 3px}
+.cel-out{color:#78350f;font-weight:700}
+.cel-in{color:#14532d;font-weight:700}
+.cel-cont{color:#1e3a8a;font-weight:600}
+.cel-libre{color:var(--txt3);font-size:10px;text-align:center;padding-top:12px}
+.we{color:#dc2626!important}
+
+.day-card{border:1px solid var(--bd);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.day-head{padding:8px 14px;background:var(--pr);color:#fff;font-weight:600;font-size:12px;display:flex;justify-content:space-between}
+.mov{padding:8px 12px;display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid var(--bd);font-size:12px}
+.mov:last-child{border-bottom:none}
+.mov-ico{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:1px}
+.ico-in{background:#dcfce7;color:#14532d}
+.ico-out{background:#fef3c7;color:#78350f}
+
+.voucher-wrap{background:#fff;border:1px solid var(--bd2);border-radius:8px;padding:22px;max-width:760px;margin:0 auto}
+.v-hdr{text-align:center;border-bottom:2px solid var(--pr);padding-bottom:14px;margin-bottom:16px}
+.v-title{font-size:15px;font-weight:700;letter-spacing:1px;color:var(--pr);text-transform:uppercase}
+.v-guest{font-size:18px;font-weight:700;color:var(--pr)}
+.notif-box{background:#fffbeb;border-left:4px solid #f59e0b;padding:12px 14px;margin-top:12px;font-size:12px;line-height:1.8}
+.notif-box strong{color:#c2410c;display:block;margin-bottom:3px}
+.banco{margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd2);font-size:11px;line-height:1.9}
+.pago-ok{background:#f0fdf4;border-left:4px solid #16a34a;padding:10px 14px;margin-top:8px;font-size:12px}
+.pago-pend{background:#fff1f2;border-left:4px solid #dc2626;padding:10px 14px;margin-top:8px;font-size:12px}
+
+.ci-wrap{background:#fff;border:1px solid var(--bd2);border-radius:8px;padding:20px;max-width:720px;margin:0 auto}
+.ci-hdr{text-align:center;border-bottom:2px solid var(--pr);padding-bottom:12px;margin-bottom:16px}
+
+.alerta{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:12px;line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+.alerta.er{background:#fff1f2;border-color:#fecaca}
+.recordatorio{background:#fff7ed;border:2px solid #f59e0b;border-radius:8px;padding:12px 16px;margin-bottom:10px;font-size:12px;line-height:1.7}
+
+/* LOADING */
+#loading-screen{position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:12px}
+#loading-screen .sun-big{font-size:48px;animation:spinSun 2s linear infinite}
+@keyframes spinSun{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+#loading-screen p{font-size:14px;color:var(--txt2);font-weight:500}
+
+@media print{
+  .nav,.topbar,.btn-row,.no-print,#sync-status,#sync-bar{display:none!important}
+  .sc.on{display:block!important}
+  body{background:white}
+  .wrap{padding:0;max-width:100%}
+}
+@media(max-width:700px){
+  .fgrid{grid-template-columns:1fr 1fr}
+  .fg.s3,.fg.s6{grid-column:1/-1}
+  .stats{grid-template-columns:1fr 1fr}
+  .cinfo{display:none}
+  .nav button{padding:8px 10px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div id="sync-bar"></div>
+<div id="sync-status"><div class="dot amarillo" id="sync-dot"></div><span id="sync-txt">Conectando...</span></div>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="sun-big">☀</div>
+  <p>Mendoza Sol y Nieve — Cargando sistema...</p>
+  <p style="font-size:11px;color:var(--txt3)">Conectando con la base de datos en tiempo real</p>
+</div>
+
+<div id="app-main" style="display:none">
+
+<div class="topbar">
+  <div class="brand">
+    <div class="sun">☀</div>
+    <div>
+      <div class="bn">Mendoza Sol y Nieve</div>
+      <div class="bs">Sistema de Gestión Integral · Tiempo Real</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="btn sm no-print" onclick="exportarCSV()">⬇ CSV</button>
+    <div class="cinfo no-print">+54 9 261 654 3938 · mendozasolynieve.com.ar</div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="act" onclick="goTo('sc-inicio')" id="nb-inicio">🏠 Inicio</button>
+  <button onclick="goTo('sc-abm')" id="nb-abm">📋 ABM Reservas</button>
+  <button onclick="goTo('sc-cal')" id="nb-cal">📅 Plano Ocupación</button>
+  <button onclick="goTo('sc-listado')" id="nb-listado">📋 Movimientos</button>
+  <button onclick="goTo('sc-stats')" id="nb-stats">📊 Estadísticas</button>
+  <button onclick="goTo('sc-despegar')" id="nb-despegar">✈ Despegar/Liq.</button>
+</div>
+
+<!-- INICIO -->
+<div id="sc-inicio" class="sc on">
+<div class="wrap">
+  <div id="alerta-dia4" style="display:none" class="recordatorio">
+    ⚠ <strong>RECORDATORIO — DÍA 4 DEL MES:</strong> Recuerde enviar la liquidación de reservas Despegar. Revise el módulo <a href="#" onclick="goTo('sc-despegar')">Despegar / Liquidaciones</a>.
+  </div>
+  <div id="alertas-cobro-hoy"></div>
+  <div class="stats" id="stats-home"></div>
+  <div class="card">
+    <div class="ch">
+      <span>📋 Todas las reservas</span>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="busq" placeholder="Buscar nombre, nro, unidad..." oninput="renderTabla()" style="padding:5px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;width:200px;background:var(--bg2);color:var(--txt)">
+        <select id="filtro-estado" onchange="renderTabla()" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+          <option value="">Todos los estados</option>
+          <option value="RESERVA CONFIRMADA">Confirmadas</option>
+          <option value="PRESUPUESTO">Presupuestos</option>
+          <option value="CANCELADA">Canceladas</option>
+        </select>
+        <button class="btn ok sm" onclick="goTo('sc-abm');abrirForm('MANUAL')">+ Nueva reserva</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>#</th><th>Origen</th><th>Emisión</th><th>Estado</th><th>Titular</th>
+          <th>Pax</th><th>Unidad</th><th>Check-In</th><th>Check-Out</th><th>Noches</th>
+          <th class="num">Total ARS</th><th>Seña/Saldo</th><th>Pago</th><th>Acciones</th>
+        </tr></thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ABM -->
+<div id="sc-abm" class="sc">
+<div class="wrap">
+  <div class="card">
+    <div class="ch">
+      <span id="form-titulo">Nueva Reserva Manual</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn bk sm" onclick="abrirForm('BOOKING')">✉ Booking</button>
+        <button class="btn dp sm" onclick="abrirForm('DESPEGAR')">✈ Despegar</button>
+        <button class="btn sm" onclick="goTo('sc-inicio')">← Volver</button>
+      </div>
+    </div>
+    <div class="cb">
+      <!-- BOOKING IMPORTER -->
+      <div id="blk-bk" class="imp bk-i">
+        <h4 style="color:#1d4ed8">✉ Booking.com — Pegue el texto del PDF</h4>
+        <p>Seleccione todo el texto del PDF (Ctrl+A), copie (Ctrl+C) y pegue abajo:</p>
+        <textarea id="txt-bk" placeholder="Pegue aquí el texto del PDF de Booking..."></textarea>
+        <div class="cotiz">1 USD = <input type="number" id="cot-bk" value="1000" oninput="updCotiz('bk')"> ARS
+          <span class="cotiz-show" id="cotiz-bk-show">$1.000 ARS</span>
+        </div>
+        <button class="btn bk" onclick="procesarBK()">🔄 Procesar e inyectar</button>
+      </div>
+      <!-- DESPEGAR IMPORTER -->
+      <div id="blk-dp" class="imp dp-i">
+        <h4 style="color:#6d28d9">✈ Despegar — Pegue la fila completa del Excel</h4>
+        <p>En su planilla Excel de Despegar, haga clic en el <strong>número de fila</strong>, copie con Ctrl+C y pegue abajo:</p>
+        <textarea id="txt-dp" placeholder="Pegue aquí la fila copiada del Excel de Despegar..."></textarea>
+        <div class="cotiz">1 USD = <input type="number" id="cot-dp" value="1460" oninput="updCotiz('dp')"> ARS
+          <span class="cotiz-show" id="cotiz-dp-show">$1.460 ARS</span>
+        </div>
+        <button class="btn dp" onclick="procesarDP()">🔄 Procesar e inyectar</button>
+      </div>
+
+      <!-- FORMULARIO -->
+      <div class="card" style="margin-bottom:8px">
+        <div class="ch">1. Control de documento</div>
+        <div class="cb">
+          <div class="fgrid">
+            <div class="fg"><label>Nro. reserva</label><input type="number" id="f-nro" readonly></div>
+            <div class="fg"><label>Condición</label>
+              <select id="f-tipo">
+                <option value="PRESUPUESTO">Presupuesto</option>
+                <option value="RESERVA CONFIRMADA">Reserva Confirmada</option>
+                <option value="CANCELADA">Cancelada</option>
+              </select>
+            </div>
+            <div class="fg"><label>Fecha emisión</label><input type="date" id="f-fecha" readonly></div>
+            <div class="fg"><label>Origen</label>
+              <select id="f-origen">
+                <option value="MANUAL">Manual / Teléfono</option>
+                <option value="BOOKING">Booking.com</option>
+                <option value="DESPEGAR">Despegar.com</option>
+                <option value="DIRECTO">Directo / WhatsApp</option>
+                <option value="AIRBNB">Airbnb</option>
+              </select>
+            </div>
+            <div class="fg"><label>Cotización USD (ARS)</label><input type="number" id="f-cotiz-usd" value="0"></div>
+            <div class="fg"><label>Fecha cancelación</label><input type="date" id="f-fecha-canc"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DATOS DESPEGAR -->
+      <div id="blk-dp-ext" style="display:none" class="card" style="margin-bottom:8px">
+        <div class="ch" style="background:#f5f3ff;color:#4c1d95">✈ Datos específicos Despegar</div>
+        <div class="cb">
+          <div class="fgrid">
+            <div class="fg"><label>PNR Despegar</label><input type="text" id="f-pnr" placeholder="Código PNR"></div>
+            <div class="fg"><label>ID Despegar</label><input type="text" id="f-id-dp" placeholder="ID en la app"></div>
+            <div class="fg"><label>Tipo de pago</label>
+              <select id="f-pago-dp">
+                <option value="HOTEL">Cobro en el Hotel</option>
+                <option value="PREPAGO">Prepago (Despegar cobra)</option>
+              </select>
+            </div>
+            <div class="fg"><label>¿Liquidada por Despegar?</label>
+              <select id="f-liq-dp">
+                <option value="NO">No liquidada aún</option>
+                <option value="SI">Sí, liquidada</option>
+              </select>
+            </div>
+            <div class="fg"><label>Fecha liquidación Despegar</label><input type="date" id="f-fecha-liq"></div>
+            <div class="fg"><label>Fecha presentación liquidación</label><input type="date" id="f-fecha-pres-liq"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:8px">
+        <div class="ch">2. Alojamientos y períodos</div>
+        <div class="cb">
+          <div class="alo">
+            <div class="alo-h">Primer alojamiento (obligatorio)</div>
+            <div class="fgrid">
+              <div class="fg s2"><label>Unidad</label>
+                <select id="f-alo1">
+                  <option>Departamento Ciudad de Mendoza 2</option>
+                  <option>Departamento Ciudad de Mendoza 3</option>
+                  <option>Cabaña grande</option>
+                  <option>Cabaña Loft</option>
+                  <option>Cabaña Standard</option>
+                  <option>Departamento 4 pax VLL</option>
+                </select>
+              </div>
+              <div class="fg"><label>Valor x noche (ARS)</label><input type="number" id="f-p1" oninput="calcTot()"></div>
+              <div class="fg"><label>Check-In</label><input type="date" id="f-ci1" onchange="calcN(1)"></div>
+              <div class="fg"><label>Check-Out</label><input type="date" id="f-co1" onchange="calcN(1)"></div>
+              <div class="fg"><label>Noches</label><input type="number" id="f-n1" readonly value="0"></div>
+            </div>
+          </div>
+          <div class="alo">
+            <div class="alo-h">Segundo alojamiento combinado (opcional)</div>
+            <div class="fgrid">
+              <div class="fg s2"><label>Unidad</label>
+                <select id="f-alo2" onchange="limpAlo2()">
+                  <option value="">— No combina —</option>
+                  <option>Departamento Ciudad de Mendoza 2</option>
+                  <option>Departamento Ciudad de Mendoza 3</option>
+                  <option>Cabaña grande</option>
+                  <option>Cabaña Loft</option>
+                  <option>Cabaña Standard</option>
+                  <option>Departamento 4 pax VLL</option>
+                </select>
+              </div>
+              <div class="fg"><label>Valor x noche 2</label><input type="number" id="f-p2" oninput="calcTot()"></div>
+              <div class="fg"><label>Check-In 2</label><input type="date" id="f-ci2" onchange="calcN(2)"></div>
+              <div class="fg"><label>Check-Out 2</label><input type="date" id="f-co2" onchange="calcN(2)"></div>
+              <div class="fg"><label>Noches 2</label><input type="number" id="f-n2" readonly value="0"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:8px">
+        <div class="ch">3. Pasajeros, contacto y montos</div>
+        <div class="cb">
+          <div class="fgrid">
+            <div class="fg"><label>Cant. huéspedes</label><input type="number" id="f-pax" min="1"></div>
+            <div class="fg s2"><label>Nombre completo titular ★</label><input type="text" id="f-nombre" placeholder="Apellido y nombre"></div>
+            <div class="fg"><label>DNI / Pasaporte</label><input type="text" id="f-dni"></div>
+            <div class="fg"><label>Email</label><input type="email" id="f-email"></div>
+            <div class="fg"><label>Teléfono / WhatsApp</label><input type="tel" id="f-tel"></div>
+            <div class="fg"><label>Total estadía (ARS)</label><input type="text" id="f-total" readonly class="total-f"></div>
+            <div class="fg"><label>Seña recibida (ARS)</label><input type="number" id="f-sena" value="0" oninput="calcSaldo()" class="sena-f"></div>
+            <div class="fg"><label>Saldo pendiente</label><input type="text" id="f-saldo" readonly class="saldo-f"></div>
+            <div class="fg"><label>Notas</label><input type="text" id="f-notas" placeholder="Observaciones internas"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn pr" id="btn-guardar" onclick="guardar()">💾 Guardar en planilla</button>
+      <button class="btn" onclick="abrirVoucher()">🖨 Voucher</button>
+      <button class="btn ok" onclick="abrirCheckin()">✅ Check-in online</button>
+      <button class="btn er" onclick="cancelarEdicion()">✕ Cancelar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PLANO -->
+<div id="sc-cal" class="sc">
+<div class="wrap">
+  <div class="card">
+    <div class="ch">
+      <span>📅 Plano de ocupación mensual — Tiempo Real</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn sm" onclick="mesCal(-1)">◀</button>
+        <input type="month" id="cal-mes" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)" onchange="renderCal()">
+        <button class="btn sm" onclick="mesCal(1)">▶</button>
+        <button class="btn sm no-print" onclick="window.print()">🖨 Imprimir</button>
+      </div>
+    </div>
+    <div class="cb" style="padding:8px">
+      <div style="display:flex;gap:12px;margin-bottom:8px;font-size:11px;flex-wrap:wrap">
+        <span><span style="display:inline-block;width:14px;height:14px;background:#dbeafe;border:1px solid #93c5fd;border-radius:3px;vertical-align:middle"></span> Booking</span>
+        <span><span style="display:inline-block;width:14px;height:14px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:3px;vertical-align:middle"></span> Despegar</span>
+        <span><span style="display:inline-block;width:14px;height:14px;background:#dcfce7;border:1px solid #86efac;border-radius:3px;vertical-align:middle"></span> Manual/Directo</span>
+        <span><span style="display:inline-block;width:14px;height:14px;border-bottom:2px solid #f59e0b;border-radius:3px;vertical-align:middle;background:#fef9c3"></span> Sale</span>
+        <span><span style="display:inline-block;width:14px;height:14px;border-top:2px solid #16a34a;border-radius:3px;vertical-align:middle;background:#dcfce7"></span> Entra</span>
+      </div>
+      <div class="cal-wrap"><table class="cal-tbl" id="cal-tabla"></table></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MOVIMIENTOS -->
+<div id="sc-listado" class="sc">
+<div class="wrap">
+  <div class="card">
+    <div class="ch">
+      <span>📋 Movimientos diarios</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:12px">Desde:</label>
+        <input type="date" id="lst-desde" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+        <label style="font-size:12px">Hasta:</label>
+        <input type="date" id="lst-hasta" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+        <button class="btn pr sm" onclick="renderListado()">🔍 Ver</button>
+        <button class="btn sm no-print" onclick="window.print()">🖨 Imprimir</button>
+      </div>
+    </div>
+    <div class="cb" id="listado-body"></div>
+  </div>
+</div>
+</div>
+
+<!-- ESTADÍSTICAS -->
+<div id="sc-stats" class="sc">
+<div class="wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <h2 style="color:var(--pr);font-size:15px">📊 Estadísticas de ventas</h2>
+    <button class="btn sm no-print" onclick="window.print()">🖨 Imprimir</button>
+  </div>
+  <div class="stats" id="est-grid"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+    <div class="card"><div class="ch">Por unidad</div><div class="tbl-wrap"><table class="tbl" id="tbl-unds"></table></div></div>
+    <div class="card"><div class="ch">Por origen</div><div class="tbl-wrap"><table class="tbl" id="tbl-orig"></table></div></div>
+  </div>
+  <div class="card"><div class="ch">Cancelaciones</div><div class="tbl-wrap"><table class="tbl" id="tbl-canc"></table></div></div>
+  <div class="card"><div class="ch">Detalle reservas confirmadas</div><div class="tbl-wrap"><table class="tbl" id="tbl-stats-det"></table></div></div>
+</div>
+</div>
+
+<!-- DESPEGAR -->
+<div id="sc-despegar" class="sc">
+<div class="wrap">
+  <div class="card">
+    <div class="ch">✈ Gestión Despegar — Liquidaciones y Cobros</div>
+    <div class="cb">
+      <div id="dp-alertas"></div>
+      <div id="dp-recordatorio"></div>
+      <div class="stats" id="dp-stats" style="margin-bottom:12px"></div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr>
+            <th>#</th><th>PNR</th><th>ID Desp.</th><th>Titular</th><th>Unidad</th>
+            <th>Check-In</th><th>Check-Out</th><th>Pax</th><th>Tipo pago</th>
+            <th class="num">Total ARS</th><th class="num">Seña</th><th class="num">Saldo</th>
+            <th>Liquidación</th><th>F.Liq.</th><th>Acciones</th>
+          </tr></thead>
+          <tbody id="tbl-dp"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- VOUCHER -->
+<div id="sc-voucher" class="sc">
+<div class="wrap">
+  <div class="btn-row no-print" style="border:none;padding:0 0 12px 0;background:transparent">
+    <button class="btn" onclick="goTo('sc-abm')">← Volver</button>
+    <button class="btn ok" onclick="imprimirVoucher()">🖨 Imprimir / PDF</button>
+    <button class="btn" onclick="copiarWA()">📱 Copiar WhatsApp</button>
+  </div>
+  <div class="voucher-wrap" id="v-wrap">
+    <div class="v-hdr">
+      <div style="font-size:24px;margin-bottom:4px">☀</div>
+      <div style="font-weight:700;color:var(--pr);font-size:14px;letter-spacing:.5px">MENDOZA SOL Y NIEVE</div>
+      <div class="v-title">Comprobante Digital de Control de Reservas</div>
+      <div style="font-size:11px;color:var(--txt3);margin-top:3px">Gral. Espejo 333, M5502 Mendoza · +54 9 261 654 3938 · mendozasolynieve.com.ar</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px;gap:16px;flex-wrap:wrap">
+      <div>
+        <div class="v-guest" id="v-nombre"></div>
+        <div id="v-origen-badge" style="margin-top:5px"></div>
+        <div style="margin-top:8px;font-size:12px;line-height:1.8">
+          <div><b>DNI/Pasaporte:</b> <span id="v-dni"></span></div>
+          <div><b>Email:</b> <span id="v-email"></span></div>
+          <div><b>Teléfono:</b> <span id="v-tel"></span></div>
+          <div><b>Pax:</b> <span id="v-pax"></span> persona(s)</div>
+        </div>
+      </div>
+      <div style="text-align:right;font-size:12px;line-height:1.9">
+        <div style="font-size:17px;font-weight:700;color:var(--pr)" id="v-tipo"></div>
+        <div><b>Nro. Orden:</b> #<span id="v-nro"></span></div>
+        <div><b>Fecha emisión:</b> <span id="v-fecha"></span></div>
+        <div id="v-cotiz-row" style="display:none;color:var(--txt2)"><b>Cotiz. USD:</b> $<span id="v-cotiz"></span> ARS</div>
+      </div>
+    </div>
+    <table class="tbl" style="margin-bottom:12px">
+      <thead><tr><th>Unidad</th><th>Check-In</th><th>Check-Out</th><th>Noches</th><th>Valor x noche</th><th style="text-align:right">Subtotal</th></tr></thead>
+      <tbody id="v-items"></tbody>
+    </table>
+    <div id="v-pago-box"></div>
+    <div class="notif-box">
+      <strong>NOTIFICACIÓN IMPORTANTE</strong>
+      Para confirmar la reserva se solicita el 30% del total (<strong id="v-sena30"></strong>), dentro de las 48 hs. desde la fecha de emisión.
+      <div class="banco">
+        <strong style="color:var(--pr);display:block;margin-bottom:2px">Datos bancarios:</strong>
+        <b>Banco:</b> Banco Supervielle · <b>Titulares:</b> Raquel Liliana Gonzalez / Oscar Daniel Porcario<br>
+        <b>Cuenta:</b> CA ARS 093-538612-1 · <b>CBU:</b> 0270093920005386120016<br>
+        <b>Alias:</b> OSCAR.PORCARIO · <b>CUIT/CUIL:</b> 20-16555833-3
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- CHECK-IN -->
+<div id="sc-checkin" class="sc">
+<div class="wrap">
+  <div class="btn-row no-print" style="border:none;padding:0 0 12px 0;background:transparent">
+    <button class="btn" onclick="goTo('sc-abm')">← Volver</button>
+    <button class="btn ok" onclick="imprimirCI()">🖨 Imprimir</button>
+    <button class="btn" onclick="copiarWACI()">📱 WhatsApp</button>
+    <button class="btn pr" onclick="abrirEmailCI()">✉ Email</button>
+  </div>
+  <div class="ci-wrap" id="ci-wrap">
+    <div class="ci-hdr">
+      <div style="font-size:20px">☀</div>
+      <div style="font-weight:700;color:var(--pr);font-size:13px;letter-spacing:.5px">MENDOZA SOL Y NIEVE</div>
+      <div style="font-size:14px;font-weight:700;color:var(--pr);text-transform:uppercase;margin-top:4px">Formulario de Check-In Online</div>
+      <div style="font-size:11px;color:var(--txt3);margin-top:4px">Reserva #<span id="ci-nro"></span> — Complete antes de su llegada</div>
+    </div>
+    <div style="background:var(--bg3);border-radius:7px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.8;border:1px solid var(--bd)">
+      <b>Titular:</b> <span id="ci-nombre"></span> · <b>Alojamiento:</b> <span id="ci-alo"></span><br>
+      <b>Check-In:</b> <span id="ci-cin"></span> · <b>Check-Out:</b> <span id="ci-cout"></span> · <b>Pax:</b> <span id="ci-pax"></span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="fg"><label>Nombre completo *</label><input type="text" id="ci-f-nombre"></div>
+      <div class="fg"><label>DNI / Pasaporte *</label><input type="text" id="ci-f-dni"></div>
+      <div class="fg"><label>Fecha de nacimiento *</label><input type="date" id="ci-f-nac"></div>
+      <div class="fg"><label>Nacionalidad *</label><input type="text" id="ci-f-nac2" placeholder="Argentina, Chile..."></div>
+      <div class="fg" style="grid-column:1/-1"><label>Dirección de domicilio *</label><input type="text" id="ci-f-dir" placeholder="Calle, número, ciudad, provincia"></div>
+      <div class="fg"><label>Teléfono / WhatsApp *</label><input type="tel" id="ci-f-tel"></div>
+      <div class="fg"><label>Email *</label><input type="email" id="ci-f-email"></div>
+      <div class="fg"><label>Patente vehículo</label><input type="text" id="ci-f-pat" placeholder="AA123BB"></div>
+      <div class="fg"><label>Cant. acompañantes</label><input type="number" id="ci-f-nacomp" value="0" min="0"></div>
+      <div class="fg" style="grid-column:1/-1"><label>Nombres de acompañantes</label><textarea id="ci-f-acomp" rows="3" style="width:100%;padding:6px;border:1px solid var(--bd2);border-radius:5px;font-size:12px"></textarea></div>
+    </div>
+    <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:10px 14px;font-size:11px;line-height:1.7;margin-bottom:10px">
+      <strong style="color:#c2410c">Info importante:</strong> Check-in desde las 14:00 hs · Check-out hasta las 11:00 hs · Consultas: +54 9 261 654 3938
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--txt3);border-top:1px solid var(--bd);padding-top:10px">
+      Mendoza Sol y Nieve · Gral. Espejo 333, Mendoza · mendozasolynieve.com.ar
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- fin app-main -->
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAbw0jymmgmlAN6cQv0WC424OnpNzJdfT4",
+  authDomain: "mendoza-sol-nieve-15fba.firebaseapp.com",
+  projectId: "mendoza-sol-nieve-15fba",
+  storageBucket: "mendoza-sol-nieve-15fba.firebasestorage.app",
+  messagingSenderId: "49107135646",
+  appId: "1:49107135646:web:cb03570bd1c2d4bda2df8f"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db_fire = getFirestore(fbApp);
+const colRef = collection(db_fire, "reservas");
+const metaRef = doc(db_fire, "meta", "contador");
+
+// Estado global
+window._db = [];
+window._cnt = 10000;
+window._editId = null;
+
+// SYNC INDICATOR
+function setSyncState(state) {
+  const bar = document.getElementById('sync-bar');
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-txt');
+  if (state === 'syncing') {
+    bar.className = 'syncing';
+    dot.className = 'dot amarillo';
+    txt.textContent = 'Sincronizando...';
+  } else if (state === 'ok') {
+    bar.className = 'ok';
+    dot.className = 'dot verde';
+    txt.textContent = 'En línea · Tiempo real';
+    setTimeout(() => { bar.className = ''; }, 1500);
+  } else {
+    bar.className = '';
+    dot.className = 'dot rojo';
+    txt.textContent = 'Sin conexión';
+  }
+}
+
+// LISTENER EN TIEMPO REAL
+const q = query(colRef, orderBy("nro", "asc"));
+onSnapshot(q, (snapshot) => {
+  setSyncState('syncing');
+  window._db = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  setSyncState('ok');
+  renderTabla();
+  renderStatsHome();
+  const sc = document.querySelector('.sc.on');
+  if (sc) {
+    if (sc.id === 'sc-cal') renderCal();
+    if (sc.id === 'sc-stats') renderStats();
+    if (sc.id === 'sc-listado') renderListado();
+    if (sc.id === 'sc-despegar') renderDespegar();
+  }
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('app-main').style.display = 'block';
+}, (error) => {
+  console.error("Firebase error:", error);
+  setSyncState('offline');
+  document.getElementById('loading-screen').innerHTML = '<div style="font-size:48px">⚠</div><p style="color:#b91c1c;font-weight:600">Error de conexión con Firebase</p><p style="font-size:12px;color:#475569">Verifique su conexión a internet y que las reglas de Firestore estén en modo test.</p>';
+});
+
+// GUARDAR RESERVA
+window.fireGuardar = async function(r) {
+  setSyncState('syncing');
+  try {
+    await setDoc(doc(db_fire, "reservas", String(r.id)), r);
+    // actualizar contador
+    await setDoc(metaRef, { cnt: window._cnt }, { merge: true });
+    setSyncState('ok');
+    return true;
+  } catch(e) {
+    setSyncState('offline');
+    alert('Error al guardar en Firebase: ' + e.message);
+    return false;
+  }
+};
+
+// ELIMINAR RESERVA
+window.fireEliminar = async function(id) {
+  setSyncState('syncing');
+  try {
+    await deleteDoc(doc(db_fire, "reservas", String(id)));
+    setSyncState('ok');
+  } catch(e) {
+    setSyncState('offline');
+    alert('Error al eliminar: ' + e.message);
+  }
+};
+
+// CARGAR CONTADOR INICIAL
+getDoc(metaRef).then(snap => {
+  if (snap.exists() && snap.data().cnt) window._cnt = snap.data().cnt;
+});
+
+window.addEventListener('offline', () => setSyncState('offline'));
+window.addEventListener('online', () => setSyncState('ok'));
+</script>
+
+<script>
+// ===== HELPERS =====
+function gv(id){return(document.getElementById(id)||{}).value||'';}
+function sv(id,v){const e=document.getElementById(id);if(e)e.value=v;}
+function fmt(n){return Math.round(n||0).toLocaleString('es-AR');}
+function fmtF(s){if(!s||!s.includes('-'))return s||'';const p=s.split('-');return`${p[2]}/${p[1]}/${p[0]}`;}
+function hoy(){return new Date().toISOString().split('T')[0];}
+function updCotiz(src){
+  const v=parseFloat(document.getElementById('cot-'+src).value)||0;
+  document.getElementById('cotiz-'+src+'-show').textContent='$'+fmt(v)+' ARS';
+}
+function badgeOrigen(o){
+  const m={BOOKING:{c:'b-bk',t:'✉ Booking'},DESPEGAR:{c:'b-dp',t:'✈ Despegar'},MANUAL:{c:'b-mn',t:'Manual'},DIRECTO:{c:'b-mn',t:'Directo'},AIRBNB:{c:'b-ok',t:'Airbnb'}};
+  const d=m[o]||{c:'b-mn',t:o};return`<span class="badge ${d.c}">${d.t}</span>`;
+}
+function rango(ini,fin){
+  const r=[];let d=new Date((ini||'')+'T00:00:00');const f=new Date((fin||'')+'T00:00:00');
+  if(isNaN(d)||isNaN(f))return r;
+  while(d<f){r.push(d.toISOString().split('T')[0]);d.setDate(d.getDate()+1);}return r;
+}
+
+// ===== NAV =====
+function goTo(id){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('act'));
+  const nb=document.getElementById('nb-'+id.replace('sc-',''));
+  if(nb)nb.classList.add('act');
+  if(id==='sc-cal'){const d=new Date();document.getElementById('cal-mes').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;renderCal();}
+  if(id==='sc-stats')renderStats();
+  if(id==='sc-listado')initListado();
+  if(id==='sc-inicio'){renderTabla();renderStatsHome();}
+  if(id==='sc-despegar')renderDespegar();
+}
+
+// ===== ALERTAS =====
+function verificarAlertas(){
+  if(new Date().getDate()===4)document.getElementById('alerta-dia4').style.display='block';
+  const hd=hoy();
+  const llegHoy=window._db.filter(r=>r.cin1===hd&&r.tipo==='RESERVA CONFIRMADA'&&r.origen==='DESPEGAR'&&r.pagoDp==='HOTEL');
+  document.getElementById('alertas-cobro-hoy').innerHTML=llegHoy.map(r=>
+    `<div class="alerta er">🔴 <div><strong>COBRAR HOY AL INGRESO — ${r.nombre}</strong> · ${r.u1} · <strong>$${fmt(r.total-(r.sena||0))}</strong> ARS pendiente. (Despegar — Pago en Hotel)</div></div>`
+  ).join('');
+}
+
+// ===== STATS HOME =====
+function renderStatsHome(){
+  const activos=window._db.filter(r=>r.tipo!=='CANCELADA');
+  const total=activos.reduce((a,r)=>a+(r.total||0),0);
+  const conf=activos.filter(r=>r.tipo==='RESERVA CONFIRMADA').length;
+  const canc=window._db.filter(r=>r.tipo==='CANCELADA').length;
+  const senas=activos.reduce((a,r)=>a+(r.sena||0),0);
+  const saldo=activos.filter(r=>r.tipo==='RESERVA CONFIRMADA').reduce((a,r)=>a+(r.total||0)-(r.sena||0),0);
+  document.getElementById('stats-home').innerHTML=`
+    <div class="stat"><div class="st-l">Reservas activas</div><div class="st-v">${activos.length}</div></div>
+    <div class="stat"><div class="st-l">Confirmadas</div><div class="st-v" style="color:var(--ok)">${conf}</div></div>
+    <div class="stat"><div class="st-l">Presupuestos</div><div class="st-v" style="color:var(--wa)">${activos.filter(r=>r.tipo==='PRESUPUESTO').length}</div></div>
+    <div class="stat"><div class="st-l">Canceladas</div><div class="st-v" style="color:var(--er)">${canc}</div></div>
+    <div class="stat"><div class="st-l">Facturación total</div><div class="st-v" style="font-size:16px">$${fmt(total)}</div><div class="st-s">ARS</div></div>
+    <div class="stat"><div class="st-l">Señas cobradas</div><div class="st-v" style="font-size:16px;color:var(--ok)">$${fmt(senas)}</div></div>
+    <div class="stat"><div class="st-l">Saldo pendiente</div><div class="st-v" style="font-size:16px;color:var(--er)">$${fmt(saldo)}</div></div>`;
+  verificarAlertas();
+}
+
+// ===== TABLA =====
+function renderTabla(){
+  const q=gv('busq').toLowerCase();
+  const fe=gv('filtro-estado');
+  const rows=window._db.filter(r=>
+    (!q||(r.nombre||'').toLowerCase().includes(q)||String(r.nro).includes(q)||(r.u1||'').toLowerCase().includes(q)||(r.pnr||'').includes(q))&&
+    (!fe||r.tipo===fe)
+  );
+  const tb=document.getElementById('tbl-body');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="14" class="empty">No hay reservas cargadas aún. Los datos se sincronizan en tiempo real desde Firebase.</td></tr>';return;}
+  tb.innerHTML=rows.map(r=>{
+    const sena=r.sena||0;const saldo=(r.total||0)-sena;
+    const pst=sena>=(r.total||0)?'<span class="badge b-paid">Pagado</span>':sena>0?'<span class="badge b-part">Seña parcial</span>':'<span class="badge b-nopay">Sin seña</span>';
+    const est=r.tipo==='RESERVA CONFIRMADA'?'<span class="badge b-ok">Confirmada</span>':r.tipo==='CANCELADA'?`<span class="badge b-canc">CANCELADA</span>`:'<span class="badge b-pres">Presupuesto</span>';
+    const dpPago=r.origen==='DESPEGAR'?(r.pagoDp==='PREPAGO'?'<span class="badge b-pre">Prepago</span>':'<span class="badge b-hotel">Hotel</span>'):'';
+    return`<tr class="${r.tipo==='CANCELADA'?'cancelada':''}">
+      <td><strong>#${r.nro}</strong></td>
+      <td>${badgeOrigen(r.origen)}</td>
+      <td>${fmtF(r.fecha)}</td>
+      <td>${est}</td>
+      <td><strong>${r.nombre||'—'}</strong>${r.pnr?`<br><small style="color:var(--txt3)">PNR:${r.pnr}</small>`:''}</td>
+      <td>${r.pax}</td>
+      <td style="font-size:11px">${r.u1}</td>
+      <td>${fmtF(r.cin1)}</td>
+      <td>${fmtF(r.cout1)}</td>
+      <td>${r.n1}</td>
+      <td class="num"><strong>$${fmt(r.total)}</strong></td>
+      <td>${pst}<br><small>S:$${fmt(sena)} R:$${fmt(Math.max(0,saldo))}</small></td>
+      <td>${dpPago}</td>
+      <td style="white-space:nowrap">
+        <button class="btn wa xs" onclick="editar('${r.id}')">✏</button>
+        <button class="btn pr xs" onclick="voucherById('${r.id}')">🖨</button>
+        <button class="btn ok xs" onclick="checkinById('${r.id}')">✅</button>
+        <button class="btn er xs" onclick="eliminar('${r.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== FORM =====
+function calcN(b){
+  const ci=gv('f-ci'+b),co=gv('f-co'+b);
+  if(ci&&co){const d=(new Date(co+'T00:00:00')-new Date(ci+'T00:00:00'))/86400000;sv('f-n'+b,d>0?d:0);}
+  calcTot();
+}
+function calcTot(){
+  const t=(parseFloat(gv('f-n1'))||0)*(parseFloat(gv('f-p1'))||0)+(parseFloat(gv('f-n2'))||0)*(parseFloat(gv('f-p2'))||0);
+  sv('f-total','ARS $ '+fmt(t));calcSaldo();
+}
+function calcSaldo(){
+  const t=(parseFloat(gv('f-n1'))||0)*(parseFloat(gv('f-p1'))||0)+(parseFloat(gv('f-n2'))||0)*(parseFloat(gv('f-p2'))||0);
+  sv('f-saldo','ARS $ '+fmt(t-(parseFloat(gv('f-sena'))||0)));
+}
+function limpAlo2(){if(!gv('f-alo2')){['f-p2','f-ci2','f-co2'].forEach(x=>sv(x,''));sv('f-n2',0);}calcTot();}
+
+function abrirForm(origen){
+  cancelarEdicion();
+  sv('f-origen',origen);
+  document.getElementById('blk-bk').style.display=origen==='BOOKING'?'block':'none';
+  document.getElementById('blk-dp').style.display=origen==='DESPEGAR'?'block':'none';
+  document.getElementById('blk-dp-ext').style.display=origen==='DESPEGAR'?'block':'none';
+  document.getElementById('form-titulo').textContent=origen==='BOOKING'?'Importar Booking.com':origen==='DESPEGAR'?'Importar Despegar.com':'Nueva Reserva Manual';
+  sv('f-nro',window._cnt);sv('f-fecha',hoy());
+  document.getElementById('btn-guardar').textContent='💾 Guardar en planilla';
+  document.getElementById('btn-guardar').className='btn pr';
+  goTo('sc-abm');
+}
+
+function cancelarEdicion(){
+  window._editId=null;
+  ['f-nro','f-tipo','f-fecha','f-origen','f-cotiz-usd','f-fecha-canc',
+   'f-pnr','f-id-dp','f-pago-dp','f-liq-dp','f-fecha-liq','f-fecha-pres-liq',
+   'f-sena','f-saldo','f-alo1','f-p1','f-ci1','f-co1','f-n1',
+   'f-alo2','f-p2','f-ci2','f-co2','f-n2',
+   'f-pax','f-nombre','f-dni','f-email','f-tel','f-total','f-notas'].forEach(id=>{
+    const e=document.getElementById(id);if(!e)return;
+    if(e.tagName==='SELECT')e.selectedIndex=0;else e.value='';
+  });
+  sv('f-n1',0);sv('f-n2',0);sv('f-sena',0);
+  sv('f-nro',window._cnt);sv('f-fecha',hoy());
+  sv('f-cotiz-usd',0);
+  document.getElementById('blk-bk').style.display='none';
+  document.getElementById('blk-dp').style.display='none';
+  document.getElementById('blk-dp-ext').style.display='none';
+  sv('txt-bk','');sv('txt-dp','');
+}
+
+function editar(id){
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  window._editId=String(id);
+  document.getElementById('blk-bk').style.display='none';
+  document.getElementById('blk-dp').style.display='none';
+  document.getElementById('blk-dp-ext').style.display=r.origen==='DESPEGAR'?'block':'none';
+  sv('f-nro',r.nro);sv('f-tipo',r.tipo);sv('f-fecha',r.fecha);sv('f-origen',r.origen);
+  sv('f-cotiz-usd',r.cotizUsd||0);sv('f-fecha-canc',r.fechaCanc||'');
+  sv('f-pnr',r.pnr||'');sv('f-id-dp',r.idDp||'');sv('f-pago-dp',r.pagoDp||'HOTEL');
+  sv('f-liq-dp',r.liqDp||'NO');sv('f-fecha-liq',r.fechaLiq||'');sv('f-fecha-pres-liq',r.fechaPresLiq||'');
+  sv('f-sena',r.sena||0);
+  sv('f-pax',r.pax);sv('f-nombre',r.nombre);sv('f-dni',r.dni||'');sv('f-email',r.email||'');sv('f-tel',r.telefono||'');sv('f-notas',r.notas||'');
+  sv('f-alo1',r.u1);sv('f-ci1',r.cin1);sv('f-co1',r.cout1);sv('f-n1',r.n1);sv('f-p1',r.p1);
+  sv('f-alo2',r.u2||'');sv('f-ci2',r.cin2||'');sv('f-co2',r.cout2||'');sv('f-n2',r.n2||0);sv('f-p2',r.p2||'');
+  calcTot();
+  document.getElementById('form-titulo').textContent='✏ Modificando #'+r.nro+' — '+r.nombre;
+  document.getElementById('btn-guardar').textContent='✔ Grabar modificaciones';
+  document.getElementById('btn-guardar').className='btn wa';
+  goTo('sc-abm');
+}
+
+async function guardar(){
+  const cin1=gv('f-ci1'),cout1=gv('f-co1'),u1=gv('f-alo1'),nombre=gv('f-nombre');
+  if(!cin1||!cout1||!u1){alert('Complete: unidad, fechas de entrada y salida.');return;}
+  if(!nombre){alert('El nombre del titular es obligatorio.');return;}
+  if(gv('f-tipo')!=='CANCELADA'&&new Date(cout1+'T00:00:00')<=new Date(cin1+'T00:00:00')){alert('La fecha de salida debe ser posterior a la entrada.');return;}
+  const n1=parseInt(gv('f-n1'))||0,p1=parseFloat(gv('f-p1'))||0;
+  const n2=parseInt(gv('f-n2'))||0,p2=parseFloat(gv('f-p2'))||0;
+  const total=(n1*p1)+(n2*p2);
+  if(gv('f-tipo')!=='CANCELADA'){
+    const noches=rango(cin1,cout1);const ocup=[];
+    window._db.forEach(r=>{
+      if(window._editId&&String(r.id)===window._editId)return;
+      if(r.tipo==='CANCELADA')return;
+      if(r.u1===u1)rango(r.cin1,r.cout1).forEach(n=>{if(noches.includes(n))ocup.push(n);});
+    });
+    if(ocup.length){
+      const lst=[...new Set(ocup)].sort().map(f=>f.split('-').reverse().join('/')).join(', ');
+      alert(`UNIDAD OCUPADA\n\n"${u1}" ya tiene reserva para:\n${lst}\n\nCambie fechas o elija otra unidad.`);return;
+    }
+  }
+  const idDoc=window._editId||String(Date.now());
+  const r={
+    id:idDoc,
+    nro:window._editId?parseInt(gv('f-nro')):window._cnt,
+    fecha:gv('f-fecha'),tipo:gv('f-tipo'),origen:gv('f-origen'),
+    cotizUsd:parseFloat(gv('f-cotiz-usd'))||0,fechaCanc:gv('f-fecha-canc'),
+    pnr:gv('f-pnr'),idDp:gv('f-id-dp'),pagoDp:gv('f-pago-dp'),
+    liqDp:gv('f-liq-dp'),fechaLiq:gv('f-fecha-liq'),fechaPresLiq:gv('f-fecha-pres-liq'),
+    sena:parseFloat(gv('f-sena'))||0,
+    pax:gv('f-pax'),nombre,dni:gv('f-dni'),email:gv('f-email'),telefono:gv('f-tel'),notas:gv('f-notas'),
+    u1,cin1,cout1,n1,p1,
+    u2:gv('f-alo2'),cin2:gv('f-ci2'),cout2:gv('f-co2'),n2,p2,total
+  };
+  if(!window._editId)window._cnt++;
+  const ok=await window.fireGuardar(r);
+  if(ok){
+    alert(window._editId?'✔ Reserva actualizada y sincronizada.':'✔ Reserva guardada y sincronizada.');
+    cancelarEdicion();goTo('sc-inicio');
+  }
+}
+
+async function eliminar(id){
+  const r=window._db.find(x=>String(x.id)===String(id));
+  if(!confirm(`¿Eliminar la reserva #${r?.nro} de ${r?.nombre}?\n\nSi fue cancelada, recomendamos marcarla como "Cancelada" en lugar de eliminar.`))return;
+  await window.fireEliminar(id);
+}
+
+// ===== CALENDARIO =====
+function mesCal(delta){
+  const inp=document.getElementById('cal-mes');
+  const[y,m]=inp.value.split('-').map(Number);
+  const nd=new Date(y,m-1+delta,1);
+  inp.value=`${nd.getFullYear()}-${String(nd.getMonth()+1).padStart(2,'0')}`;
+  renderCal();
+}
+function renderCal(){
+  const fm=gv('cal-mes');if(!fm)return;
+  const[ano,mes]=[parseInt(fm.split('-')[0]),parseInt(fm.split('-')[1])];
+  const dias=new Date(ano,mes,0).getDate();
+  const undsN=['Dpto. Mza 2','Dpto. Mza 3','Cabaña Grande','Cabaña Loft','Cabaña Std.','Dpto VLL'];
+  const undsF=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3','Cabaña grande','Cabaña Loft','Cabaña Standard','Departamento 4 pax VLL'];
+  const t=document.getElementById('cal-tabla');
+  let h=`<tr><th class="cu">Unidad</th>`;
+  for(let d=1;d<=dias;d++){
+    const fd=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(fd+'T00:00:00').getDay();
+    const dn=new Date(fd+'T00:00:00').toLocaleDateString('es-AR',{weekday:'short'}).substring(0,2);
+    h+=`<th class="${dow===0||dow===6?'we':''}">${dn}<br>${String(d).padStart(2,'0')}</th>`;
+  }
+  h+=`</tr>`;
+  const activos=window._db.filter(r=>r.tipo!=='CANCELADA');
+  undsF.forEach((uf,ui)=>{
+    h+=`<tr><td class="cu-td">${undsN[ui]}</td>`;
+    for(let d=1;d<=dias;d++){
+      const fd=`${ano}-${String(mes).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isOut=activos.find(r=>(r.u1===uf&&r.cout1===fd)||(r.u2===uf&&r.cout2===fd));
+      const isIn=activos.find(r=>(r.u1===uf&&r.cin1===fd)||(r.u2===uf&&r.cin2===fd));
+      const isCont=activos.find(r=>[...rango(r.u1===uf?r.cin1:'',r.u1===uf?r.cout1:''),...rango(r.u2===uf?(r.cin2||''):'',r.u2===uf?(r.cout2||''):'')].includes(fd));
+      if(isOut&&isIn){
+        h+=`<td style="background:linear-gradient(to bottom,#fef9c3 50%,#dcfce7 50%);border-top:2px solid #16a34a;border-bottom:2px solid #f59e0b"><div class="cel"><div class="cel-out">↑${isOut.nombre.split(' ')[0].substring(0,6)}</div><div class="cel-in">↓${isIn.nombre.split(' ')[0].substring(0,6)}</div></div></td>`;
+      } else if(isOut){
+        const bc=isOut.origen==='BOOKING'?'#dbeafe':isOut.origen==='DESPEGAR'?'#ede9fe':'#dcfce7';
+        h+=`<td style="background:${bc};border-bottom:2px solid #f59e0b"><div class="cel"><div class="cel-out">↑ SALE</div><div style="font-size:10px">${isOut.nombre.substring(0,8)}</div></div></td>`;
+      } else if(isIn){
+        const bc=isIn.origen==='BOOKING'?'#dbeafe':isIn.origen==='DESPEGAR'?'#ede9fe':'#dcfce7';
+        const saldo=(isIn.total||0)-(isIn.sena||0);
+        const orig=isIn.origen==='BOOKING'?'BK':isIn.origen==='DESPEGAR'?'DP':'DR';
+        h+=`<td style="background:${bc};border-top:2px solid #16a34a"><div class="cel"><div class="cel-in">↓ ENTRA</div><div style="font-size:10px;font-weight:600">${isIn.nombre.substring(0,8)}</div><div style="font-size:10px">${orig}·${isIn.pax}p</div><div style="font-size:10px;color:#b91c1c;font-weight:600">R:$${fmt(Math.max(0,saldo))}</div></div></td>`;
+      } else if(isCont){
+        const bc=isCont.origen==='BOOKING'?'#dbeafe':isCont.origen==='DESPEGAR'?'#ede9fe':'#dcfce7';
+        const saldo=(isCont.total||0)-(isCont.sena||0);
+        const orig=isCont.origen==='BOOKING'?'BK':isCont.origen==='DESPEGAR'?'DP':'DR';
+        h+=`<td style="background:${bc}"><div class="cel"><div class="cel-cont">${isCont.nombre.substring(0,8)}</div><div style="font-size:10px">${orig}·${isCont.pax}p</div><div style="font-size:10px;color:#b91c1c">R:$${fmt(Math.max(0,saldo))}</div></div></td>`;
+      } else {
+        h+=`<td><div class="cel-libre">·</div></td>`;
+      }
+    }
+    h+=`</tr>`;
+  });
+  t.innerHTML=h;
+}
+
+// ===== LISTADO =====
+function initListado(){
+  const fin=new Date(Date.now()+7*86400000).toISOString().split('T')[0];
+  sv('lst-desde',hoy());sv('lst-hasta',fin);renderListado();
+}
+function renderListado(){
+  const desde=gv('lst-desde'),hasta=gv('lst-hasta');if(!desde||!hasta)return;
+  const dias=[];let d=new Date(desde+'T00:00:00');const f=new Date(hasta+'T00:00:00');
+  while(d<=f){dias.push(d.toISOString().split('T')[0]);d.setDate(d.getDate()+1);}
+  const activos=window._db.filter(r=>r.tipo!=='CANCELADA');
+  let html='';
+  dias.forEach(dia=>{
+    const outs=activos.filter(r=>r.cout1===dia||(r.cout2&&r.cout2===dia));
+    const ins=activos.filter(r=>r.cin1===dia||(r.cin2&&r.cin2===dia));
+    if(!outs.length&&!ins.length)return;
+    html+=`<div class="day-card"><div class="day-head"><span>📅 ${fmtF(dia)} — ${new Date(dia+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long'})}</span><span>${ins.length} ingreso(s) · ${outs.length} salida(s)</span></div>`;
+    outs.forEach(r=>{
+      const u=r.cout2===dia?r.u2:r.u1;const saldo=(r.total||0)-(r.sena||0);
+      html+=`<div class="mov"><div class="mov-ico ico-out">↑</div><div><strong style="color:var(--wa)">SALIDA</strong> — <strong>${r.nombre}</strong> (${r.pax} pax)<br>
+        <span style="font-size:11px;color:var(--txt2)">${u} · ${badgeOrigen(r.origen).replace(/<[^>]+>/g,'')} · Check-In: ${fmtF(r.cin1)} → Check-Out: <strong>${fmtF(r.cout1)}</strong></span><br>
+        <span style="font-size:11px">Total: <strong>$${fmt(r.total)}</strong> · Seña: $${fmt(r.sena||0)} · <span style="color:${saldo>0?'#b91c1c':'#15803d'};font-weight:600">Saldo: $${fmt(Math.max(0,saldo))}</span></span>
+        ${r.notas?`<br><span style="font-size:11px;color:var(--txt3)">📝 ${r.notas}</span>`:''}
+      </div></div>`;
+    });
+    ins.forEach(r=>{
+      const u=r.cin2===dia?r.u2:r.u1;const saldo=(r.total||0)-(r.sena||0);
+      const alertaCobro=r.origen==='DESPEGAR'&&r.pagoDp==='HOTEL'&&saldo>0?`<span style="background:#fee2e2;color:#7f1d1d;font-weight:700;padding:1px 6px;border-radius:4px;font-size:11px;margin-left:6px">⚠ COBRAR $${fmt(saldo)} HOY</span>`:'';
+      html+=`<div class="mov"><div class="mov-ico ico-in">↓</div><div><strong style="color:var(--ok)">INGRESO</strong> — <strong>${r.nombre}</strong> (${r.pax} pax)<br>
+        <span style="font-size:11px;color:var(--txt2)">${u} · ${badgeOrigen(r.origen).replace(/<[^>]+>/g,'')} · Check-In: <strong>${fmtF(r.cin1)}</strong> → Check-Out: ${fmtF(r.cout1)}</span><br>
+        <span style="font-size:11px">Total: <strong>$${fmt(r.total)}</strong> · Seña: $${fmt(r.sena||0)} · <strong style="color:${saldo>0?'#b91c1c':'#15803d'}">Saldo: $${fmt(Math.max(0,saldo))}</strong>${alertaCobro}</span>
+        ${r.notas?`<br><span style="font-size:11px;color:var(--txt3)">📝 ${r.notas}</span>`:''}
+      </div></div>`;
+    });
+    html+=`</div>`;
+  });
+  document.getElementById('listado-body').innerHTML=html||'<p style="color:var(--txt3);padding:20px;text-align:center">No hay movimientos en ese período.</p>';
+}
+
+// ===== ESTADÍSTICAS =====
+function renderStats(){
+  const activos=window._db.filter(r=>r.tipo!=='CANCELADA');
+  const total=activos.reduce((a,r)=>a+(r.total||0),0);
+  const senas=activos.reduce((a,r)=>a+(r.sena||0),0);
+  const noches=activos.reduce((a,r)=>a+(r.n1||0)+(r.n2||0),0);
+  const pax=activos.reduce((a,r)=>a+parseInt(r.pax||0),0);
+  const canc=window._db.filter(r=>r.tipo==='CANCELADA');
+  document.getElementById('est-grid').innerHTML=`
+    <div class="stat"><div class="st-l">Facturación total</div><div class="st-v" style="font-size:16px">$${fmt(total)}</div><div class="st-s">ARS</div></div>
+    <div class="stat"><div class="st-l">Señas cobradas</div><div class="st-v" style="font-size:16px;color:var(--ok)">$${fmt(senas)}</div></div>
+    <div class="stat"><div class="st-l">Saldo por cobrar</div><div class="st-v" style="font-size:16px;color:var(--er)">$${fmt(total-senas)}</div></div>
+    <div class="stat"><div class="st-l">Noches vendidas</div><div class="st-v">${noches}</div></div>
+    <div class="stat"><div class="st-l">Total huéspedes</div><div class="st-v">${pax}</div></div>
+    <div class="stat"><div class="st-l">Promedio x noche</div><div class="st-v" style="font-size:16px">$${noches>0?fmt(total/noches):0}</div></div>
+    <div class="stat"><div class="st-l">Cancelaciones</div><div class="st-v" style="color:var(--er)">${canc.length}</div></div>`;
+  const unds=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3','Cabaña grande','Cabaña Loft','Cabaña Standard','Departamento 4 pax VLL'];
+  let hu='<thead><tr><th>Unidad</th><th>Reservas</th><th>Noches</th><th>Pax</th><th class="num">Facturado</th><th class="num">Prom/noche</th></tr></thead><tbody>';
+  unds.forEach(u=>{
+    const rs=activos.filter(r=>r.u1===u||r.u2===u);
+    const ns=rs.reduce((a,r)=>a+(r.u1===u?r.n1:(r.n2||0)),0);
+    const fa=rs.reduce((a,r)=>a+(r.u1===u?(r.n1||0)*(r.p1||0):(r.n2||0)*(r.p2||0)),0);
+    const px=rs.reduce((a,r)=>a+parseInt(r.pax||0),0);
+    hu+=`<tr><td style="font-size:11px">${u}</td><td>${rs.length}</td><td>${ns}</td><td>${px}</td><td class="num">$${fmt(fa)}</td><td class="num">$${ns>0?fmt(fa/ns):0}</td></tr>`;
+  });
+  document.getElementById('tbl-unds').innerHTML=hu+'</tbody>';
+  const origs={BOOKING:0,DESPEGAR:0,MANUAL:0,DIRECTO:0,AIRBNB:0};
+  activos.forEach(r=>{origs[r.origen]=(origs[r.origen]||0)+1;});
+  let ho='<thead><tr><th>Origen</th><th>Reservas</th><th>%</th></tr></thead><tbody>';
+  Object.entries(origs).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+    ho+=`<tr><td>${badgeOrigen(k)}</td><td>${v}</td><td>${activos.length?Math.round(v/activos.length*100):0}%</td></tr>`;
+  });
+  document.getElementById('tbl-orig').innerHTML=ho+'</tbody>';
+  let hc='<thead><tr><th>#</th><th>Titular</th><th>Unidad</th><th>Check-In</th><th>Check-Out</th><th>Fecha canc.</th><th class="num">Monto</th><th>Origen</th></tr></thead><tbody>';
+  canc.length?canc.forEach(r=>{hc+=`<tr><td>#${r.nro}</td><td>${r.nombre}</td><td style="font-size:11px">${r.u1}</td><td>${fmtF(r.cin1)}</td><td>${fmtF(r.cout1)}</td><td>${fmtF(r.fechaCanc)||'—'}</td><td class="num">$${fmt(r.total)}</td><td>${badgeOrigen(r.origen)}</td></tr>`;}):hc+='<tr><td colspan="8" class="empty">Sin cancelaciones registradas.</td></tr>';
+  document.getElementById('tbl-canc').innerHTML=hc+'</tbody>';
+  let hd='<thead><tr><th>#</th><th>Titular</th><th>Unidad</th><th>Check-In</th><th>Check-Out</th><th>Nts</th><th class="num">Total</th><th class="num">Seña</th><th class="num">Saldo</th></tr></thead><tbody>';
+  activos.filter(r=>r.tipo==='RESERVA CONFIRMADA').forEach(r=>{
+    hd+=`<tr><td>#${r.nro}</td><td>${r.nombre}</td><td style="font-size:11px">${r.u1}</td><td>${fmtF(r.cin1)}</td><td>${fmtF(r.cout1)}</td><td>${r.n1}</td><td class="num">$${fmt(r.total)}</td><td class="num" style="color:var(--ok)">$${fmt(r.sena||0)}</td><td class="num" style="color:var(--er)">$${fmt((r.total||0)-(r.sena||0))}</td></tr>`;
+  });
+  document.getElementById('tbl-stats-det').innerHTML=hd+'</tbody>';
+}
+
+// ===== DESPEGAR PANEL =====
+function renderDespegar(){
+  const dpR=window._db.filter(r=>r.origen==='DESPEGAR');
+  const dpA=dpR.filter(r=>r.tipo!=='CANCELADA');
+  const prep=dpA.filter(r=>r.pagoDp==='PREPAGO');
+  const hotel=dpA.filter(r=>r.pagoDp==='HOTEL');
+  const noLiq=prep.filter(r=>r.liqDp==='NO');
+  const totNoLiq=noLiq.reduce((a,r)=>a+(r.total||0)-(r.sena||0),0);
+  if(new Date().getDate()===4){
+    document.getElementById('dp-recordatorio').innerHTML=`<div class="recordatorio">⚠ <strong>HOY ES DÍA 4:</strong> Enviar liquidación Despegar. ${noLiq.length} reserva(s) prepago pendiente(s) por <strong>$${fmt(totNoLiq)}</strong> ARS.</div>`;
+  }
+  const llegHoy=hotel.filter(r=>r.cin1===hoy());
+  document.getElementById('dp-alertas').innerHTML=llegHoy.map(r=>
+    `<div class="alerta er">🔴 <div><strong>COBRAR HOY — ${r.nombre}</strong> · ${r.u1} · <strong>$${fmt((r.total||0)-(r.sena||0))}</strong> al ingreso</div></div>`
+  ).join('');
+  document.getElementById('dp-stats').innerHTML=`
+    <div class="stat"><div class="st-l">Reservas Despegar</div><div class="st-v">${dpA.length}</div></div>
+    <div class="stat"><div class="st-l">Prepago</div><div class="st-v" style="color:var(--bk)">${prep.length}</div></div>
+    <div class="stat"><div class="st-l">Cobro Hotel</div><div class="st-v" style="color:var(--wa)">${hotel.length}</div></div>
+    <div class="stat"><div class="st-l">Sin liquidar</div><div class="st-v" style="color:var(--er)">${noLiq.length}</div></div>
+    <div class="stat"><div class="st-l">Pendiente liquidación</div><div class="st-v" style="font-size:15px;color:var(--er)">$${fmt(totNoLiq)}</div></div>`;
+  const tb=document.getElementById('tbl-dp');
+  if(!dpR.length){tb.innerHTML='<tr><td colspan="15" class="empty">No hay reservas Despegar.</td></tr>';return;}
+  tb.innerHTML=dpR.map(r=>{
+    const saldo=(r.total||0)-(r.sena||0);
+    const est=r.tipo==='CANCELADA'?'<span class="badge b-canc">CANCELADA</span>':r.tipo==='RESERVA CONFIRMADA'?'<span class="badge b-ok">OK</span>':'<span class="badge b-pres">Pres.</span>';
+    const pago=r.pagoDp==='PREPAGO'?'<span class="badge b-pre">Prepago</span>':'<span class="badge b-hotel">Hotel</span>';
+    const liq=r.liqDp==='SI'?`<span class="badge b-liq">Liquidada</span><br><small>${fmtF(r.fechaLiq)}</small>`:'<span class="badge b-noliq">Pendiente</span>';
+    return`<tr class="${r.tipo==='CANCELADA'?'cancelada':''}">
+      <td><strong>#${r.nro}</strong><br>${est}</td>
+      <td>${r.pnr||'—'}</td><td>${r.idDp||'—'}</td>
+      <td><strong>${r.nombre}</strong></td>
+      <td style="font-size:11px">${r.u1}</td>
+      <td>${fmtF(r.cin1)}</td><td>${fmtF(r.cout1)}</td>
+      <td>${r.pax}</td><td>${pago}</td>
+      <td class="num">$${fmt(r.total)}</td>
+      <td class="num" style="color:var(--ok)">$${fmt(r.sena||0)}</td>
+      <td class="num" style="color:${saldo>0&&r.pagoDp==='HOTEL'?'var(--er)':'inherit'}"><strong>$${fmt(Math.max(0,saldo))}</strong>${r.pagoDp==='HOTEL'&&saldo>0&&r.tipo==='RESERVA CONFIRMADA'?'<br><small style="color:var(--er)">⚠ cobrar</small>':''}</td>
+      <td>${liq}</td>
+      <td style="font-size:11px">${fmtF(r.fechaPresLiq)||'—'}</td>
+      <td><button class="btn wa xs" onclick="editar('${r.id}')">✏ Editar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== VOUCHER =====
+function voucherById(id){
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  sv('f-nro',r.nro);sv('f-tipo',r.tipo);sv('f-fecha',r.fecha);sv('f-origen',r.origen);sv('f-cotiz-usd',r.cotizUsd||0);
+  sv('f-nombre',r.nombre);sv('f-dni',r.dni||'');sv('f-email',r.email||'');sv('f-tel',r.telefono||'');sv('f-pax',r.pax);
+  sv('f-alo1',r.u1);sv('f-ci1',r.cin1);sv('f-co1',r.cout1);sv('f-n1',r.n1);sv('f-p1',r.p1);
+  sv('f-alo2',r.u2||'');sv('f-ci2',r.cin2||'');sv('f-co2',r.cout2||'');sv('f-n2',r.n2||0);sv('f-p2',r.p2||'');
+  sv('f-sena',r.sena||0);calcTot();abrirVoucher();
+}
+function abrirVoucher(){
+  const n1=parseInt(gv('f-n1'))||0,p1=parseFloat(gv('f-p1'))||0;
+  const n2=parseInt(gv('f-n2'))||0,p2=parseFloat(gv('f-p2'))||0;
+  if(n1<=0){alert('Complete al menos el primer alojamiento con fechas.');return;}
+  const total=(n1*p1)+(n2*p2);const sena=parseFloat(gv('f-sena'))||0;const saldo=total-sena;
+  const origen=gv('f-origen');
+  const oc={BOOKING:{c:'b-bk',t:'✉ Booking.com'},DESPEGAR:{c:'b-dp',t:'✈ Despegar.com'},MANUAL:{c:'b-mn',t:'Reserva Manual'},DIRECTO:{c:'b-mn',t:'Reserva Directa'},AIRBNB:{c:'b-ok',t:'Airbnb'}};
+  const od=oc[origen]||{c:'b-mn',t:origen};
+  document.getElementById('v-tipo').textContent=gv('f-tipo');
+  document.getElementById('v-nombre').textContent=gv('f-nombre')||'Huésped';
+  document.getElementById('v-origen-badge').innerHTML=`<span class="badge ${od.c}">${od.t}</span>`;
+  document.getElementById('v-nro').textContent=gv('f-nro');
+  document.getElementById('v-fecha').textContent=fmtF(gv('f-fecha'));
+  document.getElementById('v-dni').textContent=gv('f-dni')||'—';
+  document.getElementById('v-email').textContent=gv('f-email')||'—';
+  document.getElementById('v-tel').textContent=gv('f-tel')||'—';
+  document.getElementById('v-pax').textContent=gv('f-pax')||'—';
+  const cotiz=parseFloat(gv('f-cotiz-usd'))||0;
+  const cr=document.getElementById('v-cotiz-row');
+  if(cotiz>0){cr.style.display='';document.getElementById('v-cotiz').textContent=fmt(cotiz);}else cr.style.display='none';
+  let rows=`<tr><td><strong>${gv('f-alo1')}</strong></td><td>${fmtF(gv('f-ci1'))}</td><td>${fmtF(gv('f-co1'))}</td><td>${n1}</td><td>$${fmt(p1)}</td><td style="text-align:right;font-weight:600">$${fmt(n1*p1)}</td></tr>`;
+  if(gv('f-alo2'))rows+=`<tr><td><strong>${gv('f-alo2')}</strong></td><td>${fmtF(gv('f-ci2'))}</td><td>${fmtF(gv('f-co2'))}</td><td>${n2}</td><td>$${fmt(p2)}</td><td style="text-align:right;font-weight:600">$${fmt(n2*p2)}</td></tr>`;
+  rows+=`<tr><td colspan="5" style="text-align:right;font-weight:700">Total general:</td><td style="text-align:right;font-weight:700;color:var(--pr);font-size:14px">$${fmt(total)}</td></tr>`;
+  document.getElementById('v-items').innerHTML=rows;
+  document.getElementById('v-sena30').textContent='ARS $ '+fmt(total*0.30);
+  let ph='';
+  if(sena>0)ph=`<div class="${saldo<=0?'pago-ok':'pago-pend'}"><strong>${saldo<=0?'✓ PAGO COMPLETO':'⚠ PAGO PARCIAL'}</strong><br>Seña recibida: <strong>$${fmt(sena)}</strong> · Saldo pendiente: <strong>$${fmt(Math.max(0,saldo))}</strong></div>`;
+  document.getElementById('v-pago-box').innerHTML=ph;
+  goTo('sc-voucher');
+}
+function imprimirVoucher(){
+  const cont=document.getElementById('v-wrap').innerHTML;
+  const w=window.open('','_blank','width=820,height=920');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Voucher - Mendoza Sol y Nieve</title>
+  <style>body{font-family:'Segoe UI',sans-serif;padding:20px;font-size:13px;color:#1f2937}
+  .voucher-wrap{max-width:730px;margin:0 auto;border:1px solid #cbd5e1;padding:22px;border-radius:8px}
+  .v-hdr{text-align:center;border-bottom:2px solid #0f4c81;padding-bottom:14px;margin-bottom:16px}
+  .v-title{font-size:15px;font-weight:700;letter-spacing:1px;color:#0f4c81;text-transform:uppercase}
+  .v-guest{font-size:18px;font-weight:700;color:#0f4c81}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+  .b-bk{background:#dbeafe;color:#1e3a8a}.b-dp{background:#ede9fe;color:#4c1d95}.b-mn{background:#f1f5f9;color:#334155}.b-ok{background:#dcfce7;color:#14532d}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+  th{background:#f1f5f9;padding:8px 10px;border:1px solid #e2e8f0;font-weight:600;text-align:left}
+  td{padding:7px 10px;border:1px solid #e2e8f0}
+  .notif-box{background:#fffbeb;border-left:4px solid #f59e0b;padding:12px 14px;margin-top:12px;font-size:12px;line-height:1.8}
+  .banco{margin-top:8px;padding-top:8px;border-top:1px dashed #d1d5db;font-size:11px;line-height:1.9}
+  .pago-ok{background:#f0fdf4;border-left:4px solid #16a34a;padding:10px 14px;margin-top:8px;font-size:12px}
+  .pago-pend{background:#fff1f2;border-left:4px solid #dc2626;padding:10px 14px;margin-top:8px;font-size:12px}
+  </style></head><body><div class="voucher-wrap">${cont}</div></body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),500);
+}
+function copiarWA(){
+  const n=gv('f-nombre'),nro=gv('f-nro'),u=gv('f-alo1');
+  const ci=fmtF(gv('f-ci1')),co=fmtF(gv('f-co1')),n1=parseInt(gv('f-n1'))||0;
+  const p1=parseFloat(gv('f-p1'))||0;const total=(n1*p1)+((parseInt(gv('f-n2'))||0)*(parseFloat(gv('f-p2'))||0));
+  const sena=parseFloat(gv('f-sena'))||0;
+  const txt=`☀ *MENDOZA SOL Y NIEVE*\n*Comprobante Reserva #${nro}*\n\nHola ${n}!\n\n• ${u}\n• Check-In: ${ci} → Check-Out: ${co} (${n1} noches)\n• Total: ARS $${fmt(total)}\n• Seña recibida: $${fmt(sena)}\n• Saldo: $${fmt(total-sena)}\n\n_Seña del 30%: $${fmt(total*0.3)}_\n📞 +54 9 261 654 3938`;
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Texto copiado para WhatsApp')).catch(()=>prompt('Copie este texto:',txt));
+}
+
+// ===== CHECK-IN =====
+function checkinById(id){
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  sv('f-ci1',r.cin1);sv('f-co1',r.cout1);sv('f-alo1',r.u1);
+  sv('f-nombre',r.nombre);sv('f-pax',r.pax);sv('f-nro',r.nro);sv('f-tel',r.telefono||'');sv('f-email',r.email||'');
+  abrirCheckin();
+}
+function abrirCheckin(){
+  if(!gv('f-ci1')){alert('Complete primero los datos de alojamiento.');return;}
+  sv('ci-nro',gv('f-nro'));sv('ci-nombre',gv('f-nombre'));sv('ci-alo',gv('f-alo1'));
+  sv('ci-cin',fmtF(gv('f-ci1')));sv('ci-cout',fmtF(gv('f-co1')));sv('ci-pax',gv('f-pax'));
+  sv('ci-f-nombre',gv('f-nombre'));sv('ci-f-tel',gv('f-tel'));sv('ci-f-email',gv('f-email'));
+  goTo('sc-checkin');
+}
+function imprimirCI(){
+  const cont=document.getElementById('ci-wrap').innerHTML;
+  const w=window.open('','_blank','width=760,height=880');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Check-In MSN</title>
+  <style>body{font-family:'Segoe UI',sans-serif;padding:22px;font-size:13px;color:#1f2937}
+  .ci-wrap{max-width:690px;margin:0 auto;border:1px solid #cbd5e1;padding:20px;border-radius:8px}
+  .ci-hdr{text-align:center;border-bottom:2px solid #0f4c81;padding-bottom:12px;margin-bottom:16px}
+  label{font-size:11px;font-weight:600;color:#4b5563;display:block;margin-bottom:2px}
+  input,textarea{padding:7px 9px;border:1px solid #d1d5db;border-radius:5px;font-size:12px;width:100%;box-sizing:border-box;margin-bottom:4px}
+  div[style*="grid"]{display:grid;grid-template-columns:1fr 1fr;gap:10px}textarea{min-height:70px}
+  </style></head><body><div class="ci-wrap">${cont}</div></body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),500);
+}
+function copiarWACI(){
+  const nro=document.getElementById('ci-nro').textContent;
+  const nombre=document.getElementById('ci-nombre').textContent;
+  const alo=document.getElementById('ci-alo').textContent;
+  const ci=document.getElementById('ci-cin').textContent;
+  const co=document.getElementById('ci-cout').textContent;
+  const txt=`☀ *MENDOZA SOL Y NIEVE*\n*Check-In Online — Reserva #${nro}*\n\nHola *${nombre}*! Su reserva está confirmada:\n🏠 ${alo}\n📅 Check-In: ${ci} (desde 14:00 hs)\n📅 Check-Out: ${co} (hasta 11:00 hs)\n\nAntes de llegar envienos:\n• DNI o Pasaporte\n• Fecha de nacimiento\n• Nacionalidad\n• Dirección\n• Patente del vehículo\n• Nombre de acompañantes\n\n📞 +54 9 261 654 3938 | mendozasolynieve.com.ar`;
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Texto copiado')).catch(()=>prompt('Copie:',txt));
+}
+function abrirEmailCI(){
+  const nro=document.getElementById('ci-nro').textContent;
+  const nombre=document.getElementById('ci-nombre').textContent;
+  const alo=document.getElementById('ci-alo').textContent;
+  const ci=document.getElementById('ci-cin').textContent;
+  const co=document.getElementById('ci-cout').textContent;
+  const email=gv('f-email');
+  const sub=encodeURIComponent(`Check-In Online - Reserva #${nro} - Mendoza Sol y Nieve`);
+  const body=encodeURIComponent(`Estimado/a ${nombre},\n\nSu reserva #${nro} en ${alo} del ${ci} al ${co} está confirmada.\n\nAntes de su llegada envienos:\n- DNI o Pasaporte\n- Fecha de nacimiento\n- Nacionalidad\n- Dirección de domicilio\n- Patente del vehículo\n- Nombres de acompañantes\n\nCheck-in desde las 14:00 hs · Check-out hasta las 11:00 hs\nConsultas: +54 9 261 654 3938\n\nMendoza Sol y Nieve\nmendozasolynieve.com.ar`);
+  window.open(`mailto:${email}?subject=${sub}&body=${body}`,'_blank');
+}
+
+// ===== IMPORTADORES =====
+function procesarBK(){
+  const txt=gv('txt-bk');if(!txt.trim()){alert('Pegue el texto del PDF.');return;}
+  const cot=parseFloat(gv('cot-bk'))||1;
+  try{
+    let nom='Booking Guest';
+    const mN=txt.match(/Nombre del cliente:\s*\n*([^\n\r]+)/i);
+    if(mN&&mN[1])nom=mN[1].replace(/Genius/g,'').trim();
+    let pax=2;
+    const mP=txt.match(/Número de huéspedes:\s*\n*(\d+)\s*adultos(?:,\s*(\d+)\s*niños)?/i);
+    if(mP)pax=(parseInt(mP[1])||0)+(parseInt(mP[2])||0);
+    let em='';const mE=txt.match(/([a-zA-Z0-9._-]+@guest\.booking\.com)/i);if(mE)em=mE[1];
+    const ms={jul:'07',ago:'08',sep:'09',oct:'10',nov:'11',dic:'12',ene:'01',feb:'02',mar:'03',abr:'04',may:'05',jun:'06'};
+    const pf=(d,m,a)=>`${a}-${ms[m.toLowerCase().substring(0,3)]||'01'}-${d.padStart(2,'0')}`;
+    const mCI=txt.match(/Check-in\s*\n*(?:[a-z]{3},\s*)?(\d{1,2})\s*([a-z]{3,4})\s*(\d{4})/i);
+    const mCO=txt.match(/Check-out\s*\n*(?:[a-z]{3},\s*)?(\d{1,2})\s*([a-z]{3,4})\s*(\d{4})/i);
+    if(mCI)sv('f-ci1',pf(mCI[1],mCI[2],mCI[3]));
+    if(mCO)sv('f-co1',pf(mCO[1],mCO[2],mCO[3]));
+    calcN(1);
+    const n=parseInt(gv('f-n1'))||1;
+    let pn=0;const mD=txt.match(/(?:us\$\s*|u\$s\s*|usd\s*)(\d+[\.,]?\d*)/i);
+    if(mD)pn=Math.round((parseFloat(mD[1].replace(/[.,]/g,''))||0)*cot/n);
+    sv('f-nombre',nom);sv('f-pax',pax);sv('f-email',em);
+    sv('f-tipo','RESERVA CONFIRMADA');sv('f-origen','BOOKING');sv('f-cotiz-usd',cot);
+    if(pn>0)sv('f-p1',pn);
+    calcTot();sv('txt-bk','');
+    document.getElementById('blk-bk').style.display='none';
+    alert(`✔ Reserva de ${nom} extraída con éxito.`);
+  }catch(e){alert('No se pudo extraer. Verifique el texto.');}
+}
+
+function procesarDP(){
+  const txt=gv('txt-dp');if(!txt.trim()){alert('Pegue la fila del Excel de Despegar.');return;}
+  const cot=parseFloat(gv('cot-dp'))||1;
+  try{
+    const cols=txt.split('\t').map(c=>c.trim());
+    if(cols.length<10){alert('Copie la fila completa del Excel (clic en número de fila).');return;}
+    const convISO=s=>{if(!s)return'';const p=s.split('/');return p.length===3?`${p[2].length===2?'20'+p[2]:p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`:''};
+    const ci=convISO(cols[7]||'');
+    const co=convISO(cols[8]||'');
+    const noEx=parseInt(cols[6])||1;
+    const pnr=cols[0]||'';const idDpVal=cols[1]||'';
+    const estadoCrudo=cols[11]||'Confirmada';
+    const moneda=(cols[13]||'ARS').toUpperCase();
+    const montoCrudo=cols[19]||'0';
+    const titular=cols[22]||'Pasajero Despegar';
+    const room=(cols[24]||'').toLowerCase();
+    const pagoRaw=(cols[12]||cols[15]||'').toLowerCase();
+    const esPrepago=pagoRaw.includes('prepago')||pagoRaw.includes('línea')||pagoRaw.includes('linea')||pagoRaw.includes('contratar');
+    let alo='Cabaña Standard';
+    if(room.includes('loft'))alo='Cabaña Loft';
+    else if(room.includes('delux')||room.includes('grande'))alo='Cabaña grande';
+    else if(room.includes('ciudad 2')||room.includes('depto 2'))alo='Departamento Ciudad de Mendoza 2';
+    else if(room.includes('ciudad 3')||room.includes('depto 3'))alo='Departamento Ciudad de Mendoza 3';
+    else if(room.includes('vll')||room.includes('4 pax'))alo='Departamento 4 pax VLL';
+    let nm=montoCrudo.replace(/[^0-9.,]/g,'');
+    if(nm.includes(',')&&nm.includes('.'))nm=nm.replace(/\./g,'').replace(',','.');
+    else if(nm.includes(','))nm=nm.replace(',','.');
+    let tot=parseFloat(nm)||0;
+    const esUSD=moneda.includes('USD')||moneda.includes('U$S');
+    if(esUSD)tot*=cot;
+    const tipoDoc=estadoCrudo.toLowerCase().includes('cancel')||estadoCrudo.toLowerCase().includes('rechaz')?'CANCELADA':'RESERVA CONFIRMADA';
+    cancelarEdicion();
+    sv('f-pnr',pnr);sv('f-id-dp',idDpVal);
+    sv('f-nombre',titular);sv('f-tipo',tipoDoc);sv('f-origen','DESPEGAR');
+    sv('f-pago-dp',esPrepago?'PREPAGO':'HOTEL');
+    sv('f-cotiz-usd',esUSD?cot:0);
+    sv('f-alo1',alo);
+    if(ci)sv('f-ci1',ci);if(co)sv('f-co1',co);
+    calcN(1);
+    const noches=parseInt(gv('f-n1'))||noEx;
+    if(tot>0)sv('f-p1',Math.round(tot/noches));
+    calcTot();
+    sv('f-nro',window._cnt);
+    document.getElementById('blk-dp-ext').style.display='block';
+    sv('txt-dp','');
+    document.getElementById('blk-dp').style.display='none';
+    alert(`✔ Datos inyectados.\nTitular: ${titular}\nPago: ${esPrepago?'PREPAGO':'Cobro en Hotel'}\nMoneda: ${moneda}`);
+  }catch(e){alert('Error al procesar. Asegúrese de copiar la fila entera del Excel.');}
+}
+
+// ===== EXPORTAR CSV =====
+function exportarCSV(){
+  if(!window._db.length){alert('No hay datos.');return;}
+  let c='data:text/csv;charset=utf-8,\uFEFFNro;Fecha;Tipo;Origen;PNR;ID_Despegar;Titular;DNI;Pax;Email;Tel;Unidad1;CheckIn1;CheckOut1;Noches1;PrecioN1;Unidad2;CheckIn2;CheckOut2;Noches2;PrecioN2;Total;Sena;Saldo;CotizUSD;PagoDP;LiqDP;FechaLiq;FechaPresLiq;FechaCanc;Notas\r\n';
+  window._db.forEach(r=>{c+=`${r.nro};${r.fecha};${r.tipo};${r.origen};${r.pnr||''};${r.idDp||''};${r.nombre};${r.dni||''};${r.pax};${r.email||''};${r.telefono||''};${r.u1};${r.cin1};${r.cout1};${r.n1};${r.p1};${r.u2||''};${r.cin2||''};${r.cout2||''};${r.n2||0};${r.p2||0};${r.total};${r.sena||0};${(r.total||0)-(r.sena||0)};${r.cotizUsd||0};${r.pagoDp||''};${r.liqDp||''};${r.fechaLiq||''};${r.fechaPresLiq||''};${r.fechaCanc||''};${r.notas||''}\r\n`;});
+  const a=document.createElement('a');a.href=encodeURI(c);a.download='MSN_Reservas_'+hoy()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+</script>
+</body>
+</html>
