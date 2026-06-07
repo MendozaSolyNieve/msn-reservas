@@ -1245,50 +1245,104 @@ function procesarDP(){
   const cot=parseFloat(gv('cot-dp'))||1;
   try{
     const cols=txt.split('\t').map(c=>c.trim());
-    if(cols.length<10){alert('Copie la fila completa del Excel (clic en número de fila).');return;}
-    const convISO=s=>{if(!s)return'';const p=s.split('/');return p.length===3?`${p[2].length===2?'20'+p[2]:p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`:''};
-    const ci=convISO(cols[7]||'');
-    const co=convISO(cols[8]||'');
-    const noEx=parseInt(cols[6])||1;
-    const pnr=cols[0]||'';const idDpVal=cols[1]||'';
-    const estadoCrudo=cols[11]||'Confirmada';
-    const moneda=(cols[13]||'ARS').toUpperCase();
-    const montoCrudo=cols[19]||'0';
-    const titular=cols[22]||'Pasajero Despegar';
-    const room=(cols[24]||'').toLowerCase();
-    const pagoRaw=(cols[12]||cols[15]||'').toLowerCase();
-    const esPrepago=pagoRaw.includes('prepago')||pagoRaw.includes('línea')||pagoRaw.includes('linea')||pagoRaw.includes('contratar');
-    let alo='Cabaña Standard';
-    if(room.includes('loft'))alo='Cabaña Loft';
-    else if(room.includes('delux')||room.includes('grande'))alo='Cabaña grande';
+    if(cols.length<10){alert('Copie la fila completa del Excel (clic en numero de fila).');return;}
+
+    // MAPA EXACTO COLUMNAS DESPEGAR
+    // A=0 B=1 C=2 D=3 E=4 F=5 G=6 H=7 I=8 J=9 K=10 L=11 M=12
+    // N=13 O=14 P=15 Q=16 R=17 S=18 T=19 U=20 V=21 W=22 X=23
+    // Y=24 Z=25 AA=26 AB=27
+    const pnr       = cols[0]||'';
+    const idDpVal   = cols[1]||'';
+    const noEx      = parseInt(cols[6])||1;
+    const convISO=s=>{
+      if(!s)return'';
+      const p=s.split('/');
+      if(p.length===3){const a=p[2].length===2?'20'+p[2]:p[2];return a+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}
+      if(s.includes('-')&&s.length===10)return s;
+      return'';
+    };
+    const ci        = convISO(cols[7]||'');
+    const co        = convISO(cols[8]||'');
+    const estadoCrudo = cols[11]||'Confirmada';
+    const pagoHotelCol= (cols[12]||'').trim();
+    const moneda    = (cols[13]||'ARS').toUpperCase();
+    const tarifaNeta= cols[14]||'0';
+    const totalCobrar= cols[19]||'0';
+    const titular   = cols[24]||'Pasajero Despegar';
+    const room      = (cols[26]||'').toLowerCase();
+
+    // TIPO DE PAGO
+    // Col M (idx 12) = "Pago al hotel": si tiene monto => cobro en hotel, si vacio => prepago
+    const parseMonto=s=>{
+      let n=(s||'0').replace(/[^0-9.,]/g,'');
+      if(n.includes(',')&&n.includes('.'))n=n.replace(/\./g,'').replace(',','.');
+      else if(n.includes(','))n=n.replace(',','.');
+      return parseFloat(n)||0;
+    };
+    const montoHotel=parseMonto(pagoHotelCol);
+    const esPrepago=(montoHotel===0 && pagoHotelCol==='');
+
+    // ALOJAMIENTO desde col AA (idx 26)
+    let alo='Cabana Standard';
+    if(room.includes('loft'))alo='Cabana Loft';
+    else if(room.includes('delux')||room.includes('grande'))alo='Cabana grande';
     else if(room.includes('ciudad 2')||room.includes('depto 2'))alo='Departamento Ciudad de Mendoza 2';
     else if(room.includes('ciudad 3')||room.includes('depto 3'))alo='Departamento Ciudad de Mendoza 3';
     else if(room.includes('vll')||room.includes('4 pax'))alo='Departamento 4 pax VLL';
-    let nm=montoCrudo.replace(/[^0-9.,]/g,'');
-    if(nm.includes(',')&&nm.includes('.'))nm=nm.replace(/\./g,'').replace(',','.');
-    else if(nm.includes(','))nm=nm.replace(',','.');
-    let tot=parseFloat(nm)||0;
-    const esUSD=moneda.includes('USD')||moneda.includes('U$S');
-    if(esUSD)tot*=cot;
+    // Restaurar nombre con tilde
+    alo=alo.replace('Cabana','Caba\u00f1a');
+
+    // MONTO: primero Total a cobrar (col T), si 0 usar Tarifa neta (col O)
+    let tot=parseMonto(totalCobrar);
+    if(tot===0)tot=parseMonto(tarifaNeta);
+
+    // CONVERSION MONEDA
+    // ARS => usar directo. USD => multiplicar por cotizacion ingresada
+    const esUSD=moneda.includes('USD')||moneda.includes('U$S')||moneda.includes('DOL');
+    const cotizUsada=esUSD?cot:0;
+    if(esUSD)tot=tot*cot;
+
+    // ESTADO
     const tipoDoc=estadoCrudo.toLowerCase().includes('cancel')||estadoCrudo.toLowerCase().includes('rechaz')?'CANCELADA':'RESERVA CONFIRMADA';
+
+    // INYECTAR - cancelar primero, luego asignar todo
     cancelarEdicion();
-    sv('f-pnr',pnr);sv('f-id-dp',idDpVal);
-    sv('f-nombre',titular);sv('f-tipo',tipoDoc);sv('f-origen','DESPEGAR');
+    sv('f-pnr',pnr);
+    sv('f-id-dp',idDpVal);
+    sv('f-tipo',tipoDoc);
+    sv('f-origen','DESPEGAR');
     sv('f-pago-dp',esPrepago?'PREPAGO':'HOTEL');
-    sv('f-cotiz-usd',esUSD?cot:0);
+    sv('f-cotiz-usd',cotizUsada);
     sv('f-alo1',alo);
-    if(ci)sv('f-ci1',ci);if(co)sv('f-co1',co);
+    if(ci)sv('f-ci1',ci);
+    if(co)sv('f-co1',co);
     calcN(1);
     const noches=parseInt(gv('f-n1'))||noEx;
     if(tot>0)sv('f-p1',Math.round(tot/noches));
     calcTot();
     sv('f-nro',window._cnt);
+    // NOMBRE al final - evita que cancelarEdicion lo borre
+    sv('f-nombre',titular);
     document.getElementById('blk-dp-ext').style.display='block';
     sv('txt-dp','');
     document.getElementById('blk-dp').style.display='none';
-    alert(`✔ Datos inyectados.\nTitular: ${titular}\nPago: ${esPrepago?'PREPAGO':'Cobro en Hotel'}\nMoneda: ${moneda}`);
-  }catch(e){alert('Error al procesar. Asegúrese de copiar la fila entera del Excel.');}
+    const msg='Datos de Despegar inyectados\n\n'+
+      'Titular: '+titular+'\n'+
+      'Check-In: '+(ci||'no detectado')+'\n'+
+      'Check-Out: '+(co||'no detectado')+'\n'+
+      'Noches: '+noches+'\n'+
+      'Moneda: '+moneda+(esUSD?' => ARS x $'+cot:' (pesos, sin conversion)')+'\n'+
+      'Total: ARS $'+fmt(tot)+'\n'+
+      'Valor x noche: ARS $'+fmt(Math.round(tot/noches))+'\n'+
+      'Pago: '+(esPrepago?'PREPAGO (Despegar cobra)':'COBRO EN HOTEL')+'\n'+
+      'Alojamiento: '+alo;
+    alert(msg);
+  }catch(e){
+    console.error(e);
+    alert('Error: '+e.message+'\nAsegurese de copiar la fila entera del Excel.');
+  }
 }
+
 
 // ===== EXPORTAR CSV =====
 function exportarCSV(){
