@@ -1211,34 +1211,171 @@ function abrirEmailCI(){
 
 // ===== IMPORTADORES =====
 function procesarBK(){
-  const txt=gv('txt-bk');if(!txt.trim()){alert('Pegue el texto del PDF.');return;}
+  const txt=gv('txt-bk');if(!txt.trim()){alert('Pegue la fila del Excel de Booking o el texto del PDF.');return;}
   const cot=parseFloat(gv('cot-bk'))||1;
   try{
-    let nom='Booking Guest';
-    const mN=txt.match(/Nombre del cliente:\s*\n*([^\n\r]+)/i);
-    if(mN&&mN[1])nom=mN[1].replace(/Genius/g,'').trim();
-    let pax=2;
-    const mP=txt.match(/Número de huéspedes:\s*\n*(\d+)\s*adultos(?:,\s*(\d+)\s*niños)?/i);
-    if(mP)pax=(parseInt(mP[1])||0)+(parseInt(mP[2])||0);
-    let em='';const mE=txt.match(/([a-zA-Z0-9._-]+@guest\.booking\.com)/i);if(mE)em=mE[1];
-    const ms={jul:'07',ago:'08',sep:'09',oct:'10',nov:'11',dic:'12',ene:'01',feb:'02',mar:'03',abr:'04',may:'05',jun:'06'};
-    const pf=(d,m,a)=>`${a}-${ms[m.toLowerCase().substring(0,3)]||'01'}-${d.padStart(2,'0')}`;
-    const mCI=txt.match(/Check-in\s*\n*(?:[a-z]{3},\s*)?(\d{1,2})\s*([a-z]{3,4})\s*(\d{4})/i);
-    const mCO=txt.match(/Check-out\s*\n*(?:[a-z]{3},\s*)?(\d{1,2})\s*([a-z]{3,4})\s*(\d{4})/i);
-    if(mCI)sv('f-ci1',pf(mCI[1],mCI[2],mCI[3]));
-    if(mCO)sv('f-co1',pf(mCO[1],mCO[2],mCO[3]));
-    calcN(1);
-    const n=parseInt(gv('f-n1'))||1;
-    let pn=0;const mD=txt.match(/(?:us\$\s*|u\$s\s*|usd\s*)(\d+[\.,]?\d*)/i);
-    if(mD)pn=Math.round((parseFloat(mD[1].replace(/[.,]/g,''))||0)*cot/n);
-    sv('f-nombre',nom);sv('f-pax',pax);sv('f-email',em);
-    sv('f-tipo','RESERVA CONFIRMADA');sv('f-origen','BOOKING');sv('f-cotiz-usd',cot);
-    if(pn>0)sv('f-p1',pn);
-    calcTot();sv('txt-bk','');
-    document.getElementById('blk-bk').style.display='none';
-    alert(`✔ Reserva de ${nom} extraída con éxito.`);
-  }catch(e){alert('No se pudo extraer. Verifique el texto.');}
+    // Detectar si es fila de Excel (tiene tabulaciones) o texto plano de PDF
+    const esExcel=txt.includes('\t');
+
+    if(esExcel){
+      // ── MODO EXCEL .XLS ──
+      // MAPA EXACTO COLUMNAS BOOKING
+      // A=0  Numero de reserva
+      // B=1  Reservado por
+      // C=2  Nombre del cliente
+      // D=3  Entrada (Check-in)
+      // E=4  Salida (Check-out)
+      // F=5  Fecha de reserva
+      // G=6  Estado
+      // H=7  Habitaciones
+      // I=8  Personas
+      // J=9  Adultos
+      // K=10 Ninos
+      // L=11 Edades ninos
+      // M=12 Precio
+      // N=13 Comision %
+      // O=14 Importe comision
+      // P=15 Estado del pago
+      // Q=16 Metodo de pago
+      // R=17 Comentarios
+      // S=18 Booker country
+      // T=19 Motivo del viaje
+      // U=20 Dispositivo
+      // V=21 Tipo de unidad
+      // W=22 Duracion (noches)
+      // X=23 Fecha de cancelacion
+      // Y=24 Direccion
+      // Z=25 Numero de telefono
+      const cols=txt.split('\t').map(c=>c.trim());
+      if(cols.length<5){alert('La fila copiada tiene pocas columnas. Asegurese de copiar la fila completa.');return;}
+
+      const nroReserva = cols[0]||'';
+      const nombre     = (cols[2]||'Booking Guest').replace(/Genius/gi,'').trim();
+      const convISO=s=>{
+        if(!s)return'';
+        // DD/MM/AAAA
+        const p=s.split('/');
+        if(p.length===3){const a=p[2].length===2?'20'+p[2]:p[2];return a+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}
+        // AAAA-MM-DD ya ok
+        if(s.includes('-')&&s.length===10)return s;
+        // DD-MM-AAAA
+        const q=s.split('-');
+        if(q.length===3&&q[0].length<=2){const a=q[2].length===2?'20'+q[2]:q[2];return a+'-'+q[1].padStart(2,'0')+'-'+q[0].padStart(2,'0');}
+        return'';
+      };
+      const ci         = convISO(cols[3]||'');
+      const co         = convISO(cols[4]||'');
+      const estado     = (cols[6]||'').toLowerCase();
+      const habitacion = (cols[7]||'').toLowerCase();
+      const personas   = parseInt(cols[8])||0;
+      const adultos    = parseInt(cols[9])||0;
+      const ninos      = parseInt(cols[10])||0;
+      const pax        = personas>0?personas:(adultos+ninos>0?adultos+ninos:1);
+      const noches     = parseInt(cols[22])||0;
+      const telefono   = cols[25]||'';
+      const fechaCanc  = convISO(cols[23]||'');
+
+      // PRECIO: col M (idx 12)
+      const parseMonto=s=>{
+        let n=(s||'0').replace(/[^0-9.,\-]/g,'');
+        if(n.includes(',')&&n.includes('.'))n=n.replace(/\./g,'').replace(',','.');
+        else if(n.includes(','))n=n.replace(',','.');
+        return parseFloat(n)||0;
+      };
+      let precio=parseMonto(cols[12]||'0');
+
+      // MONEDA: detectar si el precio viene en USD
+      const precioRaw=(cols[12]||'').toUpperCase();
+      const esUSD=precioRaw.includes('USD')||precioRaw.includes('US$')||precioRaw.includes('U$S');
+      const cotizUsada=esUSD?cot:0;
+      if(esUSD)precio=precio*cot;
+
+      // ALOJAMIENTO desde col H (Habitaciones) o col V (Tipo de unidad)
+      const tipoUnidad=(cols[21]||'').toLowerCase();
+      let alo='Cabana Standard';
+      const roomSrc=habitacion+' '+tipoUnidad;
+      if(roomSrc.includes('loft'))alo='Cabana Loft';
+      else if(roomSrc.includes('grande')||roomSrc.includes('delux'))alo='Cabana grande';
+      else if(roomSrc.includes('ciudad 2')||roomSrc.includes('depto 2')||roomSrc.includes('mendoza 2'))alo='Departamento Ciudad de Mendoza 2';
+      else if(roomSrc.includes('ciudad 3')||roomSrc.includes('depto 3')||roomSrc.includes('mendoza 3'))alo='Departamento Ciudad de Mendoza 3';
+      else if(roomSrc.includes('vll')||roomSrc.includes('4 pax'))alo='Departamento 4 pax VLL';
+      alo=alo.replace('Cabana','Caba\u00f1a');
+
+      // ESTADO
+      const tipoDoc=estado.includes('cancel')?'CANCELADA':estado.includes('no_show')||estado.includes('no show')?'CANCELADA':'RESERVA CONFIRMADA';
+
+      // VALOR POR NOCHE
+      const nochesCalc=noches>0?noches:1;
+      const valorNoche=precio>0?Math.round(precio/nochesCalc):0;
+
+      cancelarEdicion();
+      sv('f-origen','BOOKING');
+      sv('f-tipo',tipoDoc);
+      sv('f-cotiz-usd',cotizUsada);
+      if(fechaCanc)sv('f-fecha-canc',fechaCanc);
+      sv('f-alo1',alo);
+      if(ci)sv('f-ci1',ci);
+      if(co)sv('f-co1',co);
+      calcN(1);
+      if(valorNoche>0)sv('f-p1',valorNoche);
+      if(pax>0)sv('f-pax',pax);
+      if(telefono)sv('f-tel',telefono);
+      sv('f-tipo','RESERVA CONFIRMADA');
+      if(tipoDoc==='CANCELADA')sv('f-tipo','CANCELADA');
+      calcTot();
+      sv('f-nro',window._cnt);
+      // Nombre al final
+      sv('f-nombre',nombre);
+      sv('txt-bk','');
+      document.getElementById('blk-bk').style.display='none';
+
+      const msg='Reserva Booking importada desde Excel\n\n'+
+        'Nro Booking: '+nroReserva+'\n'+
+        'Titular: '+nombre+'\n'+
+        'Pax: '+pax+' ('+adultos+' adultos'+(ninos>0?', '+ninos+' ninos':'')+')'+'\n'+
+        'Check-In: '+(ci||'no detectado')+'\n'+
+        'Check-Out: '+(co||'no detectado')+'\n'+
+        'Noches: '+nochesCalc+'\n'+
+        'Moneda: '+(esUSD?'USD => ARS x $'+cot:'ARS directo')+'\n'+
+        'Total: ARS $'+fmt(precio)+'\n'+
+        'Valor x noche: ARS $'+fmt(valorNoche)+'\n'+
+        'Alojamiento: '+alo+'\n'+
+        'Estado: '+tipoDoc;
+      alert(msg);
+
+    } else {
+      // ── MODO TEXTO PLANO PDF (fallback) ──
+      let nom='Booking Guest';
+      const mN=txt.match(/Nombre del cliente:\s*\n*([^\n\r]+)/i);
+      if(mN&&mN[1])nom=mN[1].replace(/Genius/gi,'').trim();
+      let pax=2;
+      const mP=txt.match(/Numero de huespedes:\s*\n*(\d+)\s*adultos(?:,\s*(\d+)\s*ninos)?/i);
+      if(mP)pax=(parseInt(mP[1])||0)+(parseInt(mP[2])||0);
+      let em='';const mE=txt.match(/([a-zA-Z0-9._-]+@guest\.booking\.com)/i);if(mE)em=mE[1];
+      const ms={jul:'07',ago:'08',sep:'09',oct:'10',nov:'11',dic:'12',ene:'01',feb:'02',mar:'03',abr:'04',may:'05',jun:'06'};
+      const pf=(d,m,a)=>a+'-'+(ms[m.toLowerCase().substring(0,3)]||'01')+'-'+d.padStart(2,'0');
+      const mCI=txt.match(/Check-in\s*\n*(?:[a-z]{3},\s*)?(\d{1,2})\s*([a-z]{3,4})\s*(\d{4})/i);
+      const mCO=txt.match(/Check-out\s*\n*(?:[a-z]{3},\s*)?(\d{1,2})\s*([a-z]{3,4})\s*(\d{4})/i);
+      if(mCI)sv('f-ci1',pf(mCI[1],mCI[2],mCI[3]));
+      if(mCO)sv('f-co1',pf(mCO[1],mCO[2],mCO[3]));
+      calcN(1);
+      const n=parseInt(gv('f-n1'))||1;
+      let pn=0;
+      const mD=txt.match(/(?:us\$\s*|u\$s\s*|usd\s*)(\d+[\.,]?\d*)/i);
+      if(mD)pn=Math.round((parseFloat(mD[1].replace(/[.,]/g,''))||0)*cot/n);
+      sv('f-nombre',nom);sv('f-pax',pax);sv('f-email',em);
+      sv('f-tipo','RESERVA CONFIRMADA');sv('f-origen','BOOKING');sv('f-cotiz-usd',cot);
+      if(pn>0)sv('f-p1',pn);
+      calcTot();sv('txt-bk','');
+      document.getElementById('blk-bk').style.display='none';
+      alert('Reserva de '+nom+' extraida del PDF con exito.');
+    }
+  }catch(e){
+    console.error(e);
+    alert('Error: '+e.message+'\nAsegurese de copiar la fila entera del Excel o el texto completo del PDF.');
+  }
 }
+
 
 function procesarDP(){
   const txt=gv('txt-dp');if(!txt.trim()){alert('Pegue la fila del Excel de Despegar.');return;}
