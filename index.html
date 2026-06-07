@@ -576,7 +576,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
       <div class="fg" style="grid-column:1/-1"><label>Nombres de acompañantes</label><textarea id="ci-f-acomp" rows="3" style="width:100%;padding:6px;border:1px solid var(--bd2);border-radius:5px;font-size:12px"></textarea></div>
     </div>
     <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:10px 14px;font-size:11px;line-height:1.7;margin-bottom:10px">
-      <strong style="color:#c2410c">Info importante:</strong> Check-in desde las 14:00 hs · Check-out hasta las 11:00 hs · Consultas: +54 9 261 654 3938
+      <strong style="color:#c2410c">Info importante:</strong> Check-in desde las 14:00 hs · Check-out hasta las 10:00 hs · Consultas: +54 9 261 654 3938
     </div>
     <div style="text-align:center;font-size:11px;color:var(--txt3);border-top:1px solid var(--bd);padding-top:10px">
       Mendoza Sol y Nieve · Gral. Espejo 333, Mendoza · mendozasolynieve.com.ar
@@ -1194,7 +1194,7 @@ function copiarWACI(){
   const alo=document.getElementById('ci-alo').textContent;
   const ci=document.getElementById('ci-cin').textContent;
   const co=document.getElementById('ci-cout').textContent;
-  const txt=`☀ *MENDOZA SOL Y NIEVE*\n*Check-In Online — Reserva #${nro}*\n\nHola *${nombre}*! Su reserva está confirmada:\n🏠 ${alo}\n📅 Check-In: ${ci} (desde 14:00 hs)\n📅 Check-Out: ${co} (hasta 11:00 hs)\n\nAntes de llegar envienos:\n• DNI o Pasaporte\n• Fecha de nacimiento\n• Nacionalidad\n• Dirección\n• Patente del vehículo\n• Nombre de acompañantes\n\n📞 +54 9 261 654 3938 | mendozasolynieve.com.ar`;
+  const txt=`☀ *MENDOZA SOL Y NIEVE*\n*Check-In Online — Reserva #${nro}*\n\nHola *${nombre}*! Su reserva está confirmada:\n🏠 ${alo}\n📅 Check-In: ${ci} (desde 14:00 hs)\n📅 Check-Out: ${co} (hasta 10:00 hs)\n\nAntes de llegar envienos:\n• DNI o Pasaporte\n• Fecha de nacimiento\n• Nacionalidad\n• Dirección\n• Patente del vehículo\n• Nombre de acompañantes\n\n📞 +54 9 261 654 3938 | mendozasolynieve.com.ar`;
   navigator.clipboard.writeText(txt).then(()=>alert('✔ Texto copiado')).catch(()=>prompt('Copie:',txt));
 }
 function abrirEmailCI(){
@@ -1205,7 +1205,7 @@ function abrirEmailCI(){
   const co=document.getElementById('ci-cout').textContent;
   const email=gv('f-email');
   const sub=encodeURIComponent(`Check-In Online - Reserva #${nro} - Mendoza Sol y Nieve`);
-  const body=encodeURIComponent(`Estimado/a ${nombre},\n\nSu reserva #${nro} en ${alo} del ${ci} al ${co} está confirmada.\n\nAntes de su llegada envienos:\n- DNI o Pasaporte\n- Fecha de nacimiento\n- Nacionalidad\n- Dirección de domicilio\n- Patente del vehículo\n- Nombres de acompañantes\n\nCheck-in desde las 14:00 hs · Check-out hasta las 11:00 hs\nConsultas: +54 9 261 654 3938\n\nMendoza Sol y Nieve\nmendozasolynieve.com.ar`);
+  const body=encodeURIComponent(`Estimado/a ${nombre},\n\nSu reserva #${nro} en ${alo} del ${ci} al ${co} está confirmada.\n\nAntes de su llegada envienos:\n- DNI o Pasaporte\n- Fecha de nacimiento\n- Nacionalidad\n- Dirección de domicilio\n- Patente del vehículo\n- Nombres de acompañantes\n\nCheck-in desde las 14:00 hs · Check-out hasta las 10:00 hs\nConsultas: +54 9 261 654 3938\n\nMendoza Sol y Nieve\nmendozasolynieve.com.ar`);
   window.open(`mailto:${email}?subject=${sub}&body=${body}`,'_blank');
 }
 
