@@ -137,6 +137,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <button onclick="goTo('sc-despegar')" id="nb-despegar">✈ Despegar</button>
   <button onclick="goTo('sc-booking-liq')" id="nb-booking-liq">✉ Booking/Comisiones</button>
   <button onclick="goTo('sc-mucamas')" id="nb-mucamas">🧹 Mucamas</button>
+  <button onclick="goTo('sc-gastos')" id="nb-gastos">💰 Gastos</button>
 </div>
 
 <!-- INICIO -->
@@ -542,6 +543,209 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   </div>
 </div></div>
 
+<!-- GASTOS -->
+<div id="sc-gastos" class="sc"><div class="wrap">
+
+  <!-- FILTROS GLOBALES -->
+  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:12px 16px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+    <div class="fg"><label>Desde</label><input type="date" id="g-desde" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+    <div class="fg"><label>Hasta</label><input type="date" id="g-hasta" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+    <button class="btn pr" onclick="renderGastos()">📊 Ver resumen del período</button>
+    <button class="btn sm no-print" onclick="window.print()">🖨 Imprimir</button>
+  </div>
+
+  <!-- RESUMEN PERÍODO -->
+  <div id="g-resumen" style="margin-bottom:12px"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+    <!-- ═══ COMBUSTIBLE ═══ -->
+    <div class="card">
+      <div class="ch">⛽ Combustible</div>
+      <div class="cb">
+        <div style="background:var(--bg3);border-radius:6px;padding:10px;margin-bottom:10px;font-size:11px;line-height:1.8;border:1px solid var(--bd)">
+          <strong>Distancias configuradas:</strong><br>
+          Cabañas Potrerillos: <strong>80 km</strong> (160 km ida y vuelta)<br>
+          Departamentos Ciudad: <strong>8 km</strong> (16 km ida y vuelta)
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div class="fg"><label>Fecha del viaje</label><input type="date" id="g-comb-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Destino</label>
+            <select id="g-comb-destino" onchange="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+              <option value="cabanas">Cabañas Potrerillos (160 km)</option>
+              <option value="deptos">Departamentos Ciudad (16 km)</option>
+            </select>
+          </div>
+          <div class="fg"><label>Cant. viajes ese día</label><input type="number" id="g-comb-viajes" value="1" min="1" oninput="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Precio litro combustible (ARS)</label><input type="number" id="g-comb-litro" value="0" oninput="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Rendimiento vehículo (km/litro)</label><input type="number" id="g-comb-rend" value="12" oninput="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Costo estimado viaje</label><input type="text" id="g-comb-costo" readonly style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:#fef9c3;font-weight:700;color:var(--txt)"></div>
+        </div>
+        <div class="fg" style="margin-bottom:8px"><label>Observaciones</label><input type="text" id="g-comb-obs" placeholder="Ej: visita mucama + compras" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <button class="btn ok sm" onclick="agregarGasto('COMBUSTIBLE')">+ Agregar gasto</button>
+      </div>
+    </div>
+
+    <!-- ═══ LIMPIEZA ═══ -->
+    <div class="card">
+      <div class="ch">🧴 Artículos de limpieza</div>
+      <div class="cb">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="fg"><label>Fecha</label><input type="date" id="g-limp-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Destino</label>
+            <select id="g-limp-destino" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+              <option value="cabanas">Cabañas Potrerillos</option>
+              <option value="deptos">Departamentos Ciudad</option>
+              <option value="ambos">Ambos</option>
+            </select>
+          </div>
+          <div class="fg"><label>Monto total gastado (ARS)</label><input type="number" id="g-limp-monto" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:5px">Artículos comprados (marque los que aplican):</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px;font-size:12px">
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-ph"> Papel higiénico</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-rc"> Rollo de cocina</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-det"> Detergente</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-lav"> Lavandina</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-sh"> Shampoo</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-enj"> Enjuague capilar</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-sc"> Soda cáustica</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-jab"> Jabón de manos</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-fos"> Fósforos</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-lust"> Lustramuebles</label>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="gl-otros"> Otros:</label>
+          <input type="text" id="gl-otros-det" placeholder="especificar" style="padding:4px 8px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;background:var(--bg2);color:var(--txt)">
+        </div>
+        <button class="btn ok sm" onclick="agregarGasto('LIMPIEZA')">+ Agregar gasto</button>
+      </div>
+    </div>
+
+    <!-- ═══ GAS ═══ -->
+    <div class="card">
+      <div class="ch">🔥 Gas (garrafa/cilindro)</div>
+      <div class="cb">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="fg"><label>Fecha de carga</label><input type="date" id="g-gas-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Destino</label>
+            <select id="g-gas-destino" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+              <option value="cabanas">Cabañas Potrerillos</option>
+              <option value="deptos">Departamentos Ciudad</option>
+            </select>
+          </div>
+          <div class="fg"><label>Total kilos de gas</label><input type="number" id="g-gas-kg" value="0" oninput="calcGas()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Monto total pagado (ARS)</label><input type="number" id="g-gas-monto" value="0" oninput="calcGas()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Costo por kilo (ARS)</label><input type="text" id="g-gas-kg-precio" readonly style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:#fef9c3;font-weight:700;color:var(--txt)"></div>
+          <div class="fg"><label>Observaciones</label><input type="text" id="g-gas-obs" placeholder="Cabaña 15, 16, etc." style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        </div>
+        <button class="btn ok sm" onclick="agregarGasto('GAS')">+ Agregar gasto</button>
+      </div>
+    </div>
+
+    <!-- ═══ EXPENSAS ═══ -->
+    <div class="card">
+      <div class="ch">🏠 Expensas (Cabañas 15 y 16)</div>
+      <div class="cb">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="fg"><label>Mes / Año</label><input type="month" id="g-exp-mes" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Fecha vencimiento</label><input type="date" id="g-exp-venc" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Expensas Cabaña 15 (ARS)</label><input type="number" id="g-exp-c15" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Expensas Cabaña 16 (ARS)</label><input type="number" id="g-exp-c16" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Observaciones</label><input type="text" id="g-exp-obs" placeholder="Estado de pago, observaciones" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        </div>
+        <button class="btn ok sm" onclick="agregarGasto('EXPENSAS')">+ Agregar gasto</button>
+      </div>
+    </div>
+
+    <!-- ═══ IMPUESTOS Y FIJOS ═══ -->
+    <div class="card">
+      <div class="ch">📄 Impuestos y gastos fijos</div>
+      <div class="cb">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="fg"><label>Fecha</label><input type="date" id="g-imp-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Tipo de gasto</label>
+            <select id="g-imp-tipo" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+              <option value="IMP_MUNICIPAL">Impuesto Municipal</option>
+              <option value="IMP_PROVINCIAL">Impuesto Provincial</option>
+              <option value="INTERNET">Internet (Starlink)</option>
+              <option value="COMISION_BK">Comisión Booking</option>
+              <option value="COMISION_DP">Comisión Despegar</option>
+              <option value="OTRO">Otro gasto</option>
+            </select>
+          </div>
+          <div class="fg"><label>Destino / Propiedad</label>
+            <select id="g-imp-destino" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+              <option value="cabanas">Cabañas Potrerillos</option>
+              <option value="deptos">Departamentos Ciudad</option>
+              <option value="ambos">General / Ambos</option>
+            </select>
+          </div>
+          <div class="fg"><label>Monto (ARS)</label><input type="number" id="g-imp-monto" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Período / Referencia</label><input type="text" id="g-imp-ref" placeholder="Ej: Junio 2026, Nro. boleta" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Observaciones</label><input type="text" id="g-imp-obs" placeholder="Notas adicionales" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        </div>
+        <button class="btn ok sm" onclick="agregarGasto('IMPUESTO')">+ Agregar gasto</button>
+      </div>
+    </div>
+
+    <!-- ═══ OTROS GASTOS ═══ -->
+    <div class="card">
+      <div class="ch">📋 Otros gastos</div>
+      <div class="cb">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="fg"><label>Fecha</label><input type="date" id="g-otro-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Destino</label>
+            <select id="g-otro-destino" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+              <option value="cabanas">Cabañas Potrerillos</option>
+              <option value="deptos">Departamentos Ciudad</option>
+              <option value="ambos">General</option>
+            </select>
+          </div>
+          <div class="fg s2"><label>Descripción del gasto</label><input type="text" id="g-otro-desc" placeholder="Descripción detallada" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt);width:100%"></div>
+          <div class="fg"><label>Monto (ARS)</label><input type="number" id="g-otro-monto" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="fg"><label>Comprobante / Referencia</label><input type="text" id="g-otro-ref" placeholder="Nro. factura, ticket" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        </div>
+        <button class="btn ok sm" onclick="agregarGasto('OTRO')">+ Agregar gasto</button>
+      </div>
+    </div>
+
+  </div><!-- fin grid -->
+
+  <!-- LISTADO DE GASTOS -->
+  <div class="card" style="margin-top:12px">
+    <div class="ch">
+      <span>📋 Registro de gastos</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <select id="g-filtro-tipo" onchange="renderGastos()" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+          <option value="">Todos los tipos</option>
+          <option value="COMBUSTIBLE">Combustible</option>
+          <option value="LIMPIEZA">Limpieza</option>
+          <option value="GAS">Gas</option>
+          <option value="EXPENSAS">Expensas</option>
+          <option value="IMPUESTO">Impuestos/Fijos</option>
+          <option value="OTRO">Otros</option>
+        </select>
+        <select id="g-filtro-dest" onchange="renderGastos()" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+          <option value="">Todos los destinos</option>
+          <option value="cabanas">Cabañas</option>
+          <option value="deptos">Departamentos</option>
+          <option value="ambos">General</option>
+        </select>
+        <button class="btn sm no-print" onclick="exportarGastosCSV()">⬇ CSV</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>Fecha</th><th>Tipo</th><th>Destino</th><th>Descripción</th>
+          <th class="num">Monto ARS</th><th>Acciones</th>
+        </tr></thead>
+        <tbody id="tbl-gastos"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div></div><!-- fin sc-gastos -->
+
 </div><!-- fin app-main -->
 
 <!-- FIREBASE -->
@@ -675,6 +879,7 @@ function goTo(id){
   if(id==='sc-listado')initListado();
   if(id==='sc-inicio'){renderTabla();renderStatsHome();}
   if(id==='sc-despegar')renderDespegar();
+  if(id==='sc-gastos'){const d=new Date();document.getElementById('g-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('g-hasta').value=hoy();renderGastos();}
   if(id==='sc-mucamas'){const d=new Date();sv('muc-desde',d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01');sv('muc-hasta',hoy());}
 }
 
@@ -1835,6 +2040,218 @@ function sortTabla(campo){
   if(_sortField===campo)_sortDir*=-1;
   else{_sortField=campo;_sortDir=1;}
   renderTabla();
+}
+
+
+// ===== MÓDULO DE GASTOS =====
+// Gastos se guardan en Firebase colección "gastos"
+// window._gastos = array local
+
+window._gastos = [];
+window._mucamasData = window._mucamasData || null;
+
+// ── Calcular combustible ──
+function calcCombustible(){
+  const dest=document.getElementById('g-comb-destino')?.value||'cabanas';
+  const kmIV=dest==='cabanas'?160:16;
+  const viajes=parseFloat(document.getElementById('g-comb-viajes')?.value)||1;
+  const litro=parseFloat(document.getElementById('g-comb-litro')?.value)||0;
+  const rend=parseFloat(document.getElementById('g-comb-rend')?.value)||12;
+  const kmTotal=kmIV*viajes;
+  const litros=kmTotal/rend;
+  const costo=Math.round(litros*litro);
+  const el=document.getElementById('g-comb-costo');
+  if(el)el.value=costo>0?'ARS $'+fmt(costo)+' ('+litros.toFixed(1)+'L · '+kmTotal+'km)':'$0';
+}
+
+// ── Calcular gas ──
+function calcGas(){
+  const kg=parseFloat(document.getElementById('g-gas-kg')?.value)||0;
+  const monto=parseFloat(document.getElementById('g-gas-monto')?.value)||0;
+  const el=document.getElementById('g-gas-kg-precio');
+  if(el)el.value=kg>0?'$'+fmt(Math.round(monto/kg))+' / kg':'—';
+}
+
+// ── Agregar gasto ──
+async function agregarGasto(tipo){
+  const hd=hoy();
+  let gasto={id:String(Date.now()),tipo,fecha:hd,destino:'ambos',descripcion:'',monto:0,detalle:{}};
+
+  if(tipo==='COMBUSTIBLE'){
+    const dest=document.getElementById('g-comb-destino')?.value||'cabanas';
+    const kmIV=dest==='cabanas'?160:16;
+    const viajes=parseFloat(document.getElementById('g-comb-viajes')?.value)||1;
+    const litro=parseFloat(document.getElementById('g-comb-litro')?.value)||0;
+    const rend=parseFloat(document.getElementById('g-comb-rend')?.value)||12;
+    const monto=Math.round((kmIV*viajes/rend)*litro);
+    if(monto<=0){alert('Ingrese precio por litro y rendimiento.');return;}
+    gasto.fecha=document.getElementById('g-comb-fecha')?.value||hd;
+    gasto.destino=dest;
+    gasto.monto=monto;
+    gasto.descripcion='Combustible — '+(dest==='cabanas'?'Potrerillos':'Ciudad')+' · '+viajes+' viaje(s) · '+fmt(kmIV*viajes)+' km';
+    gasto.detalle={kmIV,viajes,litro,rend,kmTotal:kmIV*viajes};
+    const obs=document.getElementById('g-comb-obs')?.value||'';
+    if(obs)gasto.descripcion+=' · '+obs;
+  }
+  else if(tipo==='LIMPIEZA'){
+    const monto=parseFloat(document.getElementById('g-limp-monto')?.value)||0;
+    if(monto<=0){alert('Ingrese el monto.');return;}
+    gasto.fecha=document.getElementById('g-limp-fecha')?.value||hd;
+    gasto.destino=document.getElementById('g-limp-destino')?.value||'ambos';
+    gasto.monto=monto;
+    const arts=[];
+    const checks=[['gl-ph','Papel higiénico'],['gl-rc','Rollo cocina'],['gl-det','Detergente'],
+      ['gl-lav','Lavandina'],['gl-sh','Shampoo'],['gl-enj','Enjuague'],['gl-sc','Soda cáustica'],
+      ['gl-jab','Jabón manos'],['gl-fos','Fósforos'],['gl-lust','Lustramuebles']];
+    checks.forEach(([id,nom])=>{if(document.getElementById(id)?.checked)arts.push(nom);});
+    const otrosDet=document.getElementById('gl-otros-det')?.value||'';
+    if(document.getElementById('gl-otros')?.checked&&otrosDet)arts.push(otrosDet);
+    gasto.descripcion='Limpieza: '+(arts.length?arts.join(', '):'varios artículos');
+    gasto.detalle={articulos:arts};
+    // Limpiar checks
+    ['gl-ph','gl-rc','gl-det','gl-lav','gl-sh','gl-enj','gl-sc','gl-jab','gl-fos','gl-lust','gl-otros'].forEach(id=>{const e=document.getElementById(id);if(e)e.checked=false;});
+    const od=document.getElementById('gl-otros-det');if(od)od.value='';
+  }
+  else if(tipo==='GAS'){
+    const monto=parseFloat(document.getElementById('g-gas-monto')?.value)||0;
+    const kg=parseFloat(document.getElementById('g-gas-kg')?.value)||0;
+    if(monto<=0){alert('Ingrese el monto.');return;}
+    gasto.fecha=document.getElementById('g-gas-fecha')?.value||hd;
+    gasto.destino=document.getElementById('g-gas-destino')?.value||'cabanas';
+    gasto.monto=monto;
+    gasto.descripcion='Gas — '+kg+' kg · $'+fmt(kg>0?Math.round(monto/kg):0)+'/kg';
+    const obs=document.getElementById('g-gas-obs')?.value||'';
+    if(obs)gasto.descripcion+=' · '+obs;
+    gasto.detalle={kg,precioPorKg:kg>0?Math.round(monto/kg):0};
+    document.getElementById('g-gas-kg').value=0;
+    document.getElementById('g-gas-monto').value=0;
+    document.getElementById('g-gas-kg-precio').value='';
+  }
+  else if(tipo==='EXPENSAS'){
+    const c15=parseFloat(document.getElementById('g-exp-c15')?.value)||0;
+    const c16=parseFloat(document.getElementById('g-exp-c16')?.value)||0;
+    if(c15<=0&&c16<=0){alert('Ingrese al menos un monto de expensa.');return;}
+    const mes=document.getElementById('g-exp-mes')?.value||'';
+    const venc=document.getElementById('g-exp-venc')?.value||'';
+    gasto.fecha=mes?mes+'-01':hd;
+    gasto.destino='cabanas';
+    gasto.monto=c15+c16;
+    gasto.descripcion='Expensas '+(mes||'')+' — Cabaña 15: $'+fmt(c15)+' · Cabaña 16: $'+fmt(c16);
+    const obs=document.getElementById('g-exp-obs')?.value||'';
+    if(obs)gasto.descripcion+=' · '+obs;
+    gasto.detalle={c15,c16,vencimiento:venc};
+    document.getElementById('g-exp-c15').value=0;document.getElementById('g-exp-c16').value=0;
+  }
+  else if(tipo==='IMPUESTO'){
+    const monto=parseFloat(document.getElementById('g-imp-monto')?.value)||0;
+    if(monto<=0){alert('Ingrese el monto.');return;}
+    gasto.fecha=document.getElementById('g-imp-fecha')?.value||hd;
+    gasto.destino=document.getElementById('g-imp-destino')?.value||'ambos';
+    gasto.tipo=document.getElementById('g-imp-tipo')?.value||'IMPUESTO';
+    gasto.monto=monto;
+    const ref=document.getElementById('g-imp-ref')?.value||'';
+    const obs=document.getElementById('g-imp-obs')?.value||'';
+    const tipoNombre={IMP_MUNICIPAL:'Impuesto Municipal',IMP_PROVINCIAL:'Impuesto Provincial',INTERNET:'Internet Starlink',COMISION_BK:'Comisión Booking',COMISION_DP:'Comisión Despegar',OTRO:'Otro'}[gasto.tipo]||gasto.tipo;
+    gasto.descripcion=tipoNombre+(ref?' · '+ref:'')+(obs?' · '+obs:'');
+    document.getElementById('g-imp-monto').value=0;
+    document.getElementById('g-imp-ref').value='';
+    document.getElementById('g-imp-obs').value='';
+  }
+  else if(tipo==='OTRO'){
+    const monto=parseFloat(document.getElementById('g-otro-monto')?.value)||0;
+    const desc=document.getElementById('g-otro-desc')?.value||'';
+    if(monto<=0||!desc){alert('Ingrese descripción y monto.');return;}
+    gasto.fecha=document.getElementById('g-otro-fecha')?.value||hd;
+    gasto.destino=document.getElementById('g-otro-destino')?.value||'ambos';
+    gasto.monto=monto;
+    const ref=document.getElementById('g-otro-ref')?.value||'';
+    gasto.descripcion=desc+(ref?' · Ref: '+ref:'');
+    gasto.detalle={referencia:ref};
+    document.getElementById('g-otro-monto').value=0;
+    document.getElementById('g-otro-desc').value='';
+    document.getElementById('g-otro-ref').value='';
+  }
+
+  // Guardar en Firebase
+  try{
+    await window.fireGuardarGasto(gasto);
+    alert('✔ Gasto registrado: $'+fmt(gasto.monto));
+    renderGastos();
+  }catch(e){alert('Error al guardar: '+e.message);}
+}
+
+// ── Render listado gastos ──
+function renderGastos(){
+  const desde=document.getElementById('g-desde')?.value||'';
+  const hasta=document.getElementById('g-hasta')?.value||'';
+  const filtTipo=document.getElementById('g-filtro-tipo')?.value||'';
+  const filtDest=document.getElementById('g-filtro-dest')?.value||'';
+
+  let gastos=(window._gastos||[]).filter(g=>{
+    if(desde&&g.fecha&&g.fecha<desde)return false;
+    if(hasta&&g.fecha&&g.fecha>hasta)return false;
+    if(filtTipo&&g.tipo!==filtTipo)return false;
+    if(filtDest&&g.destino!==filtDest)return false;
+    return true;
+  });
+  gastos.sort((a,b)=>a.fecha>b.fecha?-1:1);
+
+  // Totales por categoría
+  const totCab=gastos.filter(g=>g.destino==='cabanas').reduce((a,g)=>a+g.monto,0);
+  const totDep=gastos.filter(g=>g.destino==='deptos').reduce((a,g)=>a+g.monto,0);
+  const totAmb=gastos.filter(g=>g.destino==='ambos').reduce((a,g)=>a+g.monto,0);
+  const totGen=gastos.reduce((a,g)=>a+g.monto,0);
+
+  // Por tipo
+  const porTipo={};
+  gastos.forEach(g=>{const k=g.tipo||'OTRO';porTipo[k]=(porTipo[k]||0)+g.monto;});
+
+  const tipoNombre={COMBUSTIBLE:'⛽ Combustible',LIMPIEZA:'🧴 Limpieza',GAS:'🔥 Gas',EXPENSAS:'🏠 Expensas',
+    IMP_MUNICIPAL:'📄 Imp.Municipal',IMP_PROVINCIAL:'📄 Imp.Provincial',INTERNET:'📡 Internet',
+    COMISION_BK:'✉ Com.Booking',COMISION_DP:'✈ Com.Despegar',IMPUESTO:'📄 Impuesto/Fijo',OTRO:'📋 Otros'};
+
+  const divRes=document.getElementById('g-resumen');
+  if(divRes&&(desde||hasta)){
+    let statsHtml='<div class="stats" style="margin-bottom:0">'+
+      '<div class="stat"><div class="st-l">Total período</div><div class="st-v" style="font-size:16px;color:var(--er)">$'+fmt(totGen)+'</div></div>'+
+      '<div class="stat"><div class="st-l">🏔 Cabañas</div><div class="st-v" style="font-size:16px;color:#b45309">$'+fmt(totCab)+'</div></div>'+
+      '<div class="stat"><div class="st-l">🏢 Departamentos</div><div class="st-v" style="font-size:16px;color:#1d4ed8">$'+fmt(totDep)+'</div></div>'+
+      '<div class="stat"><div class="st-l">General</div><div class="st-v" style="font-size:16px">$'+fmt(totAmb)+'</div></div>'+
+      Object.entries(porTipo).map(([k,v])=>'<div class="stat"><div class="st-l">'+(tipoNombre[k]||k)+'</div><div class="st-v" style="font-size:15px">$'+fmt(v)+'</div></div>').join('')+
+      '</div>';
+    divRes.innerHTML=statsHtml;
+  }
+
+  const destNombre={cabanas:'🏔 Cabañas',deptos:'🏢 Deptos',ambos:'🌐 General'};
+  const tb=document.getElementById('tbl-gastos');
+  if(!tb)return;
+  if(!gastos.length){tb.innerHTML='<tr><td colspan="6" class="empty">No hay gastos registrados en ese período.</td></tr>';return;}
+  tb.innerHTML=gastos.map(g=>{
+    const tn=tipoNombre[g.tipo]||g.tipo||'—';
+    const dn=destNombre[g.destino]||g.destino||'—';
+    return'<tr>'+
+      '<td>'+fmtF(g.fecha)+'</td>'+
+      '<td><span class="badge b-mn">'+tn+'</span></td>'+
+      '<td>'+dn+'</td>'+
+      '<td style="font-size:11px">'+g.descripcion+'</td>'+
+      '<td class="num" style="font-weight:600;color:var(--er)">$'+fmt(g.monto)+'</td>'+
+      '<td><button class="btn er xs" onclick="eliminarGasto(\''+g.id+'\')">🗑</button></td>'+
+    '</tr>';
+  }).join('');
+}
+
+async function eliminarGasto(id){
+  if(!confirm('¿Eliminar este gasto?'))return;
+  try{await window.fireEliminarGasto(id);renderGastos();}
+  catch(e){alert('Error: '+e.message);}
+}
+
+function exportarGastosCSV(){
+  const gastos=window._gastos||[];
+  if(!gastos.length){alert('No hay gastos.');return;}
+  let c='data:text/csv;charset=utf-8,\uFEFFID;Fecha;Tipo;Destino;Descripcion;Monto\r\n';
+  gastos.forEach(g=>{c+=g.id+';'+g.fecha+';'+g.tipo+';'+g.destino+';'+g.descripcion+';'+g.monto+'\r\n';});
+  const a=document.createElement('a');a.href=encodeURI(c);a.download='MSN_Gastos_'+hoy()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
 // ===== EXPORTAR CSV =====
