@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mendoza Sol y Nieve — Reservas</title>
+<style>
+:root{--pr:#0f4c81;--pr2:#0d3f6b;--ok:#15803d;--er:#b91c1c;--wa:#b45309;--bk:#1d4ed8;--dp:#6d28d9;--bd:#e2e8f0;--bd2:#cbd5e1;--txt:#1f2937;--txt2:#475569;--txt3:#94a3b8;--bg:#f1f5f9;--bg2:#ffffff;--bg3:#f8fafc;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--txt);font-size:13px}
+#sync-bar{position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;transition:.3s}
+#sync-bar.syncing{background:linear-gradient(90deg,#0f4c81,#f59e0b,#0f4c81);background-size:200%;animation:sa 1s linear infinite}
+#sync-bar.ok{background:#15803d}
+@keyframes sa{0%{background-position:0%}100%{background-position:200%}}
+#sync-status{position:fixed;bottom:12px;right:12px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;z-index:9998;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.dot{width:8px;height:8px;border-radius:50%;background:#94a3b8;flex-shrink:0}
+.dot.verde{background:#15803d}.dot.amarillo{background:#f59e0b;animation:pulse .8s infinite}.dot.rojo{background:#b91c1c}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--bd);padding:10px 18px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-top:3px}
+.brand{display:flex;align-items:center;gap:10px}
+.sun{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,#ffe066,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.bn{font-size:15px;font-weight:700;color:var(--pr)}.bs{font-size:11px;color:var(--txt3)}
+.nav{background:var(--bg2);border-bottom:1px solid var(--bd);padding:0 18px;display:flex;gap:2px;overflow-x:auto}
+.nav button{padding:10px 14px;border:none;border-bottom:3px solid transparent;background:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--txt2);white-space:nowrap;transition:.15s}
+.nav button:hover{color:var(--pr);background:var(--bg3)}.nav button.act{color:var(--pr);border-bottom-color:var(--pr);font-weight:700}
+.sc{display:none}.sc.on{display:block}
+.wrap{max-width:1280px;margin:0 auto;padding:14px}
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;margin-bottom:12px;overflow:hidden}
+.ch{padding:10px 16px;border-bottom:1px solid var(--bd);font-weight:600;font-size:12px;color:var(--pr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.cb{padding:14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:12px}
+.stat{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px}
+.st-l{font-size:11px;color:var(--txt3);margin-bottom:4px;font-weight:500}
+.st-v{font-size:22px;font-weight:700;line-height:1}.st-s{font-size:11px;color:var(--txt3);margin-top:3px}
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:var(--bg3);padding:8px 10px;font-size:11px;font-weight:600;border:1px solid var(--bd);color:var(--txt2);text-align:left;white-space:nowrap;cursor:pointer}
+.tbl th:hover{background:#e2e8f0}
+.tbl td{padding:7px 10px;border:1px solid var(--bd);vertical-align:middle}
+.tbl tr:hover td{background:#f0f7ff}.tbl tr.cancelada td{background:#fff1f2;opacity:.85}
+.empty{text-align:center;padding:28px;color:var(--txt3)}.num{text-align:right}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-ok{background:#dcfce7;color:#14532d}.b-pres{background:#fef3c7;color:#78350f}.b-canc{background:#fee2e2;color:#7f1d1d}
+.b-ns{background:#f3e8ff;color:#6b21a8}.b-bk{background:#dbeafe;color:#1e3a8a}.b-dp{background:#ede9fe;color:#4c1d95}
+.b-mn{background:#f1f5f9;color:#334155}.b-paid{background:#dcfce7;color:#14532d}.b-part{background:#fef3c7;color:#78350f}
+.b-nopay{background:#fee2e2;color:#7f1d1d}.b-pre{background:#dbeafe;color:#1e3a8a}.b-hotel{background:#fef3c7;color:#78350f}
+.b-liq{background:#dcfce7;color:#14532d}.b-noliq{background:#fef3c7;color:#78350f}
+.btn{padding:7px 13px;border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;background:var(--bg2);color:var(--txt);transition:.15s;display:inline-flex;align-items:center;gap:5px;line-height:1}
+.btn:hover{background:var(--bg3)}
+.btn.pr{background:var(--pr);color:#fff;border-color:var(--pr)}.btn.pr:hover{background:var(--pr2)}
+.btn.ok{background:var(--ok);color:#fff;border-color:var(--ok)}.btn.ok:hover{background:#166534}
+.btn.wa{background:var(--wa);color:#fff;border-color:var(--wa)}.btn.wa:hover{background:#92400e}
+.btn.er{background:var(--er);color:#fff;border-color:var(--er)}.btn.er:hover{background:#991b1b}
+.btn.bk{background:var(--bk);color:#fff;border-color:var(--bk)}.btn.bk:hover{background:#1e40af}
+.btn.dp{background:var(--dp);color:#fff;border-color:var(--dp)}.btn.dp:hover{background:#5b21b6}
+.btn.sm{padding:4px 9px;font-size:11px}.btn.xs{padding:3px 7px;font-size:10px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 14px;border-top:1px solid var(--bd);background:var(--bg3)}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg.s2{grid-column:span 2}.fg.s3{grid-column:span 3}
+.fg label{font-size:11px;font-weight:600;color:var(--txt2)}
+.fg input,.fg select,.fg textarea{padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt);width:100%}
+.fg input[readonly]{background:var(--bg3);color:var(--txt2)}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--pr);box-shadow:0 0 0 2px rgba(15,76,129,.12)}
+.total-f{background:#fef9c3!important;border-color:#d97706!important;font-weight:700!important}
+.sena-f{background:#dcfce7!important;border-color:#16a34a!important;font-weight:700!important}
+.saldo-f{background:#fee2e2!important;border-color:#dc2626!important;font-weight:700!important}
+.alo{border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--bg3)}
+.alo-h{font-size:12px;font-weight:600;color:var(--pr);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+.imp{border:1px solid;border-radius:8px;padding:14px;margin-bottom:10px;display:none}
+.imp.bk-i{border-color:#93c5fd;background:#eff6ff}.imp.dp-i{border-color:#c4b5fd;background:#f5f3ff}
+.imp h4{font-size:12px;font-weight:700;margin-bottom:6px}
+.imp p{font-size:11px;color:var(--txt2);margin-bottom:6px;line-height:1.5}
+.imp textarea{width:100%;padding:7px;border:1px solid var(--bd2);border-radius:5px;font-family:monospace;font-size:11px;min-height:70px;background:var(--bg2);color:var(--txt)}
+.cotiz{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;margin:6px 0;flex-wrap:wrap}
+.cotiz input{width:120px;padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)}
+.cotiz-show{background:#fef9c3;border:1px solid #d97706;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:600;color:#78350f}
+.cal-wrap{overflow-x:auto}
+.cal-tbl{border-collapse:collapse;font-size:11px;min-width:100%}
+.cal-tbl th{background:var(--bg3);padding:5px 4px;border:1px solid var(--bd);font-weight:600;min-width:72px;text-align:center;white-space:nowrap}
+.cal-tbl th.cu{min-width:155px;text-align:left;padding-left:10px;position:sticky;left:0;z-index:2;background:var(--bg3)}
+.cal-tbl td{border:1px solid var(--bd);vertical-align:top;min-width:72px;height:58px;padding:2px}
+.cu-td{font-weight:600;text-align:left!important;padding-left:10px!important;background:var(--bg3)!important;position:sticky;left:0;z-index:1;font-size:11px}
+.cel{font-size:10px;line-height:1.35;padding:2px 3px}
+.cel-out{color:#78350f;font-weight:700}.cel-in{color:#14532d;font-weight:700}.cel-cont{color:#1e3a8a;font-weight:600}
+.cel-libre{color:var(--txt3);font-size:10px;text-align:center;padding-top:12px}.we{color:#dc2626!important}
+.day-card{border:1px solid var(--bd);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.day-head{padding:8px 14px;background:var(--pr);color:#fff;font-weight:600;font-size:12px;display:flex;justify-content:space-between}
+.mov{padding:8px 12px;display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid var(--bd);font-size:12px}
+.mov:last-child{border-bottom:none}
+.mov-ico{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:1px}
+.ico-in{background:#dcfce7;color:#14532d}.ico-out{background:#fef3c7;color:#78350f}
+.alerta{background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:12px;line-height:1.6}
+.alerta.er{background:#fff1f2;border-color:#fecaca}
+.recordatorio{background:#fff7ed;border:2px solid #f59e0b;border-radius:8px;padding:12px 16px;margin-bottom:10px;font-size:12px;line-height:1.7}
+.voucher-wrap{background:#fff;border:1px solid var(--bd2);border-radius:8px;padding:22px;max-width:760px;margin:0 auto}
+.v-hdr{text-align:center;border-bottom:2px solid var(--pr);padding-bottom:14px;margin-bottom:16px}
+.v-title{font-size:15px;font-weight:700;letter-spacing:1px;color:var(--pr);text-transform:uppercase}
+.v-guest{font-size:18px;font-weight:700;color:var(--pr)}
+.notif-box{background:#fffbeb;border-left:4px solid #f59e0b;padding:12px 14px;margin-top:12px;font-size:12px;line-height:1.8}
+.notif-box strong{color:#c2410c;display:block;margin-bottom:3px}
+.banco{margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd2);font-size:11px;line-height:1.9}
+.pago-ok{background:#f0fdf4;border-left:4px solid #16a34a;padding:10px 14px;margin-top:8px;font-size:12px}
+.pago-pend{background:#fff1f2;border-left:4px solid #dc2626;padding:10px 14px;margin-top:8px;font-size:12px}
+.ci-wrap{background:#fff;border:1px solid var(--bd2);border-radius:8px;padding:20px;max-width:720px;margin:0 auto}
+.ci-hdr{text-align:center;border-bottom:2px solid var(--pr);padding-bottom:12px;margin-bottom:16px}
+#loading-screen{position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:12px}
+.sun-big{font-size:48px;animation:spin 2s linear infinite}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@media print{.nav,.topbar,.btn-row,.no-print,#sync-status,#sync-bar{display:none!important}.sc.on{display:block!important}body{background:white}.wrap{padding:0;max-width:100%}}
+@media(max-width:700px){.fgrid{grid-template-columns:1fr 1fr}.fg.s3{grid-column:1/-1}.stats{grid-template-columns:1fr 1fr}.nav button{padding:8px 10px;font-size:11px}}
+</style>
+</head>
+<body>
+<div id="sync-bar"></div>
+<div id="sync-status"><div class="dot amarillo" id="sync-dot"></div><span id="sync-txt">Conectando...</span></div>
+<div id="loading-screen">
+  <div class="sun-big">☀</div>
+  <p style="font-size:14px;color:#475569;font-weight:500">Mendoza Sol y Nieve</p>
+  <p style="font-size:11px;color:#94a3b8">Conectando con la base de datos...</p>
+  <button id="btn-retry" onclick="location.reload()" style="display:none;padding:10px 20px;background:#0f4c81;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;margin-top:8px">🔄 Reintentar</button>
+</div>
+<div id="app-main" style="display:none">
+<div class="topbar">
+  <div class="brand"><div class="sun">☀</div><div><div class="bn">Mendoza Sol y Nieve</div><div class="bs">Sistema de Gestión · Tiempo Real</div></div></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="btn sm no-print" onclick="exportarCSV()">⬇ CSV</button>
+    <span style="font-size:11px;color:var(--txt3)" class="no-print">+54 9 261 654 3938</span>
+  </div>
+</div>
+<div class="nav">
+  <button class="act" onclick="goTo('sc-inicio')" id="nb-inicio">🏠 Inicio</button>
+  <button onclick="goTo('sc-abm')" id="nb-abm">📋 ABM</button>
+  <button onclick="goTo('sc-cal')" id="nb-cal">📅 Plano</button>
+  <button onclick="goTo('sc-listado')" id="nb-listado">📋 Movimientos</button>
+  <button onclick="goTo('sc-stats')" id="nb-stats">📊 Estadísticas</button>
+  <button onclick="goTo('sc-despegar')" id="nb-despegar">✈ Despegar</button>
+  <button onclick="goTo('sc-booking-liq')" id="nb-booking-liq">✉ Booking</button>
+  <button onclick="goTo('sc-mucamas')" id="nb-mucamas">🧹 Mucamas</button>
+  <button onclick="goTo('sc-gastos')" id="nb-gastos">💰 Gastos</button>
+</div>
+
+<!-- INICIO -->
+<div id="sc-inicio" class="sc on"><div class="wrap">
+  <div id="alerta-dia4" style="display:none" class="recordatorio">⚠ <strong>DÍA 4 DEL MES:</strong> Enviar liquidación Despegar. <a href="#" onclick="goTo('sc-despegar')">Ver módulo Despegar</a></div>
+  <div id="alertas-cobro-hoy"></div>
+  <div style="position:sticky;top:86px;z-index:50;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 2px 6px rgba(0,0,0,.08)" class="no-print">
+    <button class="btn ok" onclick="goTo('sc-abm');abrirForm('MANUAL')" style="font-size:13px;padding:8px 16px">+ Nueva reserva</button>
+    <button class="btn bk sm" onclick="goTo('sc-abm');abrirForm('BOOKING')">✉ Booking</button>
+    <button class="btn dp sm" onclick="goTo('sc-abm');abrirForm('DESPEGAR')">✈ Despegar</button>
+    <span style="font-size:11px;color:var(--txt3);margin-left:4px">Última: <strong id="ultima-reserva">—</strong></span>
+  </div>
+  <div class="stats" id="stats-home"></div>
+  <div class="card">
+    <div class="ch"><span>📋 Reservas</span>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="busq" placeholder="Buscar..." oninput="renderTabla()" style="padding:5px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;width:160px;background:var(--bg2);color:var(--txt)">
+        <select id="filtro-estado" onchange="renderTabla()" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+          <option value="">Todos</option><option value="RESERVA CONFIRMADA">Confirmadas</option>
+          <option value="PRESUPUESTO">Presupuestos</option><option value="CANCELADA">Canceladas</option><option value="NO_SHOW">No Show</option>
+        </select>
+        <input type="date" id="filtro-desde" onchange="renderTabla()" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)" title="Check-in desde">
+        <input type="date" id="filtro-hasta" onchange="renderTabla()" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)" title="Check-in hasta">
+      </div>
+    </div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr>
+      <th onclick="sortTabla('nro')"># ⇅</th><th onclick="sortTabla('origen')">Origen ⇅</th>
+      <th onclick="sortTabla('fecha')">Emisión ⇅</th><th onclick="sortTabla('tipo')">Estado ⇅</th>
+      <th onclick="sortTabla('nombre')">Titular ⇅</th><th>País</th><th>Pax</th>
+      <th onclick="sortTabla('u1')">Unidad ⇅</th><th onclick="sortTabla('cin1')">Check-In ⇅</th>
+      <th onclick="sortTabla('cout1')">Check-Out ⇅</th><th>Nts</th>
+      <th class="num">USD</th><th class="num" onclick="sortTabla('total')">Total ARS ⇅</th>
+      <th>Seña/Saldo</th><th>Acciones</th>
+    </tr></thead><tbody id="tbl-body"></tbody></table></div>
+  </div>
+</div></div>
+
+<!-- ABM -->
+<div id="sc-abm" class="sc"><div class="wrap">
+  <div class="card">
+    <div class="ch"><span id="form-titulo">Nueva Reserva Manual</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn bk sm" onclick="abrirForm('BOOKING')">✉ Booking</button>
+        <button class="btn dp sm" onclick="abrirForm('DESPEGAR')">✈ Despegar</button>
+        <button class="btn sm" onclick="goTo('sc-inicio')">← Volver</button>
+      </div>
+    </div>
+    <div class="cb">
+      <!-- BOOKING -->
+      <div id="blk-bk" class="imp bk-i">
+        <h4 style="color:#1d4ed8">✉ Booking.com — Fila del Excel</h4>
+        <p>Abra el Excel de Booking, clic en el <strong>número de fila</strong>, Ctrl+C y pegue:</p>
+        <textarea id="txt-bk" placeholder="Pegue aquí la fila copiada del Excel de Booking..."></textarea>
+        <div class="cotiz">1 USD = <input type="number" id="cot-bk" value="1000" oninput="updCotiz('bk')"> ARS <span class="cotiz-show" id="cotiz-bk-show">$1.000</span></div>
+        <button class="btn bk" onclick="procesarBK()">🔄 Procesar e inyectar</button>
+      </div>
+      <!-- DESPEGAR -->
+      <div id="blk-dp" class="imp dp-i">
+        <h4 style="color:#6d28d9">✈ Despegar — Fila del Excel</h4>
+        <p>Clic en el <strong>número de fila</strong> en Excel, Ctrl+C y pegue:</p>
+        <textarea id="txt-dp" placeholder="Pegue aquí la fila del Excel de Despegar..."></textarea>
+        <div class="cotiz">1 USD = <input type="number" id="cot-dp" value="1460" oninput="updCotiz('dp')"> ARS <span class="cotiz-show" id="cotiz-dp-show">$1.460</span></div>
+        <button class="btn dp" onclick="procesarDP()">🔄 Procesar reserva</button>
+        <hr style="margin:10px 0;border-color:var(--bd2)">
+        <h4 style="color:#b91c1c;margin-bottom:5px">❌ Cancelación Despegar — Pegue el texto del email</h4>
+        <p>Copie todo el texto del email de cancelación y péguelo abajo:</p>
+        <textarea id="txt-dp-canc" rows="7" placeholder="Pegue aquí el texto del email de cancelación de Despegar..." style="border-color:#fca5a5;background:#fff1f2"></textarea>
+        <button class="btn er" onclick="procesarCancelacionDP()" style="margin-top:6px">❌ Procesar cancelación</button>
+      </div>
+
+      <!-- SECCIÓN 1: CONTROL -->
+      <div class="card" style="margin-bottom:8px"><div class="ch">1. Control de documento</div><div class="cb">
+        <div class="fgrid">
+          <div class="fg"><label>Nro. reserva</label><input type="number" id="f-nro" readonly></div>
+          <div class="fg"><label>Condición</label>
+            <select id="f-tipo">
+              <option value="PRESUPUESTO">Presupuesto</option>
+              <option value="RESERVA CONFIRMADA">Reserva Confirmada</option>
+              <option value="CANCELADA">Cancelada</option>
+              <option value="NO_SHOW">No Show</option>
+            </select>
+          </div>
+          <div class="fg"><label>Fecha emisión</label><input type="date" id="f-fecha"></div>
+          <div class="fg"><label>Origen</label>
+            <select id="f-origen">
+              <option value="MANUAL">Manual / Teléfono</option>
+              <option value="BOOKING">Booking.com</option>
+              <option value="DESPEGAR">Despegar.com</option>
+              <option value="DIRECTO">Directo / WhatsApp</option>
+              <option value="AIRBNB">Airbnb</option>
+            </select>
+          </div>
+          <div class="fg"><label>País del huésped</label><input type="text" id="f-pais" placeholder="Argentina, Chile..."></div>
+          <div class="fg"><label>Fecha cancelación / No-show</label><input type="date" id="f-fecha-canc"></div>
+          <div class="fg"><label>Reserva relacionada (si cancela)</label><input type="text" id="f-reserva-origen" placeholder="Nro. reserva original"></div>
+        </div>
+      </div></div>
+
+      <!-- SECCIÓN 1b: PRECIOS -->
+      <div class="card" style="margin-bottom:8px"><div class="ch">1b. Precios y cotización</div><div class="cb">
+        <div class="fgrid">
+          <div class="fg"><label>Moneda</label>
+            <select id="f-moneda-manual" onchange="toggleMonedaManual()">
+              <option value="ARS">ARS — Pesos argentinos</option>
+              <option value="USD">USD — Dólares</option>
+            </select>
+          </div>
+          <div class="fg"><label>Precio en USD (si aplica)</label><input type="number" id="f-precio-usd" placeholder="0" oninput="recalcularDesdeUSD()"></div>
+          <div class="fg"><label>Cotización USD usada (ARS)</label><input type="number" id="f-cotiz-usd" value="0" oninput="recalcularDesdeUSD()"></div>
+          <div class="fg"><label>% Comisión Booking</label><input type="number" id="f-comision-pct" value="0" oninput="calcComision()"></div>
+          <div class="fg"><label>Comisión ARS (calculada)</label><input type="text" id="f-comision-ars" readonly style="background:#fee2e2"></div>
+          <div class="fg"><label>Precio neto tras comisión</label><input type="text" id="f-precio-neto" readonly style="background:#dcfce7"></div>
+          <div class="fg"><label>Descuento móvil 15% (ARS)</label><input type="number" id="f-desc-movil" value="0" readonly style="background:#fef9c3"></div>
+          <div class="fg s2">
+            <label>Ingresar TOTAL estadía → calcula valor por noche</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="number" id="f-total-manual" placeholder="Total estadía en ARS" oninput="calcDesdeTotal()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt);flex:1">
+              <button type="button" class="btn sm pr" onclick="calcDesdeTotal()">÷ Calc. x noche</button>
+            </div>
+            <span id="f-total-manual-res" style="font-size:11px;color:var(--ok);margin-top:2px"></span>
+          </div>
+        </div>
+      </div></div>
+
+      <!-- SECCIÓN 2: ALOJAMIENTOS -->
+      <div class="card" style="margin-bottom:8px"><div class="ch">2. Alojamientos y períodos</div><div class="cb">
+        <div class="alo"><div class="alo-h">Primer alojamiento (obligatorio)</div>
+          <div class="fgrid">
+            <div class="fg s2"><label>Unidad</label>
+              <select id="f-alo1">
+                <option>Departamento Ciudad de Mendoza 2</option>
+                <option>Departamento Ciudad de Mendoza 3</option>
+                <option>Cabaña grande</option><option>Cabaña Loft</option>
+                <option>Cabaña Standard</option><option>Departamento 4 pax VLL</option>
+              </select>
+            </div>
+            <div class="fg"><label>Valor x noche (ARS)</label><input type="number" id="f-p1" oninput="calcTot()"></div>
+            <div class="fg"><label>Check-In</label><input type="date" id="f-ci1" onchange="calcN(1)"></div>
+            <div class="fg"><label>Check-Out</label><input type="date" id="f-co1" onchange="calcN(1)"></div>
+            <div class="fg"><label>Noches</label><input type="number" id="f-n1" readonly value="0"></div>
+          </div>
+        </div>
+        <div class="alo"><div class="alo-h">Segundo alojamiento (opcional)</div>
+          <div class="fgrid">
+            <div class="fg s2"><label>Unidad</label>
+              <select id="f-alo2" onchange="limpAlo2()">
+                <option value="">— No combina —</option>
+                <option>Departamento Ciudad de Mendoza 2</option>
+                <option>Departamento Ciudad de Mendoza 3</option>
+                <option>Cabaña grande</option><option>Cabaña Loft</option>
+                <option>Cabaña Standard</option><option>Departamento 4 pax VLL</option>
+              </select>
+            </div>
+            <div class="fg"><label>Valor x noche 2</label><input type="number" id="f-p2" oninput="calcTot()"></div>
+            <div class="fg"><label>Check-In 2</label><input type="date" id="f-ci2" onchange="calcN(2)"></div>
+            <div class="fg"><label>Check-Out 2</label><input type="date" id="f-co2" onchange="calcN(2)"></div>
+            <div class="fg"><label>Noches 2</label><input type="number" id="f-n2" readonly value="0"></div>
+          </div>
+        </div>
+      </div></div>
+
+      <!-- SECCIÓN 3: DATOS DESPEGAR -->
+      <div class="card" style="margin-bottom:8px"><div class="ch" style="background:#f5f3ff;color:#4c1d95">3. Datos Despegar (completar si es reserva Despegar)</div>
+        <div class="cb" id="blk-dp-ext">
+          <div class="fgrid">
+            <div class="fg"><label>PNR</label><input type="text" id="f-pnr" placeholder="Código PNR"></div>
+            <div class="fg"><label>ID Despegar</label><input type="text" id="f-id-dp"></div>
+            <div class="fg"><label>Tipo de pago</label>
+              <select id="f-pago-dp"><option value="HOTEL">Cobro en Hotel</option><option value="PREPAGO">Prepago Despegar</option></select>
+            </div>
+            <div class="fg"><label>¿Liquidada por Despegar?</label>
+              <select id="f-liq-dp"><option value="NO">No liquidada</option><option value="SI">Sí, liquidada</option></select>
+            </div>
+            <div class="fg"><label>Fecha liquidación</label><input type="date" id="f-fecha-liq"></div>
+            <div class="fg"><label>Fecha presentación liq.</label><input type="date" id="f-fecha-pres-liq"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 4: PASAJEROS -->
+      <div class="card" style="margin-bottom:8px"><div class="ch">4. Pasajeros, contacto y montos</div><div class="cb">
+        <div class="fgrid">
+          <div class="fg"><label>Cant. huéspedes</label><input type="number" id="f-pax" min="1"></div>
+          <div class="fg s2"><label>Nombre completo titular ★</label><input type="text" id="f-nombre" placeholder="Apellido y nombre"></div>
+          <div class="fg"><label>DNI / Pasaporte</label><input type="text" id="f-dni"></div>
+          <div class="fg"><label>Email</label><input type="email" id="f-email"></div>
+          <div class="fg"><label>Teléfono / WhatsApp</label><input type="tel" id="f-tel"></div>
+          <div class="fg"><label>Total estadía (ARS)</label><input type="text" id="f-total" readonly class="total-f"></div>
+          <div class="fg"><label>Seña recibida (ARS)</label><input type="number" id="f-sena" value="0" oninput="calcSaldo()" class="sena-f"></div>
+          <div class="fg"><label>Saldo pendiente</label><input type="text" id="f-saldo" readonly class="saldo-f"></div>
+          <div class="fg"><label>Fecha de la seña</label><input type="date" id="f-fecha-sena"></div>
+          <div class="fg"><label>Medio de cobro seña</label>
+            <select id="f-medio-sena"><option value="">—</option><option value="TRANSFERENCIA">Transferencia</option><option value="DEPOSITO">Depósito</option><option value="EFECTIVO">Efectivo</option><option value="MERCADOPAGO">Mercado Pago</option></select>
+          </div>
+          <div class="fg"><label>Referencia / Nro. operación</label><input type="text" id="f-ref-sena" placeholder="Nro. transacción"></div>
+          <div class="fg"><label>Cotización USD al ingreso</label><input type="number" id="f-cotiz-ingreso" value="0" placeholder="Para recalcular al ingreso"></div>
+          <div class="fg"><label>Medio de pago al ingreso</label>
+            <select id="f-medio-pago"><option value="">Pendiente</option><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option><option value="TARJETA">Tarjeta</option><option value="QR">QR/MP</option></select>
+          </div>
+          <div class="fg s3"><label>Comentarios del huésped / Observaciones</label><input type="text" id="f-notas" placeholder="Comentarios, pedidos especiales, observaciones internas"></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn pr" id="btn-guardar" onclick="guardar()">💾 Guardar</button>
+      <button class="btn" onclick="abrirVoucher()">🖨 Voucher</button>
+      <button class="btn ok" onclick="abrirCheckin()">✅ Check-in</button>
+      <button class="btn" onclick="copiarMsgSena()" title="Mensaje confirmación de seña">💳 Msg seña</button>
+      <button class="btn" onclick="copiarMsgIngreso()" title="Informe día de ingreso">📋 Msg ingreso</button>
+      <button class="btn" onclick="marcarIngresado()">✔ Marcar ingresado</button>
+      <button class="btn er" onclick="cancelarEdicion()">✕ Cancelar</button>
+    </div>
+  </div>
+</div></div>
+
+<!-- PLANO -->
+<div id="sc-cal" class="sc"><div class="wrap">
+  <div class="card">
+    <div class="ch"><span>📅 Plano de ocupación</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn sm" onclick="mesCal(-1)">◀</button>
+        <input type="month" id="cal-mes" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)" onchange="renderCal()">
+        <button class="btn sm" onclick="mesCal(1)">▶</button>
+        <button class="btn sm no-print" onclick="window.print()">🖨</button>
+      </div>
+    </div>
+    <div class="cb" style="padding:8px">
+      <div style="display:flex;gap:10px;margin-bottom:8px;font-size:11px;flex-wrap:wrap">
+        <span><span style="display:inline-block;width:12px;height:12px;background:#dbeafe;border:1px solid #93c5fd;border-radius:2px;vertical-align:middle"></span> Booking</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:2px;vertical-align:middle"></span> Despegar</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:#dcfce7;border:1px solid #86efac;border-radius:2px;vertical-align:middle"></span> Manual/Directo</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:#fef9c3;border-bottom:2px solid #f59e0b;vertical-align:middle"></span> Sale</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:#dcfce7;border-top:2px solid #16a34a;vertical-align:middle"></span> Entra</span>
+      </div>
+      <div class="cal-wrap"><table class="cal-tbl" id="cal-tabla"></table></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- MOVIMIENTOS -->
+<div id="sc-listado" class="sc"><div class="wrap">
+  <div class="card">
+    <div class="ch"><span>📋 Movimientos diarios</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:12px">Desde:</label><input type="date" id="lst-desde" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+        <label style="font-size:12px">Hasta:</label><input type="date" id="lst-hasta" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+        <button class="btn pr sm" onclick="renderListado()">🔍 Ver</button>
+        <button class="btn sm" onclick="copiarWAListado()">📱 WA Recepción</button>
+        <button class="btn sm no-print" onclick="window.print()">🖨</button>
+      </div>
+    </div>
+    <div class="cb" id="listado-body"></div>
+  </div>
+</div></div>
+
+<!-- ESTADÍSTICAS -->
+<div id="sc-stats" class="sc"><div class="wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+    <h2 style="color:var(--pr);font-size:15px">📊 Estadísticas</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <label style="font-size:12px">Desde:</label><input type="date" id="est-desde" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+      <label style="font-size:12px">Hasta:</label><input type="date" id="est-hasta" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+      <button class="btn pr sm" onclick="renderStats()">🔍 Calcular</button>
+      <button class="btn sm no-print" onclick="window.print()">🖨</button>
+    </div>
+  </div>
+  <div class="stats" id="est-grid"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+    <div class="card"><div class="ch">Por unidad</div><div class="tbl-wrap"><table class="tbl" id="tbl-unds"></table></div></div>
+    <div class="card"><div class="ch">Por origen</div><div class="tbl-wrap"><table class="tbl" id="tbl-orig"></table></div></div>
+  </div>
+  <div class="card"><div class="ch">Cancelaciones</div><div class="tbl-wrap"><table class="tbl" id="tbl-canc"></table></div></div>
+  <div class="card"><div class="ch">Detalle confirmadas</div><div class="tbl-wrap"><table class="tbl" id="tbl-stats-det"></table></div></div>
+</div></div>
+
+<!-- DESPEGAR -->
+<div id="sc-despegar" class="sc"><div class="wrap">
+  <div class="card"><div class="ch">✈ Gestión Despegar — Liquidaciones</div><div class="cb">
+    <div id="dp-alertas"></div><div id="dp-recordatorio"></div>
+    <div class="stats" id="dp-stats" style="margin-bottom:12px"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr>
+      <th>#</th><th>PNR</th><th>ID</th><th>Titular</th><th>Unidad</th>
+      <th>Check-In</th><th>Check-Out</th><th>Pax</th><th>Pago</th>
+      <th class="num">Total ARS</th><th class="num">Seña</th><th class="num">Saldo</th>
+      <th>Liquidación</th><th>F.Liq.</th><th></th>
+    </tr></thead><tbody id="tbl-dp"></tbody></table></div>
+  </div></div>
+</div></div>
+
+<!-- BOOKING COMISIONES -->
+<div id="sc-booking-liq" class="sc"><div class="wrap">
+  <div class="card"><div class="ch">✉ Booking — Comisiones y Liquidación</div><div class="cb">
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px">
+      <div class="fg"><label>Desde</label><input type="date" id="bk-liq-desde" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <div class="fg"><label>Hasta</label><input type="date" id="bk-liq-hasta" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <div class="fg"><label>Comisión informada por Booking (ARS)</label><input type="number" id="bk-liq-informado" placeholder="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <button class="btn bk" onclick="renderBookingLiq()">📊 Calcular</button>
+    </div>
+    <div id="bk-liq-resumen" style="margin-bottom:12px"></div>
+    <div class="tbl-wrap"><table class="tbl" id="tbl-bk-liq"></table></div>
+  </div></div>
+</div></div>
+
+<!-- MUCAMAS -->
+<div id="sc-mucamas" class="sc"><div class="wrap">
+  <div class="card"><div class="ch">🧹 Liquidación de Mucamas</div><div class="cb">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--bd)">
+      <div class="fg"><label>Desde</label><input type="date" id="muc-desde" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <div class="fg"><label>Hasta</label><input type="date" id="muc-hasta" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <div class="fg"><label>Valor por Check-Out (ARS)</label><input type="number" id="muc-val-checkout" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <div class="fg"><label>Valor día ocupado deptos (ARS)</label><input type="number" id="muc-val-dia" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <div class="fg"><label>Valor día ocupado cabañas (ARS)</label><input type="number" id="muc-val-dia-cab" value="0" placeholder="Si difiere" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <div class="fg"><label>Pasaje cabañas por día (ARS)</label><input type="number" id="muc-val-pasaje-cab" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <div style="display:flex;align-items:flex-end;gap:6px">
+        <button class="btn pr" onclick="renderMucamas()">📊 Calcular</button>
+        <button class="btn sm" onclick="copiarWAMucamasCab()">📱 WA Cabañas</button>
+        <button class="btn sm" onclick="copiarWAMucamasDep()">📱 WA Deptos</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="card">
+        <div class="ch" style="background:#fef3c7">🏔 Cabañas — <span id="muc-cab-nombre">Ana María</span></div>
+        <div class="cb" style="padding:8px">
+          <div style="margin-bottom:8px;font-size:11px">Mucama: <input type="text" id="muc-nombre-cab" value="Ana María" oninput="document.getElementById('muc-cab-nombre').textContent=this.value" style="padding:3px 6px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;width:120px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="stats" id="muc-stats-cab" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:8px"></div>
+          <div class="tbl-wrap"><table class="tbl" id="tbl-muc-cab"></table></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch" style="background:#dbeafe">🏢 Departamentos — <span id="muc-dep-nombre">Irma Porcario</span></div>
+        <div class="cb" style="padding:8px">
+          <div style="margin-bottom:8px;font-size:11px">Mucama: <input type="text" id="muc-nombre-dep" value="Irma Porcario" oninput="document.getElementById('muc-dep-nombre').textContent=this.value" style="padding:3px 6px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;width:120px;background:var(--bg2);color:var(--txt)"></div>
+          <div class="stats" id="muc-stats-dep" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:8px"></div>
+          <div class="tbl-wrap"><table class="tbl" id="tbl-muc-dep"></table></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:10px"><div class="ch">💰 Resumen total</div><div id="muc-resumen-total" class="cb"></div></div>
+  </div></div>
+</div></div>
+
+<!-- GASTOS -->
+<div id="sc-gastos" class="sc"><div class="wrap">
+  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:12px 16px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+    <div class="fg"><label>Desde</label><input type="date" id="g-desde" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+    <div class="fg"><label>Hasta</label><input type="date" id="g-hasta" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+    <button class="btn pr" onclick="renderGastos()">📊 Ver resumen</button>
+    <button class="btn sm no-print" onclick="window.print()">🖨</button>
+  </div>
+  <div id="g-resumen" style="margin-bottom:12px"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="card"><div class="ch">⛽ Combustible</div><div class="cb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div class="fg"><label>Fecha</label><input type="date" id="g-comb-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Destino</label>
+          <select id="g-comb-destino" onchange="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+            <option value="cabanas">Cabañas Potrerillos (160km ida/vuelta)</option>
+            <option value="deptos">Deptos Ciudad (16km ida/vuelta)</option>
+          </select>
+        </div>
+        <div class="fg"><label>Cant. viajes</label><input type="number" id="g-comb-viajes" value="1" min="1" oninput="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Precio litro (ARS)</label><input type="number" id="g-comb-litro" value="0" oninput="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Rendimiento (km/litro)</label><input type="number" id="g-comb-rend" value="12" oninput="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Costo calculado</label><input type="text" id="g-comb-costo" readonly style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:#fef9c3;font-weight:700;color:var(--txt)"></div>
+        <div class="fg" style="grid-column:1/-1"><label>Observaciones</label><input type="text" id="g-comb-obs" placeholder="Ej: visita mucama + compras" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      </div>
+      <button class="btn ok sm" onclick="agregarGasto('COMBUSTIBLE')">+ Agregar</button>
+    </div></div>
+
+    <div class="card"><div class="ch">🧴 Artículos de limpieza</div><div class="cb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="fg"><label>Fecha</label><input type="date" id="g-limp-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Destino</label>
+          <select id="g-limp-destino" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+            <option value="cabanas">Cabañas</option><option value="deptos">Departamentos</option><option value="ambos">Ambos</option>
+          </select>
+        </div>
+        <div class="fg"><label>Monto total (ARS)</label><input type="number" id="g-limp-monto" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px;font-size:12px">
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-ph"> Papel higiénico</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-rc"> Rollo de cocina</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-det"> Detergente</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-lav"> Lavandina</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-sh"> Shampoo</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-enj"> Enjuague capilar</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-sc"> Soda cáustica</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-jab"> Jabón de manos</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-fos"> Fósforos</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-lust"> Lustramuebles</label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gl-otros"> Otros:</label>
+        <input type="text" id="gl-otros-det" placeholder="especificar" style="padding:4px 8px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;background:var(--bg2);color:var(--txt)">
+      </div>
+      <button class="btn ok sm" onclick="agregarGasto('LIMPIEZA')">+ Agregar</button>
+    </div></div>
+
+    <div class="card"><div class="ch">🔥 Gas</div><div class="cb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="fg"><label>Fecha de carga</label><input type="date" id="g-gas-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Destino</label>
+          <select id="g-gas-destino" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+            <option value="cabanas">Cabañas</option><option value="deptos">Departamentos</option>
+          </select>
+        </div>
+        <div class="fg"><label>Total kilos</label><input type="number" id="g-gas-kg" value="0" oninput="calcGas()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Monto total (ARS)</label><input type="number" id="g-gas-monto" value="0" oninput="calcGas()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Precio por kilo</label><input type="text" id="g-gas-kg-precio" readonly style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:#fef9c3;font-weight:700;color:var(--txt)"></div>
+        <div class="fg"><label>Observaciones</label><input type="text" id="g-gas-obs" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      </div>
+      <button class="btn ok sm" onclick="agregarGasto('GAS')">+ Agregar</button>
+    </div></div>
+
+    <div class="card"><div class="ch">🏠 Expensas Cabañas 15 y 16</div><div class="cb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="fg"><label>Mes / Año</label><input type="month" id="g-exp-mes" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Fecha vencimiento</label><input type="date" id="g-exp-venc" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Cabaña 15 (ARS)</label><input type="number" id="g-exp-c15" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Cabaña 16 (ARS)</label><input type="number" id="g-exp-c16" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg" style="grid-column:1/-1"><label>Observaciones</label><input type="text" id="g-exp-obs" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      </div>
+      <button class="btn ok sm" onclick="agregarGasto('EXPENSAS')">+ Agregar</button>
+    </div></div>
+
+    <div class="card"><div class="ch">📄 Impuestos y gastos fijos</div><div class="cb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="fg"><label>Fecha</label><input type="date" id="g-imp-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Tipo</label>
+          <select id="g-imp-tipo" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+            <option value="IMP_MUNICIPAL">Impuesto Municipal</option>
+            <option value="IMP_PROVINCIAL">Impuesto Provincial</option>
+            <option value="INTERNET">Internet (Starlink)</option>
+            <option value="COMISION_BK">Comisión Booking</option>
+            <option value="COMISION_DP">Comisión Despegar</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+        <div class="fg"><label>Propiedad</label>
+          <select id="g-imp-destino" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+            <option value="cabanas">Cabañas</option><option value="deptos">Departamentos</option><option value="ambos">General</option>
+          </select>
+        </div>
+        <div class="fg"><label>Monto (ARS)</label><input type="number" id="g-imp-monto" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Período / Referencia</label><input type="text" id="g-imp-ref" placeholder="Junio 2026, Nro. boleta" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Observaciones</label><input type="text" id="g-imp-obs" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      </div>
+      <button class="btn ok sm" onclick="agregarGasto('IMPUESTO')">+ Agregar</button>
+    </div></div>
+
+    <div class="card"><div class="ch">📋 Otros gastos</div><div class="cb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="fg"><label>Fecha</label><input type="date" id="g-otro-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Destino</label>
+          <select id="g-otro-destino" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+            <option value="cabanas">Cabañas</option><option value="deptos">Departamentos</option><option value="ambos">General</option>
+          </select>
+        </div>
+        <div class="fg" style="grid-column:1/-1"><label>Descripción</label><input type="text" id="g-otro-desc" placeholder="Descripción detallada del gasto" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt);width:100%"></div>
+        <div class="fg"><label>Monto (ARS)</label><input type="number" id="g-otro-monto" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Referencia</label><input type="text" id="g-otro-ref" placeholder="Factura, ticket" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      </div>
+      <button class="btn ok sm" onclick="agregarGasto('OTRO')">+ Agregar</button>
+    </div></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="ch"><span>📋 Registro de gastos</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <select id="g-filtro-tipo" onchange="renderGastos()" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+          <option value="">Todos</option><option value="COMBUSTIBLE">Combustible</option>
+          <option value="LIMPIEZA">Limpieza</option><option value="GAS">Gas</option>
+          <option value="EXPENSAS">Expensas</option><option value="IMPUESTO">Impuestos</option><option value="OTRO">Otros</option>
+        </select>
+        <select id="g-filtro-dest" onchange="renderGastos()" style="padding:5px 8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+          <option value="">Todos los destinos</option><option value="cabanas">Cabañas</option><option value="deptos">Departamentos</option><option value="ambos">General</option>
+        </select>
+        <button class="btn sm" onclick="exportarGastosCSV()">⬇ CSV gastos</button>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr>
+      <th>Fecha</th><th>Tipo</th><th>Destino</th><th>Descripción</th><th class="num">Monto ARS</th><th></th>
+    </tr></thead><tbody id="tbl-gastos"></tbody></table></div>
+  </div>
+</div></div>
+
+<!-- VOUCHER -->
+<div id="sc-voucher" class="sc"><div class="wrap">
+  <div class="btn-row no-print" style="border:none;padding:0 0 12px 0;background:transparent">
+    <button class="btn" onclick="goTo('sc-abm')">← Volver</button>
+    <button class="btn ok" onclick="imprimirVoucher()">🖨 Imprimir/PDF</button>
+    <button class="btn" onclick="copiarWA()">📱 WhatsApp</button>
+  </div>
+  <div class="voucher-wrap" id="v-wrap">
+    <div class="v-hdr">
+      <div style="font-size:24px;margin-bottom:4px">☀</div>
+      <div style="font-weight:700;color:var(--pr);font-size:14px;letter-spacing:.5px">MENDOZA SOL Y NIEVE</div>
+      <div class="v-title">Comprobante Digital de Control de Reservas</div>
+      <div style="font-size:11px;color:var(--txt3);margin-top:3px">Gral. Espejo 333, M5502 Mendoza · +54 9 261 654 3938 · mendozasolynieve.com.ar</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px;gap:16px;flex-wrap:wrap">
+      <div>
+        <div class="v-guest" id="v-nombre"></div>
+        <div id="v-origen-badge" style="margin-top:5px"></div>
+        <div style="margin-top:8px;font-size:12px;line-height:1.8">
+          <div><b>DNI:</b> <span id="v-dni"></span></div>
+          <div><b>Email:</b> <span id="v-email"></span></div>
+          <div><b>Teléfono:</b> <span id="v-tel"></span></div>
+          <div><b>País:</b> <span id="v-pais"></span></div>
+          <div><b>Pax:</b> <span id="v-pax"></span></div>
+        </div>
+      </div>
+      <div style="text-align:right;font-size:12px;line-height:1.9">
+        <div style="font-size:17px;font-weight:700;color:var(--pr)" id="v-tipo"></div>
+        <div><b>Nro. Orden:</b> #<span id="v-nro"></span></div>
+        <div><b>Fecha emisión:</b> <span id="v-fecha"></span></div>
+        <div id="v-cotiz-row" style="display:none"><b>Cotiz. USD:</b> $<span id="v-cotiz"></span> ARS</div>
+        <div id="v-usd-row" style="display:none;color:#1d4ed8"><b>Precio USD:</b> $<span id="v-usd"></span></div>
+      </div>
+    </div>
+    <table class="tbl" style="margin-bottom:12px">
+      <thead><tr><th>Unidad</th><th>Check-In</th><th>Check-Out</th><th>Noches</th><th>Valor x noche</th><th style="text-align:right">Subtotal</th></tr></thead>
+      <tbody id="v-items"></tbody>
+    </table>
+    <div id="v-pago-box"></div>
+    <div id="v-comentario-box" style="display:none;background:#f0f7ff;border-left:4px solid #1d4ed8;padding:10px 14px;margin-top:8px;font-size:12px"></div>
+    <div class="notif-box">
+      <strong>NOTIFICACIÓN IMPORTANTE</strong>
+      Para confirmar la reserva se solicita el 30% del total del alojamiento (<strong id="v-sena30"></strong>), dentro de las 48 hs. desde la fecha de emisión.
+      <div style="margin-top:8px;padding:8px 0;border-top:1px dashed #d97706;color:#78350f;font-size:12px">
+        📍 Le solicitamos que nos indique su <strong>horario estimado de llegada</strong> para recibirlo y hacerle entrega de las llaves.
+      </div>
+      <div class="banco">
+        <strong style="color:var(--pr);display:block;margin-bottom:2px">Datos bancarios:</strong>
+        Banco: Banco Supervielle · Titulares: Raquel Liliana Gonzalez / Oscar Daniel Porcario<br>
+        Cuenta: CA ARS 093-538612-1 · CBU: 0270093920005386120016<br>
+        Alias: OSCAR.PORCARIO · CUIT/CUIL: 20-16555833-3
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- CHECK-IN -->
+<div id="sc-checkin" class="sc"><div class="wrap">
+  <div class="btn-row no-print" style="border:none;padding:0 0 12px 0;background:transparent">
+    <button class="btn" onclick="goTo('sc-abm')">← Volver</button>
+    <button class="btn ok" onclick="imprimirCI()">🖨 Imprimir</button>
+    <button class="btn" onclick="copiarWACI()">📱 WhatsApp</button>
+    <button class="btn pr" onclick="abrirEmailCI()">✉ Email</button>
+  </div>
+  <div class="ci-wrap" id="ci-wrap">
+    <div class="ci-hdr">
+      <div style="font-size:20px">☀</div>
+      <div style="font-weight:700;color:var(--pr);font-size:13px">MENDOZA SOL Y NIEVE</div>
+      <div style="font-size:14px;font-weight:700;color:var(--pr);text-transform:uppercase;margin-top:4px">Formulario de Check-In Online</div>
+      <div style="font-size:11px;color:var(--txt3);margin-top:4px">Reserva #<span id="ci-nro"></span></div>
+    </div>
+    <div style="background:var(--bg3);border-radius:7px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.8;border:1px solid var(--bd)">
+      <b>Titular:</b> <span id="ci-nombre"></span> · <b>Alojamiento:</b> <span id="ci-alo"></span><br>
+      <b>Check-In:</b> <span id="ci-cin"></span> · <b>Check-Out:</b> <span id="ci-cout"></span> · <b>Pax:</b> <span id="ci-pax"></span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="fg"><label>Nombre completo *</label><input type="text" id="ci-f-nombre"></div>
+      <div class="fg"><label>DNI / Pasaporte *</label><input type="text" id="ci-f-dni"></div>
+      <div class="fg"><label>Fecha de nacimiento *</label><input type="date" id="ci-f-nac"></div>
+      <div class="fg"><label>Nacionalidad *</label><input type="text" id="ci-f-nac2" placeholder="Argentina, Chile..."></div>
+      <div class="fg" style="grid-column:1/-1"><label>Dirección *</label><input type="text" id="ci-f-dir" placeholder="Calle, número, ciudad"></div>
+      <div class="fg"><label>Teléfono *</label><input type="tel" id="ci-f-tel"></div>
+      <div class="fg"><label>Email *</label><input type="email" id="ci-f-email"></div>
+      <div class="fg"><label>Patente vehículo</label><input type="text" id="ci-f-pat" placeholder="AA123BB"></div>
+      <div class="fg"><label>Cant. acompañantes</label><input type="number" id="ci-f-nacomp" value="0"></div>
+      <div class="fg" style="grid-column:1/-1"><label>Nombres acompañantes</label><textarea id="ci-f-acomp" rows="3" style="width:100%;padding:6px;border:1px solid var(--bd2);border-radius:5px;font-size:12px"></textarea></div>
+    </div>
+    <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:10px 14px;font-size:11px;line-height:1.7;margin-bottom:10px">
+      <strong style="color:#c2410c">Info importante:</strong> Check-in desde las <strong>14:00 hs</strong> · Check-out hasta las <strong>10:00 hs</strong><br>
+      📍 Indíquenos su <strong>horario estimado de llegada</strong> para recibirlo y hacerle entrega de las llaves.<br>Consultas: +54 9 261 654 3938
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--txt3);border-top:1px solid var(--bd);padding-top:10px">
+      Mendoza Sol y Nieve · Gral. Espejo 333, Mendoza · mendozasolynieve.com.ar
+    </div>
+  </div>
+</div></div>
+
+</div><!-- fin app-main -->
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getFirestore,collection,doc,setDoc,deleteDoc,onSnapshot,query,orderBy,getDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const FC={apiKey:"AIzaSyAbw0jymmgmlAN6cQv0WC424OnpNzJdfT4",authDomain:"mendoza-sol-nieve-15fba.firebaseapp.com",projectId:"mendoza-sol-nieve-15fba",storageBucket:"mendoza-sol-nieve-15fba.firebasestorage.app",messagingSenderId:"49107135646",appId:"1:49107135646:web:cb03570bd1c2d4bda2df8f"};
+const FA=initializeApp(FC);
+const DB=getFirestore(FA);
+window._db=[];window._gastos=[];window._cnt=10000;window._editId=null;window._sortField='cin1';window._sortDir=1;
+function sS(s){
+  const bar=document.getElementById('sync-bar'),dot=document.getElementById('sync-dot'),txt=document.getElementById('sync-txt');
+  if(s==='syncing'){bar.className='syncing';dot.className='dot amarillo';txt.textContent='Sincronizando...';}
+  else if(s==='ok'){bar.className='ok';dot.className='dot verde';txt.textContent='En línea · Tiempo real';setTimeout(()=>bar.className='',1500);}
+  else{bar.className='';dot.className='dot rojo';txt.textContent='Sin conexión';}
+}
+const loadTO=setTimeout(()=>{
+  const ls=document.getElementById('loading-screen');
+  if(ls&&ls.style.display!=='none'){
+    ls.querySelector('p').textContent='Tiempo de conexión agotado';
+    document.getElementById('btn-retry').style.display='block';
+  }
+},10000);
+const q=query(collection(DB,'reservas'),orderBy('nro','asc'));
+onSnapshot(q,snap=>{
+  clearTimeout(loadTO);
+  sS('syncing');
+  window._db=snap.docs.map(d=>({id:d.id,...d.data()}));
+  sS('ok');
+  renderTabla();renderStatsHome();
+  const sc=document.querySelector('.sc.on');
+  if(sc){
+    if(sc.id==='sc-cal')renderCal();
+    if(sc.id==='sc-stats')renderStats();
+    if(sc.id==='sc-listado')renderListado();
+    if(sc.id==='sc-despegar')renderDespegar();
+  }
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('app-main').style.display='block';
+},err=>{
+  clearTimeout(loadTO);sS('offline');
+  const msg=err.code==='permission-denied'?'Reglas Firestore bloqueadas. Vaya a Firebase Console → Firestore → Reglas → cambie <b>if false</b> por <b>if true</b> → Publicar':err.code==='unavailable'?'Sin conexión a internet.':'Error: '+err.message;
+  document.getElementById('loading-screen').innerHTML='<div style="font-size:48px">⚠</div><p style="color:#b91c1c;font-weight:600;margin-bottom:8px">Error de conexión</p><p style="font-size:12px;color:#475569;margin-bottom:16px">'+msg+'</p><button onclick="location.reload()" style="padding:10px 20px;background:#0f4c81;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600">🔄 Reintentar</button>';
+});
+onSnapshot(collection(DB,'gastos'),snap=>{
+  window._gastos=snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(document.querySelector('#sc-gastos.on'))renderGastos();
+});
+getDoc(doc(DB,'meta','contador')).then(s=>{if(s.exists()&&s.data().cnt)window._cnt=s.data().cnt;});
+window.fireGuardar=async function(r){sS('syncing');try{await setDoc(doc(DB,'reservas',String(r.id)),r);await setDoc(doc(DB,'meta','contador'),{cnt:window._cnt},{merge:true});sS('ok');return true;}catch(e){sS('offline');alert('Error Firebase: '+e.message);return false;}};
+window.fireEliminar=async function(id){sS('syncing');try{await deleteDoc(doc(DB,'reservas',String(id)));sS('ok');}catch(e){sS('offline');alert('Error: '+e.message);}};
+window.fireGuardarGasto=async function(g){await setDoc(doc(DB,'gastos',String(g.id)),g);};
+window.fireEliminarGasto=async function(id){await deleteDoc(doc(DB,'gastos',String(id)));};
+window.addEventListener('offline',()=>sS('offline'));
+window.addEventListener('online',()=>sS('ok'));
+</script>
