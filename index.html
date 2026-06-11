@@ -774,3 +774,1017 @@ window.fireEliminarGasto=async function(id){await deleteDoc(doc(DB,'gastos',Stri
 window.addEventListener('offline',()=>sS('offline'));
 window.addEventListener('online',()=>sS('ok'));
 </script>
+<script>
+// ===== HELPERS =====
+function gv(id){return(document.getElementById(id)||{}).value||'';}
+function sv(id,v){const e=document.getElementById(id);if(e)e.value=v;}
+function fmt(n){return Math.round(n||0).toLocaleString('es-AR');}
+function fmtF(s){if(!s||!s.includes('-'))return s||'';const p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function hoy(){return new Date().toISOString().split('T')[0];}
+function updCotiz(src){const v=parseFloat(document.getElementById('cot-'+src)?.value)||0;const el=document.getElementById('cotiz-'+src+'-show');if(el)el.textContent='$'+fmt(v);}
+function esCabana(alo){return(alo||'').toLowerCase().includes('caba');}
+function parseMonto(s){let n=(s||'0').replace(/[^0-9.,\-]/g,'');if(n.includes(',')&&n.includes('.'))n=n.replace(/\./g,'').replace(',','.');else if(n.includes(','))n=n.replace(',','.');return parseFloat(n)||0;}
+function convISO(s){
+  if(!s)return'';
+  if(s.includes('T'))return s.split('T')[0];
+  const p=s.split('/');
+  if(p.length===3){const a=p[2].length===2?'20'+p[2]:p[2];return a+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}
+  if(s.includes('-')&&s.length>=8){const q=s.split('-');if(q[0].length===4)return s.substring(0,10);if(q[0].length<=2){const a=q[2].length===2?'20'+q[2]:q[2];return a+'-'+q[1].padStart(2,'0')+'-'+q[0].padStart(2,'0');}}
+  return'';
+}
+function fixTel(raw){if(!raw)return'';if(raw.toUpperCase().includes('E+')||raw.includes(',')){const n=parseFloat(raw.replace(',','.'));if(!isNaN(n))return Math.round(n).toString();}return raw;}
+function rango(ini,fin){
+  const r=[];if(!ini||!fin)return r;
+  let d=new Date(ini+'T00:00:00');const f=new Date(fin+'T00:00:00');
+  if(isNaN(d)||isNaN(f))return r;
+  while(d<f){r.push(d.toISOString().split('T')[0]);d.setDate(d.getDate()+1);}return r;
+}
+function badgeOrigen(o){
+  const m={BOOKING:{c:'b-bk',t:'✉ Booking'},DESPEGAR:{c:'b-dp',t:'✈ Despegar'},MANUAL:{c:'b-mn',t:'Manual'},DIRECTO:{c:'b-mn',t:'Directo'},AIRBNB:{c:'b-ok',t:'Airbnb'}};
+  const d=m[o]||{c:'b-mn',t:o||'—'};return'<span class="badge '+d.c+'">'+d.t+'</span>';
+}
+
+// ===== NAV =====
+function goTo(id){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('act'));
+  const nb=document.getElementById('nb-'+id.replace('sc-',''));if(nb)nb.classList.add('act');
+  const d=new Date();
+  if(id==='sc-cal'){document.getElementById('cal-mes').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');renderCal();}
+  if(id==='sc-stats')renderStats();
+  if(id==='sc-listado')initListado();
+  if(id==='sc-inicio'){renderTabla();renderStatsHome();}
+  if(id==='sc-despegar')renderDespegar();
+  if(id==='sc-gastos'){document.getElementById('g-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('g-hasta').value=hoy();renderGastos();}
+  if(id==='sc-mucamas'){document.getElementById('muc-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('muc-hasta').value=hoy();}
+}
+
+// ===== ALERTAS DIA =====
+function verificarAlertas(){
+  if(new Date().getDate()===4)document.getElementById('alerta-dia4').style.display='block';
+  const hd=hoy();
+  const llegHoy=window._db.filter(r=>r.cin1===hd&&r.tipo==='RESERVA CONFIRMADA'&&((r.origen==='DESPEGAR'&&r.pagoDp==='HOTEL')||(r.origen==='BOOKING'&&(r.u1||'').includes('Departamento'))));
+  document.getElementById('alertas-cobro-hoy').innerHTML=llegHoy.map(r=>'<div class="alerta er">🔴 <strong>COBRAR HOY — '+r.nombre+'</strong> · '+r.u1+' · <strong>$'+fmt((r.total||0)-(r.sena||0))+' ARS</strong></div>').join('');
+}
+
+// ===== STATS HOME =====
+function renderStatsHome(){
+  const act=window._db.filter(r=>r.tipo!=='CANCELADA'&&r.tipo!=='NO_SHOW');
+  const total=act.reduce((a,r)=>a+(r.total||0),0);
+  const conf=act.filter(r=>r.tipo==='RESERVA CONFIRMADA').length;
+  const canc=window._db.filter(r=>r.tipo==='CANCELADA').length;
+  const senas=act.reduce((a,r)=>a+(r.sena||0),0);
+  const saldo=act.filter(r=>r.tipo==='RESERVA CONFIRMADA').reduce((a,r)=>a+(r.total||0)-(r.sena||0),0);
+  document.getElementById('stats-home').innerHTML=
+    '<div class="stat"><div class="st-l">Activas</div><div class="st-v">'+act.length+'</div></div>'+
+    '<div class="stat"><div class="st-l">Confirmadas</div><div class="st-v" style="color:var(--ok)">'+conf+'</div></div>'+
+    '<div class="stat"><div class="st-l">Canceladas</div><div class="st-v" style="color:var(--er)">'+canc+'</div></div>'+
+    '<div class="stat"><div class="st-l">Facturación</div><div class="st-v" style="font-size:16px">$'+fmt(total)+'</div><div class="st-s">ARS</div></div>'+
+    '<div class="stat"><div class="st-l">Señas cobradas</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(senas)+'</div></div>'+
+    '<div class="stat"><div class="st-l">Saldo pendiente</div><div class="st-v" style="font-size:16px;color:var(--er)">$'+fmt(saldo)+'</div></div>';
+  verificarAlertas();
+  if(window._db.length>0){const u=window._db[window._db.length-1];const el=document.getElementById('ultima-reserva');if(el)el.textContent='#'+u.nro+' — '+u.nombre+' ('+fmtF(u.cin1)+')';}
+}
+
+// ===== ORDENAMIENTO =====
+function sortTabla(campo){if(window._sortField===campo)window._sortDir*=-1;else{window._sortField=campo;window._sortDir=1;}renderTabla();}
+
+// ===== TABLA =====
+function renderTabla(){
+  const q=gv('busq').toLowerCase(),fe=gv('filtro-estado'),fd=gv('filtro-desde'),fh=gv('filtro-hasta');
+  let rows=window._db.filter(r=>{
+    if(q&&!(r.nombre||'').toLowerCase().includes(q)&&!String(r.nro).includes(q)&&!(r.u1||'').toLowerCase().includes(q)&&!(r.pnr||'').includes(q))return false;
+    if(fe&&r.tipo!==fe)return false;
+    if(fd&&r.cin1&&r.cin1<fd)return false;
+    if(fh&&r.cin1&&r.cin1>fh)return false;
+    return true;
+  });
+  rows.sort((a,b)=>{
+    let va=a[window._sortField]||'',vb=b[window._sortField]||'';
+    if(!isNaN(parseFloat(va))&&!isNaN(parseFloat(vb))){va=parseFloat(va);vb=parseFloat(vb);}
+    else{va=String(va).toLowerCase();vb=String(vb).toLowerCase();}
+    if(va<vb)return-1*window._sortDir;if(va>vb)return 1*window._sortDir;return 0;
+  });
+  const tb=document.getElementById('tbl-body');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="15" class="empty">No hay reservas. Use "Nueva reserva" para comenzar.</td></tr>';return;}
+  tb.innerHTML=rows.map(r=>{
+    const sena=r.sena||0,saldo=(r.total||0)-sena;
+    const pst=sena>=(r.total||0)?'<span class="badge b-paid">Pagado</span>':sena>0?'<span class="badge b-part">Seña parcial</span>':'<span class="badge b-nopay">Sin seña</span>';
+    const est=r.tipo==='RESERVA CONFIRMADA'?'<span class="badge b-ok">Confirmada</span>':r.tipo==='CANCELADA'?'<span class="badge b-canc">CANCELADA</span>':r.tipo==='NO_SHOW'?'<span class="badge b-ns">No Show</span>':'<span class="badge b-pres">Presupuesto</span>';
+    return'<tr class="'+(r.tipo==='CANCELADA'||r.tipo==='NO_SHOW'?'cancelada':'')+'">'+
+      '<td><strong>#'+r.nro+'</strong></td><td>'+badgeOrigen(r.origen)+'</td><td>'+fmtF(r.fecha)+'</td><td>'+est+'</td>'+
+      '<td><strong>'+(r.nombre||'—')+'</strong>'+(r.pnr?'<br><small style="color:var(--txt3)">PNR:'+r.pnr+'</small>':'')+'</td>'+
+      '<td style="font-size:11px">'+(r.pais||'—')+'</td><td>'+r.pax+'</td><td style="font-size:11px">'+r.u1+'</td>'+
+      '<td>'+fmtF(r.cin1)+'</td><td>'+fmtF(r.cout1)+'</td><td>'+r.n1+'</td>'+
+      '<td class="num">'+(r.precioUSD>0?'$'+r.precioUSD:'—')+'</td>'+
+      '<td class="num"><strong>$'+fmt(r.total)+'</strong></td>'+
+      '<td>'+pst+'<br><small>S:$'+fmt(sena)+' R:$'+fmt(Math.max(0,saldo))+'</small></td>'+
+      '<td style="white-space:nowrap">'+
+        '<button class="btn wa xs" onclick="editar(\''+r.id+'\')">✏</button> '+
+        '<button class="btn pr xs" onclick="voucherById(\''+r.id+'\')">🖨</button> '+
+        '<button class="btn ok xs" onclick="checkinById(\''+r.id+'\')">✅</button> '+
+        '<button class="btn er xs" onclick="eliminar(\''+r.id+'\')">🗑</button>'+
+      '</td></tr>';
+  }).join('');
+}
+
+// ===== FORM CALC =====
+function calcN(b){
+  const ci=gv('f-ci'+b),co=gv('f-co'+b);
+  if(ci&&co){const d=(new Date(co+'T00:00:00')-new Date(ci+'T00:00:00'))/86400000;sv('f-n'+b,d>0?Math.round(d):0);}
+  calcTot();
+}
+function calcTot(){
+  const t=(parseFloat(gv('f-n1'))||0)*(parseFloat(gv('f-p1'))||0)+(parseFloat(gv('f-n2'))||0)*(parseFloat(gv('f-p2'))||0);
+  sv('f-total','ARS $ '+fmt(t));calcSaldo();calcComision();
+}
+function calcSaldo(){
+  const t=(parseFloat(gv('f-n1'))||0)*(parseFloat(gv('f-p1'))||0)+(parseFloat(gv('f-n2'))||0)*(parseFloat(gv('f-p2'))||0);
+  sv('f-saldo','ARS $ '+fmt(t-(parseFloat(gv('f-sena'))||0)));
+}
+function calcComision(){
+  const t=(parseFloat(gv('f-n1'))||0)*(parseFloat(gv('f-p1'))||0)+(parseFloat(gv('f-n2'))||0)*(parseFloat(gv('f-p2'))||0);
+  const pct=parseFloat(gv('f-comision-pct'))||0;
+  const com=Math.round(t*pct/100);
+  sv('f-comision-ars','ARS $ '+fmt(com));
+  sv('f-precio-neto','ARS $ '+fmt(t-com));
+}
+function recalcularDesdeUSD(){
+  const usd=parseFloat(gv('f-precio-usd'))||0,cot=parseFloat(gv('f-cotiz-usd'))||0;
+  if(usd>0&&cot>0){const n=Math.max(1,parseInt(gv('f-n1'))||1);sv('f-p1',Math.round(usd*cot/n));calcTot();}
+}
+function toggleMonedaManual(){recalcularDesdeUSD();}
+function calcDesdeTotal(){
+  const tot=parseFloat(gv('f-total-manual'))||0,n=Math.max(1,parseInt(gv('f-n1'))||1);
+  if(tot>0&&n>0){const vn=Math.round(tot/n);sv('f-p1',vn);const el=document.getElementById('f-total-manual-res');if(el)el.textContent='→ $'+fmt(vn)+'/noche × '+n+' noches = $'+fmt(tot);}
+  else if(tot>0)alert('Ingrese primero las fechas de check-in y check-out.');
+  calcTot();
+}
+function limpAlo2(){if(!gv('f-alo2')){['f-p2','f-ci2','f-co2'].forEach(x=>sv(x,''));sv('f-n2',0);}calcTot();}
+
+// ===== CANCELAR EDICION =====
+function cancelarEdicion(){
+  window._editId=null;
+  const campos=['f-nro','f-tipo','f-fecha','f-origen','f-cotiz-usd','f-precio-usd','f-desc-movil',
+    'f-comision-pct','f-comision-ars','f-precio-neto','f-fecha-canc','f-pais','f-reserva-origen',
+    'f-pnr','f-id-dp','f-pago-dp','f-liq-dp','f-fecha-liq','f-fecha-pres-liq',
+    'f-sena','f-saldo','f-fecha-sena','f-medio-sena','f-ref-sena','f-cotiz-ingreso','f-medio-pago',
+    'f-alo1','f-p1','f-ci1','f-co1','f-n1','f-alo2','f-p2','f-ci2','f-co2','f-n2',
+    'f-pax','f-nombre','f-dni','f-email','f-tel','f-total','f-total-manual','f-notas','f-moneda-manual'];
+  campos.forEach(id=>{const e=document.getElementById(id);if(!e)return;if(e.tagName==='SELECT')e.selectedIndex=0;else e.value='';});
+  ['f-n1','f-n2','f-sena','f-precio-usd','f-cotiz-usd','f-desc-movil','f-comision-pct','f-cotiz-ingreso'].forEach(id=>sv(id,0));
+  sv('f-nro',window._cnt);sv('f-fecha',hoy());
+  ['blk-bk','blk-dp'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  sv('txt-bk','');sv('txt-dp','');sv('txt-dp-canc','');
+  const ft=document.getElementById('form-titulo');if(ft)ft.textContent='Nueva Reserva Manual';
+  const bg=document.getElementById('btn-guardar');if(bg){bg.textContent='💾 Guardar';bg.className='btn pr';}
+  const res=document.getElementById('f-total-manual-res');if(res)res.textContent='';
+}
+
+// ===== ABRIR FORM =====
+function abrirForm(origen){
+  cancelarEdicion();
+  sv('f-origen',origen);
+  document.getElementById('blk-bk').style.display=origen==='BOOKING'?'block':'none';
+  document.getElementById('blk-dp').style.display=origen==='DESPEGAR'?'block':'none';
+  document.getElementById('form-titulo').textContent=origen==='BOOKING'?'Importar Booking':origen==='DESPEGAR'?'Importar Despegar':'Nueva Reserva Manual';
+  goTo('sc-abm');
+}
+
+// ===== EDITAR =====
+function editar(id){
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  window._editId=String(id);
+  cancelarEdicion();
+  window._editId=String(id);
+  document.getElementById('blk-bk').style.display='none';
+  document.getElementById('blk-dp').style.display='none';
+  sv('f-nro',r.nro);sv('f-tipo',r.tipo);sv('f-fecha',r.fecha);sv('f-origen',r.origen);
+  sv('f-cotiz-usd',r.cotizUsd||0);sv('f-precio-usd',r.precioUSD||0);
+  sv('f-desc-movil',r.descMovilARS||0);sv('f-comision-pct',r.comisionPct||0);
+  sv('f-fecha-canc',r.fechaCanc||'');sv('f-pais',r.pais||'');sv('f-reserva-origen',r.reservaOrigen||'');
+  sv('f-pnr',r.pnr||'');sv('f-id-dp',r.idDp||'');sv('f-pago-dp',r.pagoDp||'HOTEL');
+  sv('f-liq-dp',r.liqDp||'NO');sv('f-fecha-liq',r.fechaLiq||'');sv('f-fecha-pres-liq',r.fechaPresLiq||'');
+  sv('f-sena',r.sena||0);sv('f-fecha-sena',r.fechaSena||'');sv('f-medio-sena',r.medioSena||'');
+  sv('f-ref-sena',r.refSena||'');sv('f-cotiz-ingreso',r.cotizIngreso||0);sv('f-medio-pago',r.medioPago||'');
+  sv('f-pax',r.pax);sv('f-nombre',r.nombre);sv('f-dni',r.dni||'');sv('f-email',r.email||'');sv('f-tel',r.telefono||'');sv('f-notas',r.notas||'');
+  sv('f-alo1',r.u1);sv('f-ci1',r.cin1);sv('f-co1',r.cout1);sv('f-n1',r.n1);sv('f-p1',r.p1);
+  sv('f-alo2',r.u2||'');sv('f-ci2',r.cin2||'');sv('f-co2',r.cout2||'');sv('f-n2',r.n2||0);sv('f-p2',r.p2||'');
+  calcTot();
+  document.getElementById('form-titulo').textContent='✏ Modificando #'+r.nro+' — '+r.nombre;
+  document.getElementById('btn-guardar').textContent='✔ Grabar modificaciones';
+  document.getElementById('btn-guardar').className='btn wa';
+  goTo('sc-abm');
+}
+
+// ===== GUARDAR =====
+async function guardar(){
+  const cin1=gv('f-ci1'),cout1=gv('f-co1'),u1=gv('f-alo1'),nombre=gv('f-nombre');
+  if(!cin1||!cout1||!u1){alert('Complete: unidad y fechas de entrada y salida.');return;}
+  if(!nombre){alert('El nombre del titular es obligatorio.');return;}
+  const tipo=gv('f-tipo');
+  if(tipo!=='CANCELADA'&&tipo!=='NO_SHOW'&&tipo!=='PRESUPUESTO'){
+    if(new Date(cout1+'T00:00:00')<=new Date(cin1+'T00:00:00')){alert('La salida debe ser posterior a la entrada.');return;}
+  }
+  const n1=parseInt(gv('f-n1'))||0,p1=parseFloat(gv('f-p1'))||0;
+  const n2=parseInt(gv('f-n2'))||0,p2=parseFloat(gv('f-p2'))||0;
+  const total=(n1*p1)+(n2*p2);
+  // Validar solapamiento solo para confirmadas
+  if(tipo==='RESERVA CONFIRMADA'){
+    const noches=rango(cin1,cout1);const ocup=[];
+    window._db.forEach(r=>{
+      if(window._editId&&String(r.id)===window._editId)return;
+      if(r.tipo==='CANCELADA'||r.tipo==='NO_SHOW'||r.tipo==='PRESUPUESTO')return;
+      if(r.u1===u1)rango(r.cin1,r.cout1).forEach(n=>{if(noches.includes(n))ocup.push(n);});
+    });
+    if(ocup.length){
+      const lst=[...new Set(ocup)].sort().map(f=>f.split('-').reverse().join('/')).join(', ');
+      alert('UNIDAD OCUPADA\n\n"'+u1+'" ya tiene reserva confirmada para:\n'+lst+'\n\nCambie fechas o elija otra unidad.');return;
+    }
+  }
+  const comPct=parseFloat(gv('f-comision-pct'))||0;
+  const comARS=Math.round(total*comPct/100);
+  const idDoc=window._editId||String(Date.now());
+  const r={
+    id:idDoc,nro:window._editId?parseInt(gv('f-nro')):window._cnt,
+    fecha:gv('f-fecha')||hoy(),tipo,origen:gv('f-origen'),
+    cotizUsd:parseFloat(gv('f-cotiz-usd'))||0,precioUSD:parseFloat(gv('f-precio-usd'))||0,
+    descMovilARS:parseFloat(gv('f-desc-movil'))||0,comisionPct:comPct,comisionARS:comARS,
+    fechaCanc:gv('f-fecha-canc'),pais:gv('f-pais'),reservaOrigen:gv('f-reserva-origen'),
+    pnr:gv('f-pnr'),idDp:gv('f-id-dp'),pagoDp:gv('f-pago-dp'),
+    liqDp:gv('f-liq-dp'),fechaLiq:gv('f-fecha-liq'),fechaPresLiq:gv('f-fecha-pres-liq'),
+    sena:parseFloat(gv('f-sena'))||0,fechaSena:gv('f-fecha-sena'),medioSena:gv('f-medio-sena'),
+    refSena:gv('f-ref-sena'),cotizIngreso:parseFloat(gv('f-cotiz-ingreso'))||0,medioPago:gv('f-medio-pago'),
+    pax:gv('f-pax'),nombre,dni:gv('f-dni'),email:gv('f-email'),telefono:gv('f-tel'),notas:gv('f-notas'),
+    u1,cin1,cout1,n1,p1,u2:gv('f-alo2'),cin2:gv('f-ci2'),cout2:gv('f-co2'),n2,p2,total
+  };
+  if(!window._editId)window._cnt++;
+  const ok=await window.fireGuardar(r);
+  if(ok){alert(window._editId?'✔ Reserva actualizada.':'✔ Reserva guardada.');cancelarEdicion();goTo('sc-inicio');}
+}
+
+// ===== ELIMINAR =====
+async function eliminar(id){
+  const r=window._db.find(x=>String(x.id)===String(id));
+  if(!confirm('¿Eliminar la reserva #'+(r?.nro)+' de '+(r?.nombre)+'?\n\nSi fue cancelada, es mejor marcarla como CANCELADA en lugar de eliminar.'))return;
+  await window.fireEliminar(id);
+}
+
+// ===== MARCAR INGRESADO =====
+async function marcarIngresado(){
+  if(!window._editId){alert('Seleccione una reserva para editar primero.');return;}
+  const r=window._db.find(x=>String(x.id)===window._editId);if(!r)return;
+  const medio=gv('f-medio-pago');
+  if(!medio){alert('Seleccione el medio de pago antes de marcar como ingresado.');return;}
+  const total=r.total||0;
+  const cotizNueva=parseFloat(gv('f-cotiz-ingreso'))||0;
+  let totalFinal=total;
+  if(r.precioUSD>0&&cotizNueva>0&&r.cotizUsd>0&&cotizNueva!==r.cotizUsd){
+    totalFinal=Math.round(r.precioUSD*cotizNueva);
+  }
+  if(!confirm('¿Confirmar ingreso de '+r.nombre+'?\nSaldo cobrado: $'+fmt(totalFinal-(r.sena||0))+'\nMedio: '+medio))return;
+  const upd={...r,sena:totalFinal,total:totalFinal,medioPago:medio,cotizIngreso:cotizNueva||r.cotizUsd,
+    notas:(r.notas||'')+'\nINGRESO REGISTRADO: $'+fmt(totalFinal)+' vía '+medio+' ('+hoy()+')'};
+  const ok=await window.fireGuardar(upd);
+  if(ok)alert('✔ Ingreso registrado. Saldo marcado como cobrado.');
+}
+
+// ===== CALENDARIO =====
+function mesCal(delta){
+  const inp=document.getElementById('cal-mes');
+  const[y,m]=[parseInt(inp.value.split('-')[0]),parseInt(inp.value.split('-')[1])];
+  const nd=new Date(y,m-1+delta,1);
+  inp.value=nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0');renderCal();
+}
+function renderCal(){
+  const fm=gv('cal-mes');if(!fm)return;
+  const[ano,mes]=[parseInt(fm.split('-')[0]),parseInt(fm.split('-')[1])];
+  const dias=new Date(ano,mes,0).getDate();
+  const undsN=['Dpto Mza 2','Dpto Mza 3','Cab. Grande','Cab. Loft','Cab. Std.','Dpto VLL'];
+  const undsF=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3','Cabaña grande','Cabaña Loft','Cabaña Standard','Departamento 4 pax VLL'];
+  const t=document.getElementById('cal-tabla');
+  let h='<tr><th class="cu">Unidad</th>';
+  for(let d=1;d<=dias;d++){
+    const fd=ano+'-'+String(mes).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const dow=new Date(fd+'T00:00:00').getDay();
+    const dn=new Date(fd+'T00:00:00').toLocaleDateString('es-AR',{weekday:'short'}).substring(0,2);
+    h+='<th class="'+(dow===0||dow===6?'we':'')+'">'+dn+'<br>'+String(d).padStart(2,'0')+'</th>';
+  }
+  h+='</tr>';
+  const activos=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA');
+  const orig=r=>r.origen==='BOOKING'?'#dbeafe':r.origen==='DESPEGAR'?'#ede9fe':'#dcfce7';
+  undsF.forEach((uf,ui)=>{
+    h+='<tr><td class="cu-td">'+undsN[ui]+'</td>';
+    for(let d=1;d<=dias;d++){
+      const fd=ano+'-'+String(mes).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const isOut=activos.find(r=>(r.u1===uf&&r.cout1===fd)||(r.u2===uf&&r.cout2===fd));
+      const isIn=activos.find(r=>(r.u1===uf&&r.cin1===fd)||(r.u2===uf&&r.cin2===fd));
+      const isCont=activos.find(r=>[...rango(r.u1===uf?r.cin1:'',r.u1===uf?r.cout1:''),...rango(r.u2===uf?(r.cin2||''):'',r.u2===uf?(r.cout2||''):'')].includes(fd));
+      if(isOut&&isIn){
+        h+='<td style="background:linear-gradient(to bottom,#fef9c3 50%,#dcfce7 50%);border-top:2px solid #16a34a;border-bottom:2px solid #f59e0b"><div class="cel"><div class="cel-out">↑'+isOut.nombre.split(' ')[0].substring(0,5)+'</div><div class="cel-in">↓'+isIn.nombre.split(' ')[0].substring(0,5)+'</div></div></td>';
+      } else if(isOut){
+        h+='<td style="background:'+orig(isOut)+';border-bottom:2px solid #f59e0b"><div class="cel"><div class="cel-out">↑ SALE</div><div style="font-size:10px">'+isOut.nombre.substring(0,7)+'</div></div></td>';
+      } else if(isIn){
+        const saldo=(isIn.total||0)-(isIn.sena||0);
+        const o=isIn.origen==='BOOKING'?'BK':isIn.origen==='DESPEGAR'?'DP':'DR';
+        h+='<td style="background:'+orig(isIn)+';border-top:2px solid #16a34a"><div class="cel"><div class="cel-in">↓ ENTRA</div><div style="font-size:10px;font-weight:600">'+isIn.nombre.substring(0,7)+'</div><div style="font-size:10px">'+o+'·'+isIn.pax+'p</div><div style="font-size:10px;color:#b91c1c;font-weight:600">R:$'+fmt(Math.max(0,saldo))+'</div></div></td>';
+      } else if(isCont){
+        const saldo=(isCont.total||0)-(isCont.sena||0);
+        const o=isCont.origen==='BOOKING'?'BK':isCont.origen==='DESPEGAR'?'DP':'DR';
+        h+='<td style="background:'+orig(isCont)+'"><div class="cel"><div class="cel-cont">'+isCont.nombre.substring(0,7)+'</div><div style="font-size:10px">'+o+'·'+isCont.pax+'p</div><div style="font-size:10px;color:#b91c1c">R:$'+fmt(Math.max(0,saldo))+'</div></div></td>';
+      } else {
+        h+='<td><div class="cel-libre">·</div></td>';
+      }
+    }
+    h+='</tr>';
+  });
+  t.innerHTML=h;
+}
+
+// ===== LISTADO =====
+function initListado(){const fin=new Date(Date.now()+7*86400000).toISOString().split('T')[0];sv('lst-desde',hoy());sv('lst-hasta',fin);renderListado();}
+function renderListado(){
+  const desde=gv('lst-desde'),hasta=gv('lst-hasta');if(!desde||!hasta)return;
+  const dias=[];let d=new Date(desde+'T00:00:00');const f=new Date(hasta+'T00:00:00');
+  while(d<=f){dias.push(d.toISOString().split('T')[0]);d.setDate(d.getDate()+1);}
+  const activos=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA');
+  let html='';
+  dias.forEach(dia=>{
+    const outs=activos.filter(r=>r.cout1===dia||(r.cout2&&r.cout2===dia));
+    const ins=activos.filter(r=>r.cin1===dia||(r.cin2&&r.cin2===dia));
+    if(!outs.length&&!ins.length)return;
+    html+='<div class="day-card"><div class="day-head"><span>📅 '+fmtF(dia)+' — '+new Date(dia+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long'})+'</span><span>'+ins.length+' ingreso(s) · '+outs.length+' salida(s)</span></div>';
+    outs.forEach(r=>{
+      const u=r.cout2===dia?r.u2:r.u1;const saldo=(r.total||0)-(r.sena||0);
+      html+='<div class="mov"><div class="mov-ico ico-out">↑</div><div>'+
+        '<strong style="color:var(--wa)">SALIDA</strong> — <strong>'+r.nombre+'</strong> ('+r.pax+' pax) · '+r.origen+'<br>'+
+        '<span style="font-size:11px;color:var(--txt2)">'+u+' · Entrada: '+fmtF(r.cin1)+' → Salida: <strong>'+fmtF(r.cout1)+'</strong></span><br>'+
+        '<span style="font-size:11px">Total: <strong>$'+fmt(r.total)+'</strong> · Seña: $'+fmt(r.sena||0)+' · <span style="color:'+(saldo>0?'#b91c1c':'#15803d')+';font-weight:600">Saldo: $'+fmt(Math.max(0,saldo))+'</span></span>'+
+        (r.notas?'<br><span style="font-size:11px;color:var(--txt3)">📝 '+r.notas+'</span>':'')+
+      '</div></div>';
+    });
+    ins.forEach(r=>{
+      const u=r.cin2===dia?r.u2:r.u1;const saldo=(r.total||0)-(r.sena||0);
+      const alertaCobro=((r.origen==='DESPEGAR'&&r.pagoDp==='HOTEL')||(r.origen==='BOOKING'&&(u||'').includes('Departamento')))&&saldo>0?'<span style="background:#fee2e2;color:#7f1d1d;font-weight:700;padding:1px 6px;border-radius:4px;font-size:11px;margin-left:4px">⚠ COBRAR $'+fmt(saldo)+' HOY</span>':'';
+      html+='<div class="mov"><div class="mov-ico ico-in">↓</div><div>'+
+        '<strong style="color:var(--ok)">INGRESO</strong> — <strong>'+r.nombre+'</strong> ('+r.pax+' pax) · '+badgeOrigen(r.origen).replace(/<[^>]+>/g,'')+(r.pais?' · '+r.pais:'')+alertaCobro+'<br>'+
+        '<span style="font-size:11px;color:var(--txt2)">'+u+' · Check-In: <strong>'+fmtF(r.cin1)+'</strong> → Check-Out: '+fmtF(r.cout1)+'</span><br>'+
+        '<span style="font-size:11px">Total: <strong>$'+fmt(r.total)+'</strong> · Seña: $'+fmt(r.sena||0)+' · <strong style="color:'+(saldo>0?'#b91c1c':'#15803d')+'">Saldo: $'+fmt(Math.max(0,saldo))+'</strong></span>'+
+        (r.notas?'<br><span style="font-size:11px;color:var(--txt3)">📝 '+r.notas+'</span>':'')+
+      '</div></div>';
+    });
+    html+='</div>';
+  });
+  document.getElementById('listado-body').innerHTML=html||'<p style="color:var(--txt3);padding:20px;text-align:center">Sin movimientos en ese período.</p>';
+}
+function copiarWAListado(){
+  const desde=gv('lst-desde'),hasta=gv('lst-hasta');if(!desde||!hasta){alert('Seleccione rango de fechas.');return;}
+  const activos=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA');
+  const dias=[];let d=new Date(desde+'T00:00:00');const f=new Date(hasta+'T00:00:00');
+  while(d<=f){dias.push(d.toISOString().split('T')[0]);d.setDate(d.getDate()+1);}
+  let txt='☀ *MENDOZA SOL Y NIEVE — RECEPCIÓN CABAÑAS*\n*'+fmtF(desde)+' al '+fmtF(hasta)+'*\n\n';
+  dias.forEach(dia=>{
+    const ins=activos.filter(r=>(r.cin1===dia||(r.cin2&&r.cin2===dia))&&esCabana(r.u1));
+    const outs=activos.filter(r=>(r.cout1===dia||(r.cout2&&r.cout2===dia))&&esCabana(r.u1));
+    if(!ins.length&&!outs.length)return;
+    txt+='📅 *'+fmtF(dia)+'*\n';
+    outs.forEach(r=>txt+='↑ SALIDA: '+r.nombre+' · '+r.u1+'\n');
+    ins.forEach(r=>{const saldo=(r.total||0)-(r.sena||0);txt+='↓ INGRESO: *'+r.nombre+'* · '+r.pax+' pax\n  🏠 '+r.u1+'\n  📅 '+fmtF(r.cin1)+' → '+fmtF(r.cout1)+'\n  💰 Cobrar: *$'+fmt(Math.max(0,saldo))+'* ARS\n';});
+    txt+='\n';
+  });
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado para WhatsApp')).catch(()=>prompt('Copie:',txt));
+}
+
+// ===== ESTADÍSTICAS =====
+function renderStats(){
+  const desde=gv('est-desde'),hasta=gv('est-hasta');
+  let activos=window._db.filter(r=>r.tipo!=='CANCELADA'&&r.tipo!=='NO_SHOW');
+  if(desde)activos=activos.filter(r=>r.cin1&&r.cin1>=desde);
+  if(hasta)activos=activos.filter(r=>r.cin1&&r.cin1<=hasta);
+  const total=activos.reduce((a,r)=>a+(r.total||0),0);
+  const senas=activos.reduce((a,r)=>a+(r.sena||0),0);
+  const noches=activos.reduce((a,r)=>a+(r.n1||0)+(r.n2||0),0);
+  const pax=activos.reduce((a,r)=>a+parseInt(r.pax||0),0);
+  const canc=window._db.filter(r=>r.tipo==='CANCELADA');
+  const comTot=activos.reduce((a,r)=>a+(r.comisionARS||0),0);
+  document.getElementById('est-grid').innerHTML=
+    '<div class="stat"><div class="st-l">Facturación</div><div class="st-v" style="font-size:16px">$'+fmt(total)+'</div><div class="st-s">ARS</div></div>'+
+    '<div class="stat"><div class="st-l">Señas cobradas</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(senas)+'</div></div>'+
+    '<div class="stat"><div class="st-l">Saldo por cobrar</div><div class="st-v" style="font-size:16px;color:var(--er)">$'+fmt(total-senas)+'</div></div>'+
+    '<div class="stat"><div class="st-l">Noches vendidas</div><div class="st-v">'+noches+'</div></div>'+
+    '<div class="stat"><div class="st-l">Huéspedes</div><div class="st-v">'+pax+'</div></div>'+
+    '<div class="stat"><div class="st-l">Prom. x noche</div><div class="st-v" style="font-size:16px">$'+fmt(noches>0?total/noches:0)+'</div></div>'+
+    '<div class="stat"><div class="st-l">Comisiones Booking</div><div class="st-v" style="font-size:16px;color:var(--er)">$'+fmt(comTot)+'</div></div>'+
+    '<div class="stat"><div class="st-l">Cancelaciones</div><div class="st-v" style="color:var(--er)">'+canc.length+'</div></div>';
+  const unds=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3','Cabaña grande','Cabaña Loft','Cabaña Standard','Departamento 4 pax VLL'];
+  let hu='<thead><tr><th>Unidad</th><th>Reservas</th><th>Noches</th><th>Pax</th><th class="num">Facturado</th><th class="num">Prom/noche</th></tr></thead><tbody>';
+  unds.forEach(u=>{
+    const rs=activos.filter(r=>r.u1===u||r.u2===u);
+    const ns=rs.reduce((a,r)=>a+(r.u1===u?r.n1:(r.n2||0)),0);
+    const fa=rs.reduce((a,r)=>a+(r.u1===u?(r.n1||0)*(r.p1||0):(r.n2||0)*(r.p2||0)),0);
+    hu+='<tr><td style="font-size:11px">'+u+'</td><td>'+rs.length+'</td><td>'+ns+'</td><td>'+rs.reduce((a,r)=>a+parseInt(r.pax||0),0)+'</td><td class="num">$'+fmt(fa)+'</td><td class="num">$'+fmt(ns>0?fa/ns:0)+'</td></tr>';
+  });
+  document.getElementById('tbl-unds').innerHTML=hu+'</tbody>';
+  const origs={BOOKING:0,DESPEGAR:0,MANUAL:0,DIRECTO:0,AIRBNB:0};
+  activos.forEach(r=>{origs[r.origen]=(origs[r.origen]||0)+1;});
+  let ho='<thead><tr><th>Origen</th><th>Reservas</th><th>%</th></tr></thead><tbody>';
+  Object.entries(origs).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+    ho+='<tr><td>'+badgeOrigen(k)+'</td><td>'+v+'</td><td>'+(activos.length?Math.round(v/activos.length*100):0)+'%</td></tr>';
+  });
+  document.getElementById('tbl-orig').innerHTML=ho+'</tbody>';
+  let hc='<thead><tr><th>#</th><th>Titular</th><th>Unidad</th><th>Check-In</th><th>Check-Out</th><th>F.Canc.</th><th class="num">Monto</th><th>Origen</th></tr></thead><tbody>';
+  canc.length?canc.forEach(r=>{hc+='<tr><td>#'+r.nro+'</td><td>'+r.nombre+'</td><td style="font-size:11px">'+r.u1+'</td><td>'+fmtF(r.cin1)+'</td><td>'+fmtF(r.cout1)+'</td><td>'+(fmtF(r.fechaCanc)||'—')+'</td><td class="num">$'+fmt(r.total)+'</td><td>'+badgeOrigen(r.origen)+'</td></tr>';}):hc+='<tr><td colspan="8" class="empty">Sin cancelaciones.</td></tr>';
+  document.getElementById('tbl-canc').innerHTML=hc+'</tbody>';
+  let hd='<thead><tr><th>#</th><th>Titular</th><th>Unidad</th><th>Check-In</th><th>Check-Out</th><th>Nts</th><th class="num">Total</th><th class="num">Seña</th><th class="num">Saldo</th><th class="num">Com.BK</th></tr></thead><tbody>';
+  activos.filter(r=>r.tipo==='RESERVA CONFIRMADA').forEach(r=>{
+    hd+='<tr><td>#'+r.nro+'</td><td>'+r.nombre+'</td><td style="font-size:11px">'+r.u1+'</td><td>'+fmtF(r.cin1)+'</td><td>'+fmtF(r.cout1)+'</td><td>'+r.n1+'</td><td class="num">$'+fmt(r.total)+'</td><td class="num" style="color:var(--ok)">$'+fmt(r.sena||0)+'</td><td class="num" style="color:var(--er)">$'+fmt((r.total||0)-(r.sena||0))+'</td><td class="num">'+(r.comisionARS>0?'$'+fmt(r.comisionARS):'—')+'</td></tr>';
+  });
+  document.getElementById('tbl-stats-det').innerHTML=hd+'</tbody>';
+}
+
+// ===== DESPEGAR PANEL =====
+function renderDespegar(){
+  const dpR=window._db.filter(r=>r.origen==='DESPEGAR');
+  const dpA=dpR.filter(r=>r.tipo==='RESERVA CONFIRMADA');
+  const prep=dpA.filter(r=>r.pagoDp==='PREPAGO');
+  const hotel=dpA.filter(r=>r.pagoDp==='HOTEL');
+  const noLiq=prep.filter(r=>r.liqDp==='NO');
+  const totNoLiq=noLiq.reduce((a,r)=>a+(r.total||0)-(r.sena||0),0);
+  if(new Date().getDate()===4)document.getElementById('dp-recordatorio').innerHTML='<div class="recordatorio">⚠ <strong>HOY DÍA 4:</strong> Enviar liquidación Despegar. '+noLiq.length+' reservas prepago sin liquidar · <strong>$'+fmt(totNoLiq)+'</strong> ARS.</div>';
+  const llegHoy=hotel.filter(r=>r.cin1===hoy());
+  document.getElementById('dp-alertas').innerHTML=llegHoy.map(r=>'<div class="alerta er">🔴 <strong>COBRAR HOY — '+r.nombre+'</strong> · '+r.u1+' · <strong>$'+fmt((r.total||0)-(r.sena||0))+'</strong> ARS al ingreso</div>').join('');
+  document.getElementById('dp-stats').innerHTML=
+    '<div class="stat"><div class="st-l">Total Despegar</div><div class="st-v">'+dpA.length+'</div></div>'+
+    '<div class="stat"><div class="st-l">Prepago</div><div class="st-v" style="color:var(--bk)">'+prep.length+'</div></div>'+
+    '<div class="stat"><div class="st-l">Cobro Hotel</div><div class="st-v" style="color:var(--wa)">'+hotel.length+'</div></div>'+
+    '<div class="stat"><div class="st-l">Sin liquidar</div><div class="st-v" style="color:var(--er)">'+noLiq.length+'</div></div>'+
+    '<div class="stat"><div class="st-l">Pendiente liq.</div><div class="st-v" style="font-size:15px;color:var(--er)">$'+fmt(totNoLiq)+'</div></div>';
+  const tb=document.getElementById('tbl-dp');
+  if(!dpR.length){tb.innerHTML='<tr><td colspan="15" class="empty">No hay reservas Despegar.</td></tr>';return;}
+  tb.innerHTML=dpR.map(r=>{
+    const saldo=(r.total||0)-(r.sena||0);
+    const est=r.tipo==='CANCELADA'?'<span class="badge b-canc">CANC</span>':r.tipo==='RESERVA CONFIRMADA'?'<span class="badge b-ok">OK</span>':'<span class="badge b-pres">Pres</span>';
+    const pago=r.pagoDp==='PREPAGO'?'<span class="badge b-pre">Prepago</span>':'<span class="badge b-hotel">Hotel</span>';
+    const liq=r.liqDp==='SI'?'<span class="badge b-liq">Liquidada</span><br><small>'+fmtF(r.fechaLiq)+'</small>':'<span class="badge b-noliq">Pendiente</span>';
+    return'<tr class="'+(r.tipo==='CANCELADA'?'cancelada':'')+'">'+
+      '<td><strong>#'+r.nro+'</strong><br>'+est+'</td>'+
+      '<td>'+(r.pnr||'—')+'</td><td>'+(r.idDp||'—')+'</td>'+
+      '<td><strong>'+r.nombre+'</strong></td>'+
+      '<td style="font-size:11px">'+r.u1+'</td>'+
+      '<td>'+fmtF(r.cin1)+'</td><td>'+fmtF(r.cout1)+'</td>'+
+      '<td>'+r.pax+'</td><td>'+pago+'</td>'+
+      '<td class="num">$'+fmt(r.total)+'</td>'+
+      '<td class="num" style="color:var(--ok)">$'+fmt(r.sena||0)+'</td>'+
+      '<td class="num" style="color:'+(saldo>0&&r.pagoDp==='HOTEL'?'var(--er)':'inherit')+'"><strong>$'+fmt(Math.max(0,saldo))+'</strong>'+(r.pagoDp==='HOTEL'&&saldo>0&&r.tipo==='RESERVA CONFIRMADA'?'<br><small style="color:var(--er)">⚠ cobrar</small>':'')+'</td>'+
+      '<td>'+liq+'</td>'+
+      '<td style="font-size:11px">'+(fmtF(r.fechaPresLiq)||'—')+'</td>'+
+      '<td><button class="btn wa xs" onclick="editar(\''+r.id+'\')">✏</button></td></tr>';
+  }).join('');
+}
+
+// ===== BOOKING LIQUIDACIONES =====
+function renderBookingLiq(){
+  const desde=gv('bk-liq-desde'),hasta=gv('bk-liq-hasta');
+  const informado=parseMonto(gv('bk-liq-informado'));
+  if(!desde||!hasta){alert('Ingrese el rango de fechas.');return;}
+  const bkR=window._db.filter(r=>r.origen==='BOOKING'&&r.tipo!=='CANCELADA'&&r.cin1&&r.cin1>=desde&&r.cin1<=hasta);
+  const totalFact=bkR.reduce((a,r)=>a+(r.total||0),0);
+  const totalCom=bkR.reduce((a,r)=>a+(r.comisionARS||0),0);
+  const totalDesc=bkR.reduce((a,r)=>a+(r.descMovilARS||0),0);
+  const totalNeto=totalFact-totalCom;
+  const dif=informado>0?informado-totalCom:0;
+  let res='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px">'+
+    '<div class="stat"><div class="st-l">Reservas en período</div><div class="st-v">'+bkR.length+'</div></div>'+
+    '<div class="stat"><div class="st-l">Facturación bruta</div><div class="st-v" style="font-size:15px">$'+fmt(totalFact)+'</div></div>'+
+    '<div class="stat"><div class="st-l">Comisión calculada</div><div class="st-v" style="font-size:15px;color:var(--er)">$'+fmt(totalCom)+'</div></div>'+
+    '<div class="stat"><div class="st-l">Neto tras comisión</div><div class="st-v" style="font-size:15px;color:var(--ok)">$'+fmt(totalNeto)+'</div></div>'+
+    '<div class="stat"><div class="st-l">Descuentos móvil</div><div class="st-v" style="font-size:15px;color:#6d28d9">$'+fmt(totalDesc)+'</div></div>';
+  if(informado>0){const ok=Math.abs(dif)<100;res+='<div class="stat" style="border-color:'+(ok?'#16a34a':'#dc2626')+'"><div class="st-l">Informado Booking</div><div class="st-v" style="font-size:15px;color:'+(ok?'var(--ok)':'var(--er)')+'">$'+fmt(informado)+'</div><div class="st-s">'+(ok?'✔ Coincide':'⚠ Dif: $'+fmt(Math.abs(dif)))+'</div></div>';}
+  res+='</div>';
+  document.getElementById('bk-liq-resumen').innerHTML=res;
+  let h='<thead><tr><th>#</th><th>Titular</th><th>Unidad</th><th>Check-In</th><th>Check-Out</th><th>Nts</th><th class="num">USD</th><th class="num">ARS bruto</th><th class="num">Com%</th><th class="num">Com ARS</th><th class="num">Neto ARS</th><th class="num">Desc.Móvil</th></tr></thead><tbody>';
+  bkR.forEach(r=>{
+    const neto=(r.total||0)-(r.comisionARS||0);
+    h+='<tr><td>#'+r.nro+'</td><td>'+r.nombre+'</td><td style="font-size:11px">'+r.u1+'</td><td>'+fmtF(r.cin1)+'</td><td>'+fmtF(r.cout1)+'</td><td>'+r.n1+'</td><td class="num">'+(r.precioUSD>0?'$'+r.precioUSD:'—')+'</td><td class="num">$'+fmt(r.total)+'</td><td class="num">'+(r.comisionPct||0)+'%</td><td class="num" style="color:var(--er)">$'+fmt(r.comisionARS||0)+'</td><td class="num" style="color:var(--ok)">$'+fmt(neto)+'</td><td class="num" style="color:#6d28d9">'+(r.descMovilARS>0?'$'+fmt(r.descMovilARS):'—')+'</td></tr>';
+  });
+  if(!bkR.length)h+='<tr><td colspan="12" class="empty">Sin reservas Booking en ese período.</td></tr>';
+  h+='<tr style="background:var(--bg3);font-weight:700"><td colspan="7" style="text-align:right">TOTALES:</td><td class="num">$'+fmt(totalFact)+'</td><td></td><td class="num" style="color:var(--er)">$'+fmt(totalCom)+'</td><td class="num" style="color:var(--ok)">$'+fmt(totalNeto)+'</td><td class="num" style="color:#6d28d9">$'+fmt(totalDesc)+'</td></tr>';
+  document.getElementById('tbl-bk-liq').innerHTML=h+'</tbody>';
+}
+
+// ===== MUCAMAS =====
+window._mucamasData=null;
+function renderMucamas(){
+  const desde=gv('muc-desde'),hasta=gv('muc-hasta');
+  if(!desde||!hasta){alert('Ingrese rango de fechas.');return;}
+  const valCO=parseFloat(gv('muc-val-checkout'))||0;
+  const valDiaBase=parseFloat(gv('muc-val-dia'))||0;
+  const valDiaCab=parseFloat(gv('muc-val-dia-cab'))||valDiaBase;
+  const valPasajeCab=parseFloat(gv('muc-val-pasaje-cab'))||0;
+  const activos=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA');
+  const undsCAB=['Cabaña grande','Cabaña Loft','Cabaña Standard'];
+  const undsDEP=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'];
+  function calcU(unidad,valDia){
+    const reservas=activos.filter(r=>(r.u1===unidad||r.u2===unidad)&&r.cin1&&r.cin1<=hasta&&r.cout1&&r.cout1>=desde);
+    let checkouts=0;const detalle=[];
+    reservas.forEach(r=>{
+      const cin=r.u1===unidad?r.cin1:(r.cin2||'');
+      const cout=r.u1===unidad?r.cout1:(r.cout2||'');
+      if(!cin||!cout)return;
+      const esEnRango=cout>=desde&&cout<=hasta;
+      if(esEnRango)checkouts++;
+      const dias=rango(cin,cout).filter(d=>d>=desde&&d<=hasta).length;
+      const subtCO=esEnRango?valCO:0;
+      const subtDias=Math.max(0,dias-(esEnRango?1:0))*valDia;
+      detalle.push({nombre:r.nombre,cin:fmtF(cin),cout:fmtF(cout),dias,subtCO,subtDias,subtotal:subtCO+subtDias});
+    });
+    return{checkouts,detalle,totalCO:checkouts*valCO,totalDias:detalle.reduce((a,d)=>a+d.subtDias,0),total:detalle.reduce((a,d)=>a+d.subtotal,0)};
+  }
+  const dataCab=undsCAB.map(u=>({unidad:u,...calcU(u,valDiaCab)}));
+  const dataDep=undsDEP.map(u=>({unidad:u,...calcU(u,valDiaBase)}));
+  const totCabBase=dataCab.reduce((a,d)=>a+d.total,0);
+  const diasPasaje=dataCab.reduce((a,d)=>a+d.checkouts,0);
+  const totalPasajeCab=diasPasaje*valPasajeCab;
+  const totCab=totCabBase+totalPasajeCab;
+  const totDep=dataDep.reduce((a,d)=>a+d.total,0);
+  function tblUnd(data,valDia){
+    let h='<thead><tr><th>Unidad</th><th>Huésped</th><th>Entrada</th><th>Salida</th><th>Días</th><th class="num">CO</th><th class="num">Días</th><th class="num">Sub</th></tr></thead><tbody>';
+    data.forEach(d=>{
+      d.detalle.forEach(det=>{h+='<tr><td style="font-size:11px">'+d.unidad+'</td><td>'+det.nombre+'</td><td>'+det.cin+'</td><td>'+det.cout+'</td><td>'+det.dias+'</td><td class="num">$'+fmt(det.subtCO)+'</td><td class="num">$'+fmt(det.subtDias)+'</td><td class="num"><strong>$'+fmt(det.subtotal)+'</strong></td></tr>';});
+      if(d.detalle.length===0)h+='<tr><td style="font-size:11px">'+d.unidad+'</td><td colspan="7" style="color:var(--txt3)">Sin reservas en el período</td></tr>';
+    });
+    return h+'</tbody>';
+  }
+  document.getElementById('muc-stats-cab').innerHTML='<div class="stat"><div class="st-l">Check-outs</div><div class="st-v">'+dataCab.reduce((a,d)=>a+d.checkouts,0)+'</div></div><div class="stat"><div class="st-l">Pasaje (días)</div><div class="st-v">'+diasPasaje+'</div></div><div class="stat"><div class="st-l">Total a pagar</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(totCab)+'</div></div>';
+  document.getElementById('tbl-muc-cab').innerHTML=tblUnd(dataCab,valDiaCab);
+  document.getElementById('muc-stats-dep').innerHTML='<div class="stat"><div class="st-l">Check-outs</div><div class="st-v">'+dataDep.reduce((a,d)=>a+d.checkouts,0)+'</div></div><div class="stat"><div class="st-l">Días ocupados</div><div class="st-v">'+dataDep.reduce((a,d)=>a+d.detalle.reduce((s,det)=>s+det.dias,0),0)+'</div></div><div class="stat"><div class="st-l">Total a pagar</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(totDep)+'</div></div>';
+  document.getElementById('tbl-muc-dep').innerHTML=tblUnd(dataDep,valDiaBase);
+  document.getElementById('muc-resumen-total').innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"><div class="stat"><div class="st-l">'+gv('muc-nombre-cab')+' (Cabañas)</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(totCab)+'</div><div class="st-s">Pasaje incluido: $'+fmt(totalPasajeCab)+'</div></div><div class="stat"><div class="st-l">'+gv('muc-nombre-dep')+' (Deptos)</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(totDep)+'</div></div><div class="stat" style="border-color:var(--ok)"><div class="st-l">TOTAL PERSONAL</div><div class="st-v" style="font-size:20px;color:var(--ok)">$'+fmt(totCab+totDep)+'</div><div class="st-s">'+fmtF(desde)+' al '+fmtF(hasta)+'</div></div></div>';
+  window._mucamasData={dataCab,dataDep,totCab,totDep,totalPasajeCab,diasPasaje,valPasajeCab,valCO,valDiaCab,valDiaBase,desde,hasta};
+}
+function copiarWAMucamasCab(){
+  const d=window._mucamasData;if(!d){alert('Calcule primero.');return;}
+  const nombre=gv('muc-nombre-cab');
+  let txt='☀ *MENDOZA SOL Y NIEVE — CABAÑAS*\n*Liquidación: '+fmtF(d.desde)+' al '+fmtF(d.hasta)+'*\n\nHola *'+nombre+'*!\n\n';
+  d.dataCab.forEach(cab=>{
+    if(!cab.detalle.length)return;
+    txt+='🏠 *'+cab.unidad+'*\n';
+    cab.detalle.forEach(det=>txt+='  • '+det.nombre+': '+det.cin+' → '+det.cout+'\n    CO: $'+fmt(det.subtCO)+' + días: $'+fmt(det.subtDias)+' = *$'+fmt(det.subtotal)+'*\n');
+    txt+='\n';
+  });
+  if(d.valPasajeCab>0)txt+='🚌 *Pasaje* ('+d.diasPasaje+' días × $'+fmt(d.valPasajeCab)+'): *$'+fmt(d.totalPasajeCab)+'*\n\n';
+  txt+='💰 *TOTAL: $'+fmt(d.totCab)+'*\nCO: $'+fmt(d.valCO)+'/vez · Día: $'+fmt(d.valDiaCab)+'\nGracias! ☀';
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado para cabañas')).catch(()=>prompt('Copie:',txt));
+}
+function copiarWAMucamasDep(){
+  const d=window._mucamasData;if(!d){alert('Calcule primero.');return;}
+  const nombre=gv('muc-nombre-dep');
+  let txt='☀ *MENDOZA SOL Y NIEVE — DEPARTAMENTOS*\n*Liquidación: '+fmtF(d.desde)+' al '+fmtF(d.hasta)+'*\n\nHola *'+nombre+'*!\n\n';
+  d.dataDep.forEach(dep=>{
+    if(!dep.detalle.length)return;
+    txt+='🏢 *'+dep.unidad+'*\n';
+    dep.detalle.forEach(det=>txt+='  • '+det.nombre+': '+det.cin+' → '+det.cout+'\n    CO: $'+fmt(det.subtCO)+' + días: $'+fmt(det.subtDias)+' = *$'+fmt(det.subtotal)+'*\n');
+    txt+='\n';
+  });
+  txt+='💰 *TOTAL: $'+fmt(d.totDep)+'*\nCO: $'+fmt(d.valCO)+'/vez · Día: $'+fmt(d.valDiaBase)+'\n*(Sin pasaje — deptos en Mendoza Ciudad)*\nGracias! ☀';
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado para departamentos')).catch(()=>prompt('Copie:',txt));
+}
+
+// ===== GASTOS =====
+function calcCombustible(){
+  const dest=document.getElementById('g-comb-destino')?.value||'cabanas';
+  const km=dest==='cabanas'?160:16;
+  const viajes=parseFloat(document.getElementById('g-comb-viajes')?.value)||1;
+  const litro=parseFloat(document.getElementById('g-comb-litro')?.value)||0;
+  const rend=parseFloat(document.getElementById('g-comb-rend')?.value)||12;
+  const costo=Math.round((km*viajes/rend)*litro);
+  const el=document.getElementById('g-comb-costo');
+  if(el)el.value=costo>0?'ARS $'+fmt(costo)+' ('+(km*viajes/rend).toFixed(1)+'L · '+(km*viajes)+'km)':'$0';
+}
+function calcGas(){
+  const kg=parseFloat(document.getElementById('g-gas-kg')?.value)||0;
+  const monto=parseFloat(document.getElementById('g-gas-monto')?.value)||0;
+  const el=document.getElementById('g-gas-kg-precio');
+  if(el)el.value=kg>0?'$'+fmt(Math.round(monto/kg))+'/kg':'—';
+}
+async function agregarGasto(tipo){
+  const hd=hoy();
+  let g={id:String(Date.now()),tipo,fecha:hd,destino:'ambos',descripcion:'',monto:0,detalle:{}};
+  if(tipo==='COMBUSTIBLE'){
+    const dest=document.getElementById('g-comb-destino')?.value||'cabanas';
+    const km=dest==='cabanas'?160:16;
+    const viajes=parseFloat(document.getElementById('g-comb-viajes')?.value)||1;
+    const litro=parseFloat(document.getElementById('g-comb-litro')?.value)||0;
+    const rend=parseFloat(document.getElementById('g-comb-rend')?.value)||12;
+    const monto=Math.round((km*viajes/rend)*litro);
+    if(monto<=0){alert('Ingrese precio por litro.');return;}
+    g.fecha=document.getElementById('g-comb-fecha')?.value||hd;g.destino=dest;g.monto=monto;
+    g.descripcion='Combustible '+(dest==='cabanas'?'Potrerillos':'Ciudad')+' · '+viajes+' viaje(s) · '+(km*viajes)+'km';
+    const obs=document.getElementById('g-comb-obs')?.value||'';if(obs)g.descripcion+=' · '+obs;
+  } else if(tipo==='LIMPIEZA'){
+    const monto=parseFloat(document.getElementById('g-limp-monto')?.value)||0;
+    if(monto<=0){alert('Ingrese el monto.');return;}
+    g.fecha=document.getElementById('g-limp-fecha')?.value||hd;
+    g.destino=document.getElementById('g-limp-destino')?.value||'ambos';g.monto=monto;
+    const arts=[];
+    [['gl-ph','Papel higiénico'],['gl-rc','Rollo cocina'],['gl-det','Detergente'],['gl-lav','Lavandina'],
+     ['gl-sh','Shampoo'],['gl-enj','Enjuague'],['gl-sc','Soda cáustica'],['gl-jab','Jabón manos'],
+     ['gl-fos','Fósforos'],['gl-lust','Lustramuebles']].forEach(([id,nom])=>{if(document.getElementById(id)?.checked)arts.push(nom);});
+    const otd=document.getElementById('gl-otros-det')?.value||'';
+    if(document.getElementById('gl-otros')?.checked&&otd)arts.push(otd);
+    g.descripcion='Limpieza: '+(arts.length?arts.join(', '):'varios artículos');
+    ['gl-ph','gl-rc','gl-det','gl-lav','gl-sh','gl-enj','gl-sc','gl-jab','gl-fos','gl-lust','gl-otros'].forEach(id=>{const e=document.getElementById(id);if(e)e.checked=false;});
+    const od=document.getElementById('gl-otros-det');if(od)od.value='';
+  } else if(tipo==='GAS'){
+    const monto=parseFloat(document.getElementById('g-gas-monto')?.value)||0;
+    const kg=parseFloat(document.getElementById('g-gas-kg')?.value)||0;
+    if(monto<=0){alert('Ingrese el monto.');return;}
+    g.fecha=document.getElementById('g-gas-fecha')?.value||hd;
+    g.destino=document.getElementById('g-gas-destino')?.value||'cabanas';g.monto=monto;
+    g.descripcion='Gas — '+kg+'kg · $'+fmt(kg>0?Math.round(monto/kg):0)+'/kg';
+    const obs=document.getElementById('g-gas-obs')?.value||'';if(obs)g.descripcion+=' · '+obs;
+    document.getElementById('g-gas-kg').value=0;document.getElementById('g-gas-monto').value=0;document.getElementById('g-gas-kg-precio').value='';
+  } else if(tipo==='EXPENSAS'){
+    const c15=parseFloat(document.getElementById('g-exp-c15')?.value)||0;
+    const c16=parseFloat(document.getElementById('g-exp-c16')?.value)||0;
+    if(c15<=0&&c16<=0){alert('Ingrese al menos un monto.');return;}
+    const mes=document.getElementById('g-exp-mes')?.value||'';
+    g.fecha=mes?mes+'-01':hd;g.destino='cabanas';g.monto=c15+c16;
+    g.descripcion='Expensas '+(mes||'')+' — Cab.15: $'+fmt(c15)+' · Cab.16: $'+fmt(c16);
+    const obs=document.getElementById('g-exp-obs')?.value||'';if(obs)g.descripcion+=' · '+obs;
+    document.getElementById('g-exp-c15').value=0;document.getElementById('g-exp-c16').value=0;
+  } else if(tipo==='IMPUESTO'){
+    const monto=parseFloat(document.getElementById('g-imp-monto')?.value)||0;
+    if(monto<=0){alert('Ingrese el monto.');return;}
+    g.fecha=document.getElementById('g-imp-fecha')?.value||hd;
+    g.tipo=document.getElementById('g-imp-tipo')?.value||'IMPUESTO';
+    g.destino=document.getElementById('g-imp-destino')?.value||'ambos';g.monto=monto;
+    const ref=document.getElementById('g-imp-ref')?.value||'',obs=document.getElementById('g-imp-obs')?.value||'';
+    const tn={IMP_MUNICIPAL:'Imp.Municipal',IMP_PROVINCIAL:'Imp.Provincial',INTERNET:'Internet Starlink',COMISION_BK:'Com.Booking',COMISION_DP:'Com.Despegar',OTRO:'Otro'}[g.tipo]||g.tipo;
+    g.descripcion=tn+(ref?' · '+ref:'')+(obs?' · '+obs:'');
+    document.getElementById('g-imp-monto').value=0;document.getElementById('g-imp-ref').value='';document.getElementById('g-imp-obs').value='';
+  } else if(tipo==='OTRO'){
+    const monto=parseFloat(document.getElementById('g-otro-monto')?.value)||0;
+    const desc=document.getElementById('g-otro-desc')?.value||'';
+    if(monto<=0||!desc){alert('Ingrese descripción y monto.');return;}
+    g.fecha=document.getElementById('g-otro-fecha')?.value||hd;
+    g.destino=document.getElementById('g-otro-destino')?.value||'ambos';g.monto=monto;
+    const ref=document.getElementById('g-otro-ref')?.value||'';
+    g.descripcion=desc+(ref?' · Ref: '+ref:'');
+    document.getElementById('g-otro-monto').value=0;document.getElementById('g-otro-desc').value='';document.getElementById('g-otro-ref').value='';
+  }
+  try{await window.fireGuardarGasto(g);alert('✔ Gasto registrado: $'+fmt(g.monto));renderGastos();}
+  catch(e){alert('Error al guardar: '+e.message);}
+}
+function renderGastos(){
+  const desde=document.getElementById('g-desde')?.value||'',hasta=document.getElementById('g-hasta')?.value||'';
+  const filtTipo=document.getElementById('g-filtro-tipo')?.value||'',filtDest=document.getElementById('g-filtro-dest')?.value||'';
+  let gastos=(window._gastos||[]).filter(g=>{
+    if(desde&&g.fecha&&g.fecha<desde)return false;
+    if(hasta&&g.fecha&&g.fecha>hasta)return false;
+    if(filtTipo&&g.tipo!==filtTipo)return false;
+    if(filtDest&&g.destino!==filtDest)return false;
+    return true;
+  });
+  gastos.sort((a,b)=>a.fecha>b.fecha?-1:1);
+  const totGen=gastos.reduce((a,g)=>a+g.monto,0);
+  const totCab=gastos.filter(g=>g.destino==='cabanas').reduce((a,g)=>a+g.monto,0);
+  const totDep=gastos.filter(g=>g.destino==='deptos').reduce((a,g)=>a+g.monto,0);
+  const totAmb=gastos.filter(g=>g.destino==='ambos').reduce((a,g)=>a+g.monto,0);
+  const porTipo={};gastos.forEach(g=>{const k=g.tipo||'OTRO';porTipo[k]=(porTipo[k]||0)+g.monto;});
+  const tn={COMBUSTIBLE:'⛽ Combustible',LIMPIEZA:'🧴 Limpieza',GAS:'🔥 Gas',EXPENSAS:'🏠 Expensas',IMP_MUNICIPAL:'📄 Imp.Mun.',IMP_PROVINCIAL:'📄 Imp.Prov.',INTERNET:'📡 Starlink',COMISION_BK:'✉ Com.BK',COMISION_DP:'✈ Com.DP',IMPUESTO:'📄 Impuesto',OTRO:'📋 Otros'};
+  const divRes=document.getElementById('g-resumen');
+  if(divRes&&(desde||hasta)){
+    divRes.innerHTML='<div class="stats" style="margin-bottom:0">'+
+      '<div class="stat"><div class="st-l">Total período</div><div class="st-v" style="font-size:16px;color:var(--er)">$'+fmt(totGen)+'</div></div>'+
+      '<div class="stat"><div class="st-l">🏔 Cabañas</div><div class="st-v" style="font-size:16px;color:var(--wa)">$'+fmt(totCab)+'</div></div>'+
+      '<div class="stat"><div class="st-l">🏢 Departamentos</div><div class="st-v" style="font-size:16px;color:var(--bk)">$'+fmt(totDep)+'</div></div>'+
+      '<div class="stat"><div class="st-l">General</div><div class="st-v" style="font-size:16px">$'+fmt(totAmb)+'</div></div>'+
+      Object.entries(porTipo).map(([k,v])=>'<div class="stat"><div class="st-l">'+(tn[k]||k)+'</div><div class="st-v" style="font-size:15px">$'+fmt(v)+'</div></div>').join('')+
+      '</div>';
+  }
+  const destN={cabanas:'🏔 Cabañas',deptos:'🏢 Deptos',ambos:'🌐 General'};
+  const tb=document.getElementById('tbl-gastos');if(!tb)return;
+  if(!gastos.length){tb.innerHTML='<tr><td colspan="6" class="empty">No hay gastos registrados en ese período.</td></tr>';return;}
+  tb.innerHTML=gastos.map(g=>'<tr><td>'+fmtF(g.fecha)+'</td><td><span class="badge b-mn">'+(tn[g.tipo]||g.tipo||'—')+'</span></td><td>'+(destN[g.destino]||g.destino||'—')+'</td><td style="font-size:11px">'+g.descripcion+'</td><td class="num" style="font-weight:600;color:var(--er)">$'+fmt(g.monto)+'</td><td><button class="btn er xs" onclick="eliminarGasto(\''+g.id+'\')">🗑</button></td></tr>').join('');
+}
+async function eliminarGasto(id){
+  if(!confirm('¿Eliminar este gasto?'))return;
+  try{await window.fireEliminarGasto(id);renderGastos();}catch(e){alert('Error: '+e.message);}
+}
+function exportarGastosCSV(){
+  const gastos=window._gastos||[];if(!gastos.length){alert('No hay gastos.');return;}
+  let c='data:text/csv;charset=utf-8,\uFEFFID;Fecha;Tipo;Destino;Descripcion;Monto\r\n';
+  gastos.forEach(g=>{c+=g.id+';'+g.fecha+';'+g.tipo+';'+g.destino+';'+g.descripcion.replace(/;/g,',')+';'+g.monto+'\r\n';});
+  const a=document.createElement('a');a.href=encodeURI(c);a.download='MSN_Gastos_'+hoy()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+// ===== VOUCHER =====
+function voucherById(id){
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  sv('f-nro',r.nro);sv('f-tipo',r.tipo);sv('f-fecha',r.fecha);sv('f-origen',r.origen);
+  sv('f-cotiz-usd',r.cotizUsd||0);sv('f-precio-usd',r.precioUSD||0);sv('f-pais',r.pais||'');
+  sv('f-nombre',r.nombre);sv('f-dni',r.dni||'');sv('f-email',r.email||'');sv('f-tel',r.telefono||'');sv('f-pax',r.pax);
+  sv('f-alo1',r.u1);sv('f-ci1',r.cin1);sv('f-co1',r.cout1);sv('f-n1',r.n1);sv('f-p1',r.p1);
+  sv('f-alo2',r.u2||'');sv('f-ci2',r.cin2||'');sv('f-co2',r.cout2||'');sv('f-n2',r.n2||0);sv('f-p2',r.p2||'');
+  sv('f-sena',r.sena||0);sv('f-notas',r.notas||'');
+  calcTot();abrirVoucher();
+}
+function abrirVoucher(){
+  const n1=parseInt(gv('f-n1'))||0,p1=parseFloat(gv('f-p1'))||0;
+  const n2=parseInt(gv('f-n2'))||0,p2=parseFloat(gv('f-p2'))||0;
+  if(n1<=0){alert('Complete al menos el primer alojamiento con fechas.');return;}
+  const total=(n1*p1)+(n2*p2);const sena=parseFloat(gv('f-sena'))||0;const saldo=total-sena;
+  const origen=gv('f-origen');
+  const oc={BOOKING:{c:'b-bk',t:'✉ Booking.com'},DESPEGAR:{c:'b-dp',t:'✈ Despegar.com'},MANUAL:{c:'b-mn',t:'Reserva Manual'},DIRECTO:{c:'b-mn',t:'Reserva Directa'},AIRBNB:{c:'b-ok',t:'Airbnb'}};
+  const od=oc[origen]||{c:'b-mn',t:origen};
+  document.getElementById('v-tipo').textContent=gv('f-tipo');
+  document.getElementById('v-nombre').textContent=gv('f-nombre')||'Huésped';
+  document.getElementById('v-origen-badge').innerHTML='<span class="badge '+od.c+'">'+od.t+'</span>';
+  document.getElementById('v-nro').textContent=gv('f-nro');
+  document.getElementById('v-fecha').textContent=fmtF(gv('f-fecha'));
+  document.getElementById('v-dni').textContent=gv('f-dni')||'—';
+  document.getElementById('v-email').textContent=gv('f-email')||'—';
+  document.getElementById('v-tel').textContent=gv('f-tel')||'—';
+  document.getElementById('v-pais').textContent=gv('f-pais')||'—';
+  document.getElementById('v-pax').textContent=gv('f-pax')||'—';
+  const cotiz=parseFloat(gv('f-cotiz-usd'))||0,usd=parseFloat(gv('f-precio-usd'))||0;
+  const cr=document.getElementById('v-cotiz-row'),ur=document.getElementById('v-usd-row');
+  if(cotiz>0){cr.style.display='';document.getElementById('v-cotiz').textContent=fmt(cotiz);}else cr.style.display='none';
+  if(usd>0){ur.style.display='';document.getElementById('v-usd').textContent=usd;}else ur.style.display='none';
+  let rows='<tr><td><strong>'+gv('f-alo1')+'</strong></td><td>'+fmtF(gv('f-ci1'))+'</td><td>'+fmtF(gv('f-co1'))+'</td><td>'+n1+'</td><td>$'+fmt(p1)+'</td><td style="text-align:right;font-weight:600">$'+fmt(n1*p1)+'</td></tr>';
+  if(gv('f-alo2'))rows+='<tr><td><strong>'+gv('f-alo2')+'</strong></td><td>'+fmtF(gv('f-ci2'))+'</td><td>'+fmtF(gv('f-co2'))+'</td><td>'+n2+'</td><td>$'+fmt(p2)+'</td><td style="text-align:right;font-weight:600">$'+fmt(n2*p2)+'</td></tr>';
+  rows+='<tr><td colspan="5" style="text-align:right;font-weight:700">Total general:</td><td style="text-align:right;font-weight:700;color:var(--pr);font-size:14px">$'+fmt(total)+'</td></tr>';
+  document.getElementById('v-items').innerHTML=rows;
+  document.getElementById('v-sena30').textContent='ARS $'+fmt(total*0.30);
+  let ph='';
+  if(sena>0)ph='<div class="'+(saldo<=0?'pago-ok':'pago-pend')+'"><strong>'+(saldo<=0?'✓ PAGO COMPLETO':'⚠ PAGO PARCIAL')+'</strong><br>Seña: <strong>$'+fmt(sena)+'</strong> · Saldo: <strong>$'+fmt(Math.max(0,saldo))+'</strong></div>';
+  document.getElementById('v-pago-box').innerHTML=ph;
+  const notas=gv('f-notas'),cbx=document.getElementById('v-comentario-box');
+  if(notas&&notas.toLowerCase().includes('comentario')){cbx.style.display='';cbx.innerHTML='<strong>📋 Comentario del huésped:</strong><br>'+notas;}else cbx.style.display='none';
+  goTo('sc-voucher');
+}
+function imprimirVoucher(){
+  const cont=document.getElementById('v-wrap').innerHTML;
+  const w=window.open('','_blank','width=820,height=920');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Voucher MSN</title><style>body{font-family:"Segoe UI",sans-serif;padding:20px;font-size:13px;color:#1f2937}.voucher-wrap{max-width:730px;margin:0 auto;border:1px solid #cbd5e1;padding:22px;border-radius:8px}.v-hdr{text-align:center;border-bottom:2px solid #0f4c81;padding-bottom:14px;margin-bottom:16px}.v-title{font-size:15px;font-weight:700;letter-spacing:1px;color:#0f4c81;text-transform:uppercase}.v-guest{font-size:18px;font-weight:700;color:#0f4c81}.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}.b-bk{background:#dbeafe;color:#1e3a8a}.b-dp{background:#ede9fe;color:#4c1d95}.b-mn{background:#f1f5f9;color:#334155}.b-ok{background:#dcfce7;color:#14532d}table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}th{background:#f1f5f9;padding:8px 10px;border:1px solid #e2e8f0;font-weight:600;text-align:left}td{padding:7px 10px;border:1px solid #e2e8f0}.notif-box{background:#fffbeb;border-left:4px solid #f59e0b;padding:12px 14px;margin-top:12px;font-size:12px;line-height:1.8}.banco{margin-top:8px;padding-top:8px;border-top:1px dashed #d1d5db;font-size:11px;line-height:1.9}.pago-ok{background:#f0fdf4;border-left:4px solid #16a34a;padding:10px 14px;margin-top:8px;font-size:12px}.pago-pend{background:#fff1f2;border-left:4px solid #dc2626;padding:10px 14px;margin-top:8px;font-size:12px}</style></head><body><div class="voucher-wrap">'+cont+'</div></body></html>');
+  w.document.close();w.focus();setTimeout(()=>w.print(),500);
+}
+function copiarWA(){
+  const nombre=gv('f-nombre'),nro=gv('f-nro'),u=gv('f-alo1'),origen=gv('f-origen');
+  const ci=fmtF(gv('f-ci1')),co=fmtF(gv('f-co1')),n1=parseInt(gv('f-n1'))||0;
+  const p1=parseFloat(gv('f-p1'))||0;
+  const total=(n1*p1)+((parseInt(gv('f-n2'))||0)*(parseFloat(gv('f-p2'))||0));
+  const sena=parseFloat(gv('f-sena'))||0;const saldo=total-sena;
+  const medioO={BOOKING:'Booking.com',DESPEGAR:'Despegar.com',MANUAL:'contacto directo',DIRECTO:'WhatsApp/directo',AIRBNB:'Airbnb'}[origen]||origen;
+  const notas=gv('f-notas');const tieneComentario=notas&&notas.toLowerCase().includes('comentario');
+  let txt='☀ *MENDOZA SOL Y NIEVE*\n\nEstimado/a *'+nombre+'*,\n\nNos contactamos por la reserva realizada a través de *'+medioO+'*:\n\n*Comprobante Reserva #'+nro+'*\n\n• *'+u+'*\n• Check-In: '+ci+' → Check-Out: '+co+' ('+n1+' noches)\n• Total: ARS $'+fmt(total)+'\n• Seña recibida: $'+fmt(sena)+'\n• Saldo: $'+fmt(Math.max(0,saldo))+'\n_Seña del 30%: $'+fmt(total*0.3)+'_\n\n*NOTIFICACIÓN IMPORTANTE*\n30% = ARS $'+fmt(total*0.3)+' dentro de las 48hs.\n\n*Datos bancarios:*\nBanco: Banco Supervielle\nTitulares: Raquel Liliana Gonzalez / Oscar Daniel Porcario\nCuenta: CA ARS 093-538612-1\nCBU: 0270093920005386120016\nAlias: OSCAR.PORCARIO\n\n📍 *Indíquenos su horario estimado de llegada* para recibirlo y hacerle entrega de las llaves.\n';
+  if(tieneComentario)txt+='\n📋 Hemos tomado nota de su solicitud especial.\n';
+  txt+='\n📞 +54 9 261 654 3938 | mendozasolynieve.com.ar';
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado para WhatsApp')).catch(()=>prompt('Copie:',txt));
+}
+
+// ===== MENSAJE SEÑA =====
+function copiarMsgSena(){
+  const nombre=gv('f-nombre'),nro=gv('f-nro'),sena=parseFloat(gv('f-sena'))||0;
+  const n1=parseInt(gv('f-n1'))||0,p1=parseFloat(gv('f-p1'))||0;
+  const n2=parseInt(gv('f-n2'))||0,p2=parseFloat(gv('f-p2'))||0;
+  const total=(n1*p1)+(n2*p2);const saldo=total-sena;
+  if(sena<=0){alert('Ingrese el monto de la seña primero.');return;}
+  const fechaSena=gv('f-fecha-sena'),medioSena=gv('f-medio-sena'),refSena=gv('f-ref-sena');
+  const origen=gv('f-origen');const medioO={BOOKING:'Booking.com',DESPEGAR:'Despegar.com',MANUAL:'contacto directo',DIRECTO:'WhatsApp',AIRBNB:'Airbnb'}[origen]||origen;
+  let txt='☀ *MENDOZA SOL Y NIEVE*\n\nEstimado/a *'+nombre+'*,\n\nConfirmamos la recepción de su seña para la reserva realizada a través de *'+medioO+'*:\n\n✅ *CONFIRMACIÓN DE DEPÓSITO — Reserva #'+nro+'*\n\n• Alojamiento: *'+gv('f-alo1')+'*\n• Check-In: '+fmtF(gv('f-ci1'))+' → Check-Out: '+fmtF(gv('f-co1'))+' ('+n1+' noches)\n• Total de la reserva: ARS $'+fmt(total)+'\n• *Seña recibida: ARS $'+fmt(sena)+'*'+(fechaSena?' ('+fmtF(fechaSena)+')':(medioSena?' vía '+medioSena:''))+'\n';
+  if(medioSena)txt+='• Medio de pago: '+medioSena+'\n';
+  if(refSena)txt+='• Referencia / Nro. operación: '+refSena+'\n';
+  txt+='• *Saldo a abonar al ingreso: ARS $'+fmt(Math.max(0,saldo))+'*\n\n¡Su reserva queda *CONFIRMADA*! 🎉\n\n📍 Recuerde indicarnos su *horario estimado de llegada* para recibirlo y hacerle entrega de las llaves.\n\n📞 +54 9 261 654 3938 | mendozasolynieve.com.ar';
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Mensaje de seña copiado')).catch(()=>prompt('Copie:',txt));
+}
+
+// ===== MENSAJE INGRESO =====
+function copiarMsgIngreso(){
+  const nombre=gv('f-nombre'),nro=gv('f-nro');
+  const n1=parseInt(gv('f-n1'))||0,p1=parseFloat(gv('f-p1'))||0;
+  const n2=parseInt(gv('f-n2'))||0,p2=parseFloat(gv('f-p2'))||0;
+  const totalOrig=(n1*p1)+(n2*p2);const sena=parseFloat(gv('f-sena'))||0;
+  const cotizOrig=parseFloat(gv('f-cotiz-usd'))||0,cotizNueva=parseFloat(gv('f-cotiz-ingreso'))||0;
+  const usd=parseFloat(gv('f-precio-usd'))||0;
+  let totalFinal=totalOrig,recalculado=false;
+  if(usd>0&&cotizNueva>0&&cotizOrig>0&&cotizNueva!==cotizOrig){totalFinal=Math.round(usd*cotizNueva);recalculado=true;}
+  const saldoFinal=Math.max(0,totalFinal-sena);
+  let txt='☀ *MENDOZA SOL Y NIEVE*\n\nEstimado/a *'+nombre+'*, ¡bienvenido/a!\n\nDetalle actualizado de su reserva #'+nro+':\n\n📋 *DETALLE DE INGRESO*\n\n• Alojamiento: *'+gv('f-alo1')+'*\n• Check-In: *'+fmtF(gv('f-ci1'))+'* → Check-Out: '+fmtF(gv('f-co1'))+'\n• Noches: '+n1+'\n\n';
+  if(recalculado){txt+='💱 *PRECIO ACTUALIZADO AL DÍA DE HOY*\n• Cotización original: $'+fmt(cotizOrig)+' ARS/USD\n• Cotización hoy: $'+fmt(cotizNueva)+' ARS/USD\n• Precio USD: $'+usd+'\n• *Total actualizado: ARS $'+fmt(totalFinal)+'*\n• Seña abonada: $'+fmt(sena)+'\n• *Saldo a abonar hoy: ARS $'+fmt(saldoFinal)+'*\n\n';}
+  else{txt+='• Total: ARS $'+fmt(totalFinal)+'\n• Seña abonada: $'+fmt(sena)+'\n• *Saldo a abonar hoy: ARS $'+fmt(saldoFinal)+'*\n\n';}
+  txt+='Check-in desde las *14:00 hs* · Check-out hasta las *10:00 hs*\n\nAnte cualquier consulta estamos a disposición.\n📞 +54 9 261 654 3938 | mendozasolynieve.com.ar';
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Mensaje de ingreso copiado')).catch(()=>prompt('Copie:',txt));
+}
+
+// ===== CHECK-IN =====
+function checkinById(id){
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  sv('f-ci1',r.cin1);sv('f-co1',r.cout1);sv('f-alo1',r.u1);
+  sv('f-nombre',r.nombre);sv('f-pax',r.pax);sv('f-nro',r.nro);sv('f-tel',r.telefono||'');sv('f-email',r.email||'');
+  abrirCheckin();
+}
+function abrirCheckin(){
+  if(!gv('f-ci1')){alert('Complete primero las fechas de alojamiento.');return;}
+  sv('ci-nro',gv('f-nro'));sv('ci-nombre',gv('f-nombre'));sv('ci-alo',gv('f-alo1'));
+  sv('ci-cin',fmtF(gv('f-ci1')));sv('ci-cout',fmtF(gv('f-co1')));sv('ci-pax',gv('f-pax'));
+  sv('ci-f-nombre',gv('f-nombre'));sv('ci-f-tel',gv('f-tel'));sv('ci-f-email',gv('f-email'));
+  goTo('sc-checkin');
+}
+function imprimirCI(){
+  const cont=document.getElementById('ci-wrap').innerHTML;
+  const w=window.open('','_blank','width=760,height=880');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Check-In MSN</title><style>body{font-family:"Segoe UI",sans-serif;padding:22px;font-size:13px;color:#1f2937}.ci-wrap{max-width:690px;margin:0 auto;border:1px solid #cbd5e1;padding:20px;border-radius:8px}.ci-hdr{text-align:center;border-bottom:2px solid #0f4c81;padding-bottom:12px;margin-bottom:16px}label{font-size:11px;font-weight:600;color:#4b5563;display:block;margin-bottom:2px}input,textarea{padding:7px 9px;border:1px solid #d1d5db;border-radius:5px;font-size:12px;width:100%;box-sizing:border-box;margin-bottom:4px}textarea{min-height:70px}</style></head><body><div class="ci-wrap">'+cont+'</div></body></html>');
+  w.document.close();w.focus();setTimeout(()=>w.print(),500);
+}
+function copiarWACI(){
+  const nro=document.getElementById('ci-nro').textContent,nombre=document.getElementById('ci-nombre').textContent;
+  const alo=document.getElementById('ci-alo').textContent,ci=document.getElementById('ci-cin').textContent,co=document.getElementById('ci-cout').textContent;
+  const txt='☀ *MENDOZA SOL Y NIEVE*\n*Check-In Online — Reserva #'+nro+'*\n\nHola *'+nombre+'*!\n\nSu reserva está confirmada:\n🏠 '+alo+'\n📅 Check-In: '+ci+' (desde 14:00 hs)\n📅 Check-Out: '+co+' (hasta 10:00 hs)\n\nAntes de su llegada envienos:\n• DNI o Pasaporte\n• Fecha de nacimiento\n• Nacionalidad\n• Dirección de domicilio\n• Patente del vehículo\n• Nombres de acompañantes\n\n📍 *Indíquenos su horario estimado de llegada*\n📞 +54 9 261 654 3938 | mendozasolynieve.com.ar';
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado')).catch(()=>prompt('Copie:',txt));
+}
+function abrirEmailCI(){
+  const nro=document.getElementById('ci-nro').textContent,nombre=document.getElementById('ci-nombre').textContent;
+  const alo=document.getElementById('ci-alo').textContent,ci=document.getElementById('ci-cin').textContent,co=document.getElementById('ci-cout').textContent;
+  const email=gv('f-email');
+  const sub=encodeURIComponent('Check-In Online - Reserva #'+nro+' - Mendoza Sol y Nieve');
+  const body=encodeURIComponent('Estimado/a '+nombre+',\n\nSu reserva #'+nro+' en '+alo+' del '+ci+' al '+co+' está confirmada.\n\nAntes de su llegada envienos:\n- DNI o Pasaporte\n- Fecha de nacimiento\n- Nacionalidad\n- Dirección\n- Patente del vehículo\n- Nombres de acompañantes\n\nCheck-in desde las 14:00 hs · Check-out hasta las 10:00 hs\nIndíquenos su HORARIO ESTIMADO DE LLEGADA para recibirlo.\n\n+54 9 261 654 3938\nMendoza Sol y Nieve · mendozasolynieve.com.ar');
+  window.open('mailto:'+email+'?subject='+sub+'&body='+body,'_blank');
+}
+
+// ===== CANCELACIÓN DESPEGAR EMAIL =====
+async function procesarCancelacionDP(){
+  const txt=document.getElementById('txt-dp-canc')?.value||'';
+  if(!txt.trim()){alert('Pegue el texto del email de cancelación de Despegar.');return;}
+  try{
+    const mPNR=txt.match(/PNR[\s:]+([0-9]{6,12})/i);
+    const pnr=mPNR?mPNR[1].trim():'';
+    if(!pnr){alert('No se encontró el PNR en el email.\nVerifique que copió el texto completo.');return;}
+    const mesesES={enero:'01',febrero:'02',marzo:'03',abril:'04',mayo:'05',junio:'06',julio:'07',agosto:'08',septiembre:'09',octubre:'10',noviembre:'11',diciembre:'12'};
+    const mFCanc=txt.match(/Fecha de cancelaci[oó]n[\s:]+[a-záéíóúñ]+,?\s+(\d{1,2})\s+([a-záéíóúñ]+)\s+(\d{4})/i);
+    let fechaCanc=hoy();
+    if(mFCanc){const mes=mesesES[(mFCanc[2]||'').toLowerCase()]||'01';fechaCanc=mFCanc[3]+'-'+mes+'-'+String(mFCanc[1]).padStart(2,'0');}
+    const mPen=txt.match(/Penalidad total[\s:]+ARS\s+([\d.,]+)/i);
+    const penalidad=mPen?parseMonto(mPen[1]):0;
+    const mTit=txt.match(/Titular de la habitaci[oó]n[\s:]+([^\n\r]+)/i);
+    const titular=mTit?mTit[1].trim():'';
+    const reservaOriginal=window._db.find(r=>String(r.pnr)===String(pnr));
+    if(!reservaOriginal){
+      const ok=confirm('No se encontró ninguna reserva con PNR: '+pnr+'\n\n¿Registrar como cancelación nueva?');
+      if(!ok)return;
+      const mHab=txt.match(/Nombre de la habitaci[oó]n[\s:]+([^\n\r]+)/i);
+      const habEmail=(mHab?mHab[1].trim():'').toLowerCase();
+      let aloCanc='Desconocido';
+      if(habEmail.includes('departamento 2')||habEmail.includes('executive'))aloCanc='Departamento Ciudad de Mendoza 2';
+      else if(habEmail.includes('departamento 1')||habEmail.includes('estándar'))aloCanc='Departamento Ciudad de Mendoza 3';
+      else if(habEmail.includes('loft'))aloCanc='Cabaña Loft';
+      else if(habEmail.includes('delux')||habEmail.includes('grande'))aloCanc='Cabaña grande';
+      const nueva={id:String(Date.now()),nro:window._cnt++,fecha:hoy(),tipo:'CANCELADA',origen:'DESPEGAR',pnr,nombre:titular||'Sin nombre',fechaCanc,u1:aloCanc,cin1:'',cout1:'',n1:0,p1:0,total:penalidad,sena:0,notas:'Cancelación Despegar. Penalidad: $'+fmt(penalidad)+'. Procesado: '+hoy(),pagoDp:'PREPAGO',pax:'1'};
+      const ok2=await window.fireGuardar(nueva);
+      if(ok2){alert('✔ Cancelación registrada.\nPNR: '+pnr+'\nPenalidad: ARS $'+fmt(penalidad));document.getElementById('txt-dp-canc').value='';}
+      return;
+    }
+    const upd={...reservaOriginal,tipo:'CANCELADA',fechaCanc,penalidad,notas:(reservaOriginal.notas||'')+'\nCANCELADA el '+fmtF(fechaCanc)+(penalidad>0?' · Penalidad: $'+fmt(penalidad):' · Sin penalidad')+' · Email Despegar procesado'};
+    const ok=await window.fireGuardar(upd);
+    if(ok){
+      document.getElementById('txt-dp-canc').value='';
+      alert('✔ Cancelación procesada\n\nReserva #'+reservaOriginal.nro+' de '+reservaOriginal.nombre+' → CANCELADA\nFecha: '+fmtF(fechaCanc)+'\nPNR: '+pnr+'\nPenalidad: ARS $'+fmt(penalidad));
+    }
+  }catch(e){console.error(e);alert('Error al procesar: '+e.message);}
+}
+
+// ===== IMPORTADORES =====
+function procesarBK(){
+  const txt=gv('txt-bk');if(!txt.trim()){alert('Pegue la fila del Excel de Booking.');return;}
+  if(!txt.includes('\t')){alert('Copie la fila del Excel (clic en el número de fila), no el texto del PDF.');return;}
+  const cot=parseFloat(gv('cot-bk'))||1;
+  try{
+    const cols=txt.split('\t').map(c=>c.trim());
+    if(cols.length<5){alert('Fila incompleta.');return;}
+    const nombre=(cols[2]||'Booking Guest').replace(/Genius/gi,'').trim();
+    const ci=convISO(cols[3]||'');const co=convISO(cols[4]||'');
+    const fechaReserva=convISO(cols[5]||'')||hoy();
+    const estado=(cols[6]||'').toLowerCase();
+    const habitacion=(cols[7]||'').toLowerCase();
+    const personas=parseInt(cols[8])||0,adultos=parseInt(cols[9])||0,ninos=parseInt(cols[10])||0;
+    const pax=personas>0?personas:(adultos+ninos>0?adultos+ninos:1);
+    const comisionPct=parseMonto(cols[13]||'0');
+    const comentarios=cols[17]||'';const pais=cols[18]||'';
+    const dispositivo=(cols[20]||'').toLowerCase();
+    const tipoUnidad=(cols[21]||''),tipoUnidadL=tipoUnidad.toLowerCase();
+    const noches=parseInt(cols[22])||1;const fechaCanc=convISO(cols[23]||'');
+    const telefono=fixTel(cols[25]||'');
+    const precioUSD=parseMonto(cols[12]||'0');
+    const precioARS=Math.round(precioUSD*cot);
+    const valorNocheARS=precioARS>0?Math.round(precioARS/noches):0;
+    const esMovil=dispositivo.includes('movil')||dispositivo.includes('móvil')||dispositivo.includes('mobile');
+    const descARS=esMovil?Math.round(precioARS*0.15):0;
+    let alo='Cabaña Standard';
+    if(tipoUnidadL.includes('mendoza work')||tipoUnidadL.includes('mendoza work - rest')||(tipoUnidadL.includes('oficina y alojamiento')&&tipoUnidadL.includes('mendoza'))){alo='Departamento Ciudad de Mendoza 3';}
+    else if(tipoUnidadL.includes('plaza independencia')){alo='Departamento Ciudad de Mendoza 2';}
+    else if(tipoUnidadL.includes('loft')||habitacion.includes('loft')){alo='Cabaña Loft';}
+    else if(tipoUnidadL.includes('grande')||tipoUnidadL.includes('delux')||habitacion.includes('grande')){alo='Cabaña grande';}
+    else if(tipoUnidadL.includes('vll')||tipoUnidadL.includes('4 pax')){alo='Departamento 4 pax VLL';}
+    else if(habitacion.includes('ciudad 2')||habitacion.includes('mendoza 2')){alo='Departamento Ciudad de Mendoza 2';}
+    else if(habitacion.includes('ciudad 3')||habitacion.includes('mendoza 3')){alo='Departamento Ciudad de Mendoza 3';}
+    const esCab=esCabana(alo);
+    const sena30=esCab?Math.round(precioARS*0.30):0;
+    const tipoDoc=estado.includes('cancel')||estado.includes('no_show')||estado.includes('no show')?'CANCELADA':'RESERVA CONFIRMADA';
+    let notas='';
+    if(comentarios)notas='Comentario cliente: '+comentarios;
+    if(esMovil)notas+=(notas?'\n':'')+'DESCUENTO MÓVIL 15%: -ARS $'+fmt(descARS);
+    if(!esCab)notas+=(notas?'\n':'')+'Depto ciudad: cobrar al ingreso';
+    cancelarEdicion();
+    sv('f-origen','BOOKING');sv('f-tipo',tipoDoc);sv('f-cotiz-usd',cot);sv('f-precio-usd',precioUSD);
+    sv('f-desc-movil',descARS);sv('f-comision-pct',comisionPct);
+    sv('f-fecha',fechaReserva);sv('f-pais',pais);
+    if(fechaCanc)sv('f-fecha-canc',fechaCanc);
+    sv('f-alo1',alo);
+    if(ci)sv('f-ci1',ci);if(co)sv('f-co1',co);
+    calcN(1);
+    if(valorNocheARS>0)sv('f-p1',valorNocheARS);
+    if(pax>0)sv('f-pax',pax);
+    if(telefono)sv('f-tel',telefono);
+    if(notas)sv('f-notas',notas);
+    if(sena30>0)sv('f-sena',sena30);
+    calcTot();calcSaldo();calcComision();
+    sv('f-nro',window._cnt);sv('f-nombre',nombre);
+    document.getElementById('blk-bk').style.display='none';sv('txt-bk','');
+    alert('✔ Booking importado\nTitular: '+nombre+'\nAlojamiento: '+alo+'\nCheck-In: '+(ci||'—')+' → '+(co||'—')+' ('+noches+' nts)\nPrecio: USD $'+precioUSD+' = ARS $'+fmt(precioARS)+'\nEstado: '+tipoDoc+(fechaCanc?'\nFecha cancelación: '+fmtF(fechaCanc):''));
+  }catch(e){console.error(e);alert('Error: '+e.message);}
+}
+
+function procesarDP(){
+  const txt=gv('txt-dp');if(!txt.trim()){alert('Pegue la fila del Excel de Despegar.');return;}
+  const cot=parseFloat(gv('cot-dp'))||1;
+  try{
+    const cols=txt.split('\t').map(c=>c.trim());
+    if(cols.length<10){alert('Copie la fila completa del Excel (clic en número de fila).');return;}
+    const pnr=cols[0]||'';const idDpVal=cols[1]||'';
+    const noEx=parseInt(cols[6])||1;
+    const ci=convISO(cols[7]||'');const co=convISO(cols[8]||'');
+    const fechaRaw=cols[5]||'';
+    const fechaReserva=fechaRaw.includes('T')?fechaRaw.split('T')[0]:(convISO(fechaRaw)||hoy());
+    const formaPagoJ=(cols[9]||'').toLowerCase();
+    const pagoHotelM=(cols[12]||'').trim();
+    const pagoHotelML=pagoHotelM.toLowerCase();
+    let esPrepago;
+    if(formaPagoJ.includes('prepago')||formaPagoJ.includes('pre-pago'))esPrepago=true;
+    else if(formaPagoJ.includes('destino')||formaPagoJ.includes('hotel'))esPrepago=false;
+    else if(pagoHotelML==='cuenta corriente'||pagoHotelML==='-'||pagoHotelM==='')esPrepago=true;
+    else esPrepago=(parseMonto(pagoHotelM)===0);
+    const estadoCrudo=cols[11]||'Confirmada';
+    const moneda=(cols[13]||'ARS').toUpperCase();
+    const tarifaNeta=cols[14]||'0';const totalCobrar=cols[19]||'0';
+    const titular=cols[24]||'Pasajero Despegar';
+    const nombreHab=(cols[26]||'').toLowerCase();const tipoCateg=(cols[27]||'').toLowerCase();
+    let alo='Cabaña Standard';
+    if((nombreHab.includes('departamento 2')||nombreHab.includes('depto 2'))&&(tipoCateg.includes('executive')||tipoCateg.includes('ejecutivo'))){alo='Departamento Ciudad de Mendoza 2';}
+    else if((nombreHab.includes('departamento 1')||nombreHab.includes('depto 1'))&&(tipoCateg.includes('estándar')||tipoCateg.includes('estandar')||tipoCateg.includes('standard'))){alo='Departamento Ciudad de Mendoza 3';}
+    else if((nombreHab.includes('cabaña loft')||nombreHab.includes('loft'))&&(tipoCateg.includes('bungalow')||tipoCateg.includes('estándar')||tipoCateg.includes('estandar')||tipoCateg===''))alo='Cabaña Loft';
+    else if((nombreHab.includes('delux')||nombreHab.includes('cabaña delux')||nombreHab.includes('grande'))&&(tipoCateg.includes('luxury')||tipoCateg.includes('bungalow')||tipoCateg===''))alo='Cabaña grande';
+    else if(nombreHab.includes('loft'))alo='Cabaña Loft';
+    else if(nombreHab.includes('grande')||nombreHab.includes('delux'))alo='Cabaña grande';
+    else if(nombreHab.includes('vll')||nombreHab.includes('4 pax'))alo='Departamento 4 pax VLL';
+    else if(nombreHab.includes('ciudad 2')||nombreHab.includes('mendoza 2'))alo='Departamento Ciudad de Mendoza 2';
+    else if(nombreHab.includes('ciudad 3')||nombreHab.includes('mendoza 3'))alo='Departamento Ciudad de Mendoza 3';
+    const esUSD=moneda.includes('USD')||moneda.includes('U$S')||moneda.includes('DOL');
+    const cotizUsada=esUSD?cot:0;
+    let tot=parseMonto(totalCobrar);if(tot===0)tot=parseMonto(tarifaNeta);
+    const totOriginal=tot;
+    if(esUSD)tot=Math.round(tot*cot);
+    const tipoDoc=estadoCrudo.toLowerCase().includes('cancel')||estadoCrudo.toLowerCase().includes('rechaz')?'CANCELADA':'RESERVA CONFIRMADA';
+    const noches=noEx>0?noEx:1;const valorNoche=tot>0?Math.round(tot/noches):0;
+    let notas='';
+    if(esUSD)notas='Moneda original: USD $'+totOriginal+' => ARS $'+fmt(tot)+' (cotiz $'+fmt(cot)+')';
+    if(esPrepago)notas+=(notas?'\n':'')+'PREPAGO: Despegar cobró al cliente. Pendiente liquidación.';
+    else notas+=(notas?'\n':'')+'COBRO EN HOTEL: cobrar $'+fmt(Math.max(0,tot))+' al ingreso.';
+    cancelarEdicion();
+    sv('f-pnr',pnr);sv('f-id-dp',idDpVal);sv('f-tipo',tipoDoc);sv('f-origen','DESPEGAR');
+    sv('f-pago-dp',esPrepago?'PREPAGO':'HOTEL');sv('f-cotiz-usd',cotizUsada);sv('f-precio-usd',esUSD?totOriginal:0);
+    sv('f-fecha',fechaReserva);sv('f-alo1',alo);
+    if(ci)sv('f-ci1',ci);if(co)sv('f-co1',co);
+    calcN(1);
+    const nochesCalc=parseInt(gv('f-n1'))||noches;
+    if(valorNoche>0)sv('f-p1',valorNoche);
+    if(notas)sv('f-notas',notas);
+    if(esPrepago)sv('f-sena',tot);
+    calcTot();calcSaldo();
+    sv('f-nro',window._cnt);sv('f-nombre',titular);
+    document.getElementById('blk-dp').style.display='none';sv('txt-dp','');
+    alert('✔ Despegar importado\nPNR: '+pnr+' | ID: '+idDpVal+'\nTitular: '+titular+'\nCheck-In: '+(ci||'—')+' → '+(co||'—')+' ('+nochesCalc+' nts)\nAlojamiento: '+alo+'\nMoneda: '+moneda+(esUSD?' => ARS x $'+fmt(cot):' directo')+'\nTotal: ARS $'+fmt(tot)+(esUSD?' (USD $'+totOriginal+')':'')+'\nPago: '+(esPrepago?'PREPAGO (Despegar cobra)':'COBRO EN HOTEL'));
+  }catch(e){console.error(e);alert('Error: '+e.message+'\nAsegúrese de copiar la fila entera del Excel.');}
+}
+
+// ===== EXPORTAR CSV =====
+function exportarCSV(){
+  if(!window._db.length){alert('No hay datos.');return;}
+  let c='data:text/csv;charset=utf-8,\uFEFFNro;Fecha;Tipo;Origen;PNR;ID_Desp;Titular;DNI;Pax;Pais;Email;Tel;Unidad1;CheckIn1;CheckOut1;Noches1;PrecioN1;Unidad2;CheckIn2;CheckOut2;Noches2;PrecioN2;Total;Sena;Saldo;PrecioUSD;CotizUSD;DescMovil;ComPct;ComARS;PagoDP;LiqDP;FechaLiq;FechaPresLiq;FechaCanc;MedioPago;Notas\r\n';
+  window._db.forEach(r=>{c+=r.nro+';'+r.fecha+';'+r.tipo+';'+r.origen+';'+(r.pnr||'')+';'+(r.idDp||'')+';'+r.nombre+';'+(r.dni||'')+';'+r.pax+';'+(r.pais||'')+';'+(r.email||'')+';'+(r.telefono||'')+';'+r.u1+';'+r.cin1+';'+r.cout1+';'+r.n1+';'+r.p1+';'+(r.u2||'')+';'+(r.cin2||'')+';'+(r.cout2||'')+';'+(r.n2||0)+';'+(r.p2||0)+';'+r.total+';'+(r.sena||0)+';'+((r.total||0)-(r.sena||0))+';'+(r.precioUSD||0)+';'+(r.cotizUsd||0)+';'+(r.descMovilARS||0)+';'+(r.comisionPct||0)+';'+(r.comisionARS||0)+';'+(r.pagoDp||'')+';'+(r.liqDp||'')+';'+(r.fechaLiq||'')+';'+(r.fechaPresLiq||'')+';'+(r.fechaCanc||'')+';'+(r.medioPago||'')+';'+(r.notas||'')+'\r\n';});
+  const a=document.createElement('a');a.href=encodeURI(c);a.download='MSN_Reservas_'+hoy()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+</script>
+</body>
+</html>
