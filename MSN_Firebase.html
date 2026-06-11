@@ -2809,6 +2809,120 @@ function borrarReserva(id) {
 // INICIO
 // =========================
 cargarReservas();
+// =========================
+// CONFIGURACIÓN FIREBASE
+// =========================
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "mendoza-sol-nieve-15fba.firebaseapp.com",
+  projectId: "mendoza-sol-nieve-15fba",
+  storageBucket: "mendoza-sol-nieve-15fba.appspot.com",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// =========================
+// VARIABLES GLOBALES
+// =========================
+let reservas = [];
+let ordenCampo = null;
+let ordenAsc = true;
+
+// =========================
+// CARGAR RESERVAS
+// =========================
+function cargarReservas() {
+  db.collection("reservas").orderBy("nro", "desc").onSnapshot((snap) => {
+    reservas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTabla();
+  });
+}
+
+// =========================
+// RENDER TABLA
+// =========================
+function renderTabla() {
+  const busq = document.getElementById("busq").value.toLowerCase();
+  const estado = document.getElementById("filtro-estado").value;
+  const desde = document.getElementById("filtro-desde").value;
+  const hasta = document.getElementById("filtro-hasta").value;
+
+  let lista = [...reservas];
+
+  if (busq.trim() !== "") {
+    lista = lista.filter(r =>
+      Object.values(r).some(v => String(v).toLowerCase().includes(busq))
+    );
+  }
+
+  if (estado !== "") {
+    lista = lista.filter(r => r.tipo === estado);
+  }
+
+  if (desde !== "") lista = lista.filter(r => r.cin1 >= desde);
+  if (hasta !== "") lista = lista.filter(r => r.cin1 <= hasta);
+
+  if (ordenCampo) {
+    lista.sort((a, b) => {
+      if (a[ordenCampo] < b[ordenCampo]) return ordenAsc ? -1 : 1;
+      if (a[ordenCampo] > b[ordenCampo]) return ordenAsc ? 1 : -1;
+      return 0;
+    });
+  }
+
+  const tbody = document.getElementById("tbl-body");
+  tbody.innerHTML = "";
+
+  lista.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.nro}</td>
+      <td>${r.origen || ""}</td>
+      <td>${r.fecha || ""}</td>
+      <td>${r.tipo || ""}</td>
+      <td>${r.nombre || ""}</td>
+      <td>${r.pais || ""}</td>
+      <td>${r.pax || ""}</td>
+      <td>${r.u1 || ""}</td>
+      <td>${r.cin1 || ""}</td>
+      <td>${r.cout1 || ""}</td>
+      <td>${r.noches || ""}</td>
+      <td class="num">${r.usd || ""}</td>
+      <td class="num">${r.total || ""}</td>
+      <td>${r.senia || ""}</td>
+      <td>${r.pago || ""}</td>
+      <td>
+        <button class="btn sm" onclick="abrirForm('EDITAR','${r.id}')">✏️</button>
+        <button class="btn sm" onclick="borrarReserva('${r.id}')">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+// =========================
+// ORDENAR TABLA
+// =========================
+function sortTabla(campo) {
+  if (ordenCampo === campo) {
+    ordenAsc = !ordenAsc;
+  } else {
+    ordenCampo = campo;
+    ordenAsc = true;
+  }
+  renderTabla();
+}
+
+// =========================
+// CAMBIO DE PANTALLAS
+// =========================
+function goTo(id) {
+  document.querySelectorAll(".screen").forEach(s => s.style.display = "none");
+  document.getElementById(id).style.display = "block";
+}
+
 </script>
 </body>
 </html>
