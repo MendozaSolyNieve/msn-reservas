@@ -821,9 +821,6 @@ window.fireEliminar=async function(id){
 getDoc(metaRef).then(snap=>{if(snap.exists()&&snap.data().cnt)window._cnt=snap.data().cnt;});
 window.addEventListener('offline',()=>setSS('offline'));
 window.addEventListener('online',()=>setSS('ok'));
-</script>
-
-********
 <script>
 // ===== HELPERS =====
 function gv(id){return(document.getElementById(id)||{}).value||'';}
