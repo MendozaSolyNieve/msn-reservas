@@ -41,7 +41,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 .empty{text-align:center;padding:28px;color:var(--txt3)}.num{text-align:right}
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
 .b-ok{background:#dcfce7;color:#14532d}.b-pres{background:#fef3c7;color:#78350f}.b-canc{background:#fee2e2;color:#7f1d1d}
-.b-ns{background:#f3e8ff;color:#6b21a8}.b-bk{background:#dbeafe;color:#1e3a8a}.b-dp{background:#ede9fe;color:#4c1d95}
+.b-ns{background:#f3e8ff;color:#6b21a8}.b-bk{background:#dbeafe;color:#1e3a8a}.b-dp{background:#ede9fe;color:#4c1d95}.b-exp{background:#fff7ed;color:#c2410c}
 .b-mn{background:#f1f5f9;color:#334155}.b-paid{background:#dcfce7;color:#14532d}.b-part{background:#fef3c7;color:#78350f}
 .b-nopay{background:#fee2e2;color:#7f1d1d}.b-pre{background:#dbeafe;color:#1e3a8a}.b-hotel{background:#fef3c7;color:#78350f}
 .b-liq{background:#dcfce7;color:#14532d}.b-noliq{background:#fef3c7;color:#78350f}
@@ -138,6 +138,8 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <button onclick="goTo('sc-booking-liq')" id="nb-booking-liq">✉ Booking</button>
   <button onclick="goTo('sc-mucamas')" id="nb-mucamas">🧹 Mucamas</button>
   <button onclick="goTo('sc-gastos')" id="nb-gastos">💰 Gastos</button>
+  <button onclick="goTo('sc-expedia')" id="nb-expedia">🏨 Expedia</button>
+  <button onclick="goTo('sc-consultas')" id="nb-consultas">💬 Consultas</button>
 </div>
 
 <!-- INICIO -->
@@ -148,6 +150,8 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
     <button class="btn ok" onclick="goTo('sc-abm');abrirForm('MANUAL')" style="font-size:13px;padding:8px 16px">+ Nueva reserva</button>
     <button class="btn bk sm" onclick="goTo('sc-abm');abrirForm('BOOKING')">✉ Booking</button>
     <button class="btn dp sm" onclick="goTo('sc-abm');abrirForm('DESPEGAR')">✈ Despegar</button>
+    <button class="btn sm" onclick="goTo('sc-abm');abrirForm('EXPEDIA')" style="background:#f97316;color:#fff;border-color:#f97316">🏨 Expedia</button>
+    <button class="btn sm" onclick="goTo('sc-consultas')" style="background:#0891b2;color:#fff;border-color:#0891b2">💬 Consulta</button>
     <span style="font-size:11px;color:var(--txt3);margin-left:4px">Última: <strong id="ultima-reserva">—</strong></span>
   </div>
   <div class="stats" id="stats-home"></div>
@@ -182,6 +186,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn bk sm" onclick="abrirForm('BOOKING')">✉ Booking</button>
         <button class="btn dp sm" onclick="abrirForm('DESPEGAR')">✈ Despegar</button>
+        <button class="btn sm" onclick="abrirForm('EXPEDIA')" style="background:#f97316;color:#fff;border-color:#f97316">🏨 Expedia</button>
         <button class="btn sm" onclick="goTo('sc-inicio')">← Volver</button>
       </div>
     </div>
@@ -193,6 +198,15 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
         <textarea id="txt-bk" placeholder="Pegue aquí la fila copiada del Excel de Booking..."></textarea>
         <div class="cotiz">1 USD = <input type="number" id="cot-bk" value="1000" oninput="updCotiz('bk')"> ARS <span class="cotiz-show" id="cotiz-bk-show">$1.000</span></div>
         <button class="btn bk" onclick="procesarBK()">🔄 Procesar e inyectar</button>
+      </div>
+      <!-- EXPEDIA -->
+      <div id="blk-expedia" class="imp" style="border-color:#fb923c;background:#fff7ed;display:none">
+        <h4 style="color:#c2410c">🏨 Expedia — CSV / Texto</h4>
+        <p>Pegue las filas del CSV de Expedia (<strong>con o sin encabezado</strong>). Puede pegar varias reservas a la vez.</p>
+        <p style="margin-top:4px;color:#92400e">📌 Referencia de habitaciones: <em>Loft = Cabaña Loft · Deluxe Cabin = Cabaña grande · Comfort Apartment = Dpto Mza 3 · City Studio = Dpto Mza 2</em></p>
+        <textarea id="txt-expedia" rows="8" placeholder='Pegue aquí las filas del CSV de Expedia...&#10;Huésped,"De entrada","De salida","Fecha de reserva","Habitación","Tipo de pago","Importe","ID de reserva","N.º de confirmación","Estado"&#10;Lucas Exeni,"2025-12-06","2025-12-10",...'></textarea>
+        <div class="cotiz">1 USD = <input type="number" id="cot-expedia" value="1460" oninput="updCotiz('expedia')"> ARS <span class="cotiz-show" id="cotiz-expedia-show">$1.460</span></div>
+        <button class="btn" onclick="procesarExpedia()" style="background:#f97316;color:#fff;border-color:#f97316">🔄 Importar reservas Expedia</button>
       </div>
       <!-- DESPEGAR -->
       <div id="blk-dp" class="imp dp-i">
@@ -721,6 +735,78 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 
 </div><!-- fin app-main -->
 
+<!-- EXPEDIA PANEL -->
+<div id="sc-expedia" class="sc"><div class="wrap">
+  <div class="card"><div class="ch">🏨 Gestión Expedia — Reservas</div><div class="cb">
+    <div class="stats" id="exp-stats" style="margin-bottom:12px"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr>
+      <th>#</th><th>ID Expedia</th><th>Titular</th><th>Unidad</th>
+      <th>Check-In</th><th>Check-Out</th><th>Pax</th><th>Tipo cobro</th>
+      <th class="num">Total ARS</th><th class="num">Seña</th><th class="num">Saldo</th><th>Estado</th><th></th>
+    </tr></thead><tbody id="tbl-exp"></tbody></table></div>
+  </div></div>
+</div></div>
+
+<!-- CONSULTAS -->
+<div id="sc-consultas" class="sc"><div class="wrap">
+  <div class="card">
+    <div class="ch">💬 Consultas — WelcomeArgentina / WhatsApp</div>
+    <div class="cb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:10px">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">📋 Pegue el texto de la consulta (mail o WhatsApp)</label>
+          <textarea id="cons-txt" rows="12" placeholder="Pegue aquí el texto completo del email de WelcomeArgentina o el mensaje de WhatsApp...&#10;&#10;Ejemplos:&#10;— Email WelcomeArgentina: con nombre, email, teléfono, fechas, adultos, menores&#10;— WhatsApp: texto libre con fechas (DD/MM/YYYY o DD-MM-YYYY)&#10;— O use los campos manuales de la derecha" style="width:100%;padding:8px;border:1px solid var(--bd2);border-radius:6px;font-size:12px;font-family:monospace;min-height:200px;background:var(--bg2);color:var(--txt)"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn pr" onclick="parsearConsulta()">🔍 Analizar consulta</button>
+            <button class="btn sm" onclick="limpiarConsulta()">✕ Limpiar</button>
+          </div>
+        </div>
+        <div style="border:1px solid var(--bd);border-radius:8px;padding:12px;background:var(--bg3)">
+          <div style="font-size:12px;font-weight:600;color:var(--pr);margin-bottom:10px">🖊 Datos detectados / carga manual</div>
+          <div class="fgrid" style="grid-template-columns:1fr 1fr;gap:8px">
+            <div class="fg s2"><label>Nombre del huésped</label><input type="text" id="cons-nombre" placeholder="Nombre y apellido"></div>
+            <div class="fg"><label>Email</label><input type="email" id="cons-email"></div>
+            <div class="fg"><label>Teléfono / WhatsApp</label><input type="tel" id="cons-tel"></div>
+            <div class="fg"><label>Check-In solicitado</label><input type="date" id="cons-ci" onchange="verificarDisponibilidad()"></div>
+            <div class="fg"><label>Check-Out solicitado</label><input type="date" id="cons-co" onchange="verificarDisponibilidad()"></div>
+            <div class="fg"><label>Adultos</label><input type="number" id="cons-adultos" value="2" min="1" max="20"></div>
+            <div class="fg"><label>Menores</label><input type="number" id="cons-menores" value="0" min="0" max="20"></div>
+            <div class="fg s2"><label>Zona preferida</label>
+              <select id="cons-zona">
+                <option value="">Sin preferencia / No especificada</option>
+                <option value="ciudad">🏢 Ciudad de Mendoza</option>
+                <option value="potrerillos">🏔 Potrerillos (Cabañas)</option>
+              </select>
+            </div>
+            <div class="fg s2"><label>Consulta / mensaje del huésped</label><input type="text" id="cons-consulta" placeholder="Texto libre de la consulta"></div>
+          </div>
+          <button class="btn pr" onclick="verificarDisponibilidad()" style="margin-top:10px;width:100%">📅 Verificar disponibilidad</button>
+        </div>
+      </div>
+
+      <!-- RESULTADO DISPONIBILIDAD -->
+      <div id="cons-resultado" style="display:none;margin-bottom:10px"></div>
+
+      <!-- RESPUESTA GENERADA -->
+      <div id="cons-respuesta-box" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--ok);margin-bottom:6px">📱 Mensaje WhatsApp</div>
+            <textarea id="cons-msg-wa" rows="14" readonly style="width:100%;padding:8px;border:1px solid #86efac;border-radius:6px;font-size:11px;background:#f0fdf4;color:var(--txt);font-family:monospace"></textarea>
+            <button class="btn ok sm" onclick="copiarRespuesta('wa')" style="margin-top:6px">📋 Copiar WhatsApp</button>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--bk);margin-bottom:6px">✉ Mensaje Email</div>
+            <textarea id="cons-msg-email" rows="14" readonly style="width:100%;padding:8px;border:1px solid #93c5fd;border-radius:6px;font-size:11px;background:#eff6ff;color:var(--txt);font-family:monospace"></textarea>
+            <button class="btn bk sm" onclick="copiarRespuesta('email')" style="margin-top:6px">📋 Copiar Email</button>
+            <button class="btn sm" onclick="abrirEmailConsulta()" style="margin-top:6px">✉ Abrir en correo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getFirestore,collection,doc,setDoc,deleteDoc,onSnapshot,query,orderBy,getDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -754,6 +840,7 @@ onSnapshot(q,snap=>{
     if(sc.id==='sc-stats')renderStats();
     if(sc.id==='sc-listado')renderListado();
     if(sc.id==='sc-despegar')renderDespegar();
+    if(sc.id==='sc-expedia')renderExpedia();
   }
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('app-main').style.display='block';
@@ -800,7 +887,7 @@ function rango(ini,fin){
   while(d<f){r.push(d.toISOString().split('T')[0]);d.setDate(d.getDate()+1);}return r;
 }
 function badgeOrigen(o){
-  const m={BOOKING:{c:'b-bk',t:'✉ Booking'},DESPEGAR:{c:'b-dp',t:'✈ Despegar'},MANUAL:{c:'b-mn',t:'Manual'},DIRECTO:{c:'b-mn',t:'Directo'},AIRBNB:{c:'b-ok',t:'Airbnb'}};
+  const m={BOOKING:{c:'b-bk',t:'✉ Booking'},DESPEGAR:{c:'b-dp',t:'✈ Despegar'},MANUAL:{c:'b-mn',t:'Manual'},DIRECTO:{c:'b-mn',t:'Directo'},AIRBNB:{c:'b-ok',t:'Airbnb'},EXPEDIA:{c:'b-exp',t:'🏨 Expedia'}};
   const d=m[o]||{c:'b-mn',t:o||'—'};return'<span class="badge '+d.c+'">'+d.t+'</span>';
 }
 
@@ -816,6 +903,8 @@ function goTo(id){
   if(id==='sc-listado')initListado();
   if(id==='sc-inicio'){renderTabla();renderStatsHome();}
   if(id==='sc-despegar')renderDespegar();
+  if(id==='sc-expedia')renderExpedia();
+  if(id==='sc-consultas'){/* noop */}
   if(id==='sc-gastos'){document.getElementById('g-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('g-hasta').value=hoy();renderGastos();}
   if(id==='sc-mucamas'){document.getElementById('muc-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('muc-hasta').value=hoy();}
 }
@@ -935,7 +1024,7 @@ function cancelarEdicion(){
   campos.forEach(id=>{const e=document.getElementById(id);if(!e)return;if(e.tagName==='SELECT')e.selectedIndex=0;else e.value='';});
   ['f-n1','f-n2','f-sena','f-precio-usd','f-cotiz-usd','f-desc-movil','f-comision-pct','f-cotiz-ingreso'].forEach(id=>sv(id,0));
   sv('f-nro',window._cnt);sv('f-fecha',hoy());
-  ['blk-bk','blk-dp'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  ['blk-bk','blk-dp','blk-expedia'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
   sv('txt-bk','');sv('txt-dp','');sv('txt-dp-canc','');
   const ft=document.getElementById('form-titulo');if(ft)ft.textContent='Nueva Reserva Manual';
   const bg=document.getElementById('btn-guardar');if(bg){bg.textContent='💾 Guardar';bg.className='btn pr';}
@@ -948,7 +1037,8 @@ function abrirForm(origen){
   sv('f-origen',origen);
   document.getElementById('blk-bk').style.display=origen==='BOOKING'?'block':'none';
   document.getElementById('blk-dp').style.display=origen==='DESPEGAR'?'block':'none';
-  document.getElementById('form-titulo').textContent=origen==='BOOKING'?'Importar Booking':origen==='DESPEGAR'?'Importar Despegar':'Nueva Reserva Manual';
+  document.getElementById('blk-expedia').style.display=origen==='EXPEDIA'?'block':'none';
+  document.getElementById('form-titulo').textContent=origen==='BOOKING'?'Importar Booking':origen==='DESPEGAR'?'Importar Despegar':origen==='EXPEDIA'?'Importar Expedia':'Nueva Reserva Manual';
   goTo('sc-abm');
 }
 
@@ -1776,6 +1866,334 @@ function procesarDP(){
     document.getElementById('blk-dp').style.display='none';sv('txt-dp','');
     alert('✔ Despegar importado\nPNR: '+pnr+' | ID: '+idDpVal+'\nTitular: '+titular+'\nCheck-In: '+(ci||'—')+' → '+(co||'—')+' ('+nochesCalc+' nts)\nAlojamiento: '+alo+'\nMoneda: '+moneda+(esUSD?' => ARS x $'+fmt(cot):' directo')+'\nTotal: ARS $'+fmt(tot)+(esUSD?' (USD $'+totOriginal+')':'')+'\nPago: '+(esPrepago?'PREPAGO (Despegar cobra)':'COBRO EN HOTEL'));
   }catch(e){console.error(e);alert('Error: '+e.message+'\nAsegúrese de copiar la fila entera del Excel.');}
+}
+
+// ===== EXPEDIA IMPORTADOR =====
+function mapearHabExpedia(hab){
+  const h=(hab||'').toLowerCase();
+  if(h.includes('comfort apartment')||h.includes('city view')||h.includes('corner'))return'Departamento Ciudad de Mendoza 3';
+  if(h.includes('city studio')||h.includes('studio')||h.includes('shower grab'))return'Departamento Ciudad de Mendoza 2';
+  if(h.includes('deluxe cabin')||h.includes('delux cabin'))return'Cabaña grande';
+  if(h.includes('loft'))return'Cabaña Loft';
+  if(h.includes('standard cabin')||h.includes('standard')||h.includes('bungalow'))return'Cabaña Standard';
+  if(h.includes('comfort apartment')&&h.includes('1 bedroom'))return'Departamento Ciudad de Mendoza 3';
+  return'Cabaña Standard';
+}
+function mapearEstadoExpedia(estado){
+  const e=(estado||'').toLowerCase();
+  if(e==='cancelled'||e==='canceled')return'CANCELADA';
+  if(e==='poststay'||e==='pre_stay'||e==='prestay'||e==='in_stay'||e==='instay')return'RESERVA CONFIRMADA';
+  if(e==='no_show'||e==='noshow')return'NO_SHOW';
+  return'RESERVA CONFIRMADA';
+}
+function parsearCSVExpediaLinea(linea){
+  // parse CSV con comillas
+  const cols=[];let cur='',inQ=false;
+  for(let i=0;i<linea.length;i++){
+    const c=linea[i];
+    if(c==='"'){if(inQ&&linea[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){cols.push(cur.trim());cur='';}
+    else cur+=c;
+  }
+  cols.push(cur.trim());
+  return cols;
+}
+async function procesarExpedia(){
+  const txt=document.getElementById('txt-expedia')?.value||'';
+  if(!txt.trim()){alert('Pegue el texto del CSV de Expedia.');return;}
+  const cot=parseFloat(document.getElementById('cot-expedia')?.value)||1;
+  const lineas=txt.split('\n').map(l=>l.trim()).filter(l=>l.length>5);
+  let importadas=0,canceladas=0,errores=0,duplicadas=0;
+  const resultados=[];
+  for(const linea of lineas){
+    // Saltar encabezados
+    if(linea.toLowerCase().startsWith('hu') && linea.toLowerCase().includes('entrada'))continue;
+    if(linea.toLowerCase().startsWith('"hu') && linea.toLowerCase().includes('entrada'))continue;
+    try{
+      const cols=parsearCSVExpediaLinea(linea);
+      if(cols.length<9)continue;
+      const nombre=cols[0]||'Huésped Expedia';
+      const ci=convISO(cols[1]||'');
+      const co=convISO(cols[2]||'');
+      const fechaReservaRaw=cols[3]||'';
+      const fechaReserva=fechaReservaRaw.includes('T')?fechaReservaRaw.split('T')[0]:(convISO(fechaReservaRaw)||hoy());
+      const habitacion=cols[4]||'';
+      const tipoCobro=cols[5]||'';
+      const importe=parseMonto(cols[6]||'0');
+      const idExpedia=cols[7]||'';
+      const nroConf=cols[8]||'';
+      const estadoRaw=cols[9]||'postStay';
+      // Verificar duplicado por ID Expedia
+      if(idExpedia&&window._db.some(r=>r.idExpedia===idExpedia)){duplicadas++;continue;}
+      const alo=mapearHabExpedia(habitacion);
+      const tipo=mapearEstadoExpedia(estadoRaw);
+      const esCab=esCabana(alo);
+      // Tipo de cobro Expedia
+      const esExpediaCollect=(tipoCobro||'').toLowerCase().includes('expedia collect');
+      const esHotelCollect=(tipoCobro||'').toLowerCase().includes('hotel collect');
+      // Calcular monto en ARS (Expedia usa USD generalmente)
+      const totalARS=importe>0?Math.round(importe*cot):0;
+      const noches=ci&&co?Math.max(1,Math.round((new Date(co+'T00:00:00')-new Date(ci+'T00:00:00'))/86400000)):1;
+      const valorNoche=totalARS>0?Math.round(totalARS/noches):0;
+      const sena=esExpediaCollect?totalARS:0; // Expedia Collect = ya cobrado por Expedia
+      let notas='Expedia ID: '+idExpedia+(nroConf?' | Conf: '+nroConf:'');
+      notas+='\nCobro: '+(esExpediaCollect?'EXPEDIA COLLECT (cobrado por Expedia)':'HOTEL COLLECT (cobrar al huésped)');
+      if(esHotelCollect&&totalARS>0)notas+='\n⚠ COBRAR ARS $'+fmt(totalARS)+' al ingreso';
+      const idDoc=String(Date.now()+Math.random()).replace('.','');
+      const r={
+        id:idDoc,nro:window._cnt,fecha:fechaReserva,tipo,origen:'EXPEDIA',
+        idExpedia,nroConfExpedia:nroConf,habitacionExpedia:habitacion,
+        tipoCobroExpedia:esExpediaCollect?'EXPEDIA_COLLECT':'HOTEL_COLLECT',
+        cotizUsd:cot,precioUSD:importe,
+        fechaCanc:tipo==='CANCELADA'?hoy():'',
+        nombre,pax:'2',
+        u1:alo,cin1:ci,cout1:co,n1:noches,p1:valorNoche,
+        u2:'',cin2:'',cout2:'',n2:0,p2:0,
+        total:totalARS,sena,notas
+      };
+      window._cnt++;
+      resultados.push(r);
+      if(tipo==='CANCELADA')canceladas++;else importadas++;
+    }catch(e){errores++;console.warn('Línea inválida Expedia:',linea,e);}
+  }
+  if(!resultados.length){alert('No se encontraron reservas válidas.\nVerifique el formato del CSV.');return;}
+  const conf=confirm('Se encontraron '+resultados.length+' reservas Expedia:\n'+'✅ Confirmadas: '+importadas+'\n❌ Canceladas: '+canceladas+(duplicadas>0?'\n⚠ Duplicadas (omitidas): '+duplicadas:'')+'\n\n¿Importar todas?');
+  if(!conf)return;
+  let ok=0;
+  for(const r of resultados){
+    const saved=await window.fireGuardar(r);
+    if(saved)ok++;
+  }
+  document.getElementById('txt-expedia').value='';
+  alert('✔ Importadas '+ok+' reservas de Expedia.\n'+(duplicadas>0?duplicadas+' ya existían y fueron omitidas.\n':'')+'Revise el módulo Expedia en el menú.');
+  document.getElementById('blk-expedia').style.display='none';
+  goTo('sc-expedia');
+}
+function renderExpedia(){
+  const expR=window._db.filter(r=>r.origen==='EXPEDIA');
+  const expA=expR.filter(r=>r.tipo==='RESERVA CONFIRMADA');
+  const expCol=expA.filter(r=>r.tipoCobroExpedia==='EXPEDIA_COLLECT');
+  const hotCol=expA.filter(r=>r.tipoCobroExpedia==='HOTEL_COLLECT');
+  document.getElementById('exp-stats').innerHTML=
+    '<div class="stat"><div class="st-l">Total Expedia</div><div class="st-v">'+expA.length+'</div></div>'+
+    '<div class="stat"><div class="st-l">Expedia Collect</div><div class="st-v" style="color:var(--bk)">'+expCol.length+'</div></div>'+
+    '<div class="stat"><div class="st-l">Hotel Collect</div><div class="st-v" style="color:var(--wa)">'+hotCol.length+'</div></div>'+
+    '<div class="stat"><div class="st-l">Canceladas</div><div class="st-v" style="color:var(--er)">'+expR.filter(r=>r.tipo==='CANCELADA').length+'</div></div>'+
+    '<div class="stat"><div class="st-l">Total facturado</div><div class="st-v" style="font-size:14px">$'+fmt(expA.reduce((a,r)=>a+(r.total||0),0))+'</div></div>';
+  const tb=document.getElementById('tbl-exp');
+  if(!expR.length){tb.innerHTML='<tr><td colspan="13" class="empty">No hay reservas Expedia. Use 🏨 Expedia en el ABM para importar.</td></tr>';return;}
+  tb.innerHTML=expR.map(r=>{
+    const saldo=(r.total||0)-(r.sena||0);
+    const est=r.tipo==='CANCELADA'?'<span class="badge b-canc">CANC</span>':r.tipo==='RESERVA CONFIRMADA'?'<span class="badge b-ok">OK</span>':'<span class="badge b-pres">Pres</span>';
+    const cobro=r.tipoCobroExpedia==='EXPEDIA_COLLECT'?'<span class="badge b-bk">Expedia</span>':'<span class="badge b-hotel">Hotel</span>';
+    return'<tr class="'+(r.tipo==='CANCELADA'?'cancelada':'')+'">'+
+      '<td><strong>#'+r.nro+'</strong><br>'+est+'</td>'+
+      '<td style="font-size:10px">'+(r.idExpedia||'—')+'</td>'+
+      '<td><strong>'+r.nombre+'</strong></td>'+
+      '<td style="font-size:11px">'+r.u1+'</td>'+
+      '<td>'+fmtF(r.cin1)+'</td><td>'+fmtF(r.cout1)+'</td>'+
+      '<td>'+r.pax+'</td><td>'+cobro+'</td>'+
+      '<td class="num">$'+fmt(r.total)+'</td>'+
+      '<td class="num" style="color:var(--ok)">$'+fmt(r.sena||0)+'</td>'+
+      '<td class="num" style="color:'+(saldo>0&&r.tipoCobroExpedia==='HOTEL_COLLECT'?'var(--er)':'inherit')+'">$'+fmt(Math.max(0,saldo))+'</td>'+
+      '<td style="font-size:10px">'+(r.habitacionExpedia||'—')+'</td>'+
+      '<td><button class="btn wa xs" onclick="editar(\''+r.id+'\')">✏</button></td></tr>';
+  }).join('');
+}
+
+// ===== CONSULTAS — WelcomeArgentina / WhatsApp =====
+const ALOJAMIENTOS_MSN={
+  ciudad:['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'],
+  potrerillos:['Cabaña grande','Cabaña Loft','Cabaña Standard']
+};
+function parsearConsulta(){
+  const txt=document.getElementById('cons-txt')?.value||'';
+  if(!txt.trim()){alert('Pegue el texto de la consulta.');return;}
+  // Extraer nombre
+  const mNom=txt.match(/Nombre[:\s]+([^\n\r]+)/i);
+  if(mNom)document.getElementById('cons-nombre').value=mNom[1].trim();
+  // Email
+  const mEmail=txt.match(/[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  if(mEmail)document.getElementById('cons-email').value=mEmail[0];
+  // Teléfono
+  const mTel=txt.match(/(?:Telefono|Tel|WhatsApp)[:\s]+([0-9+\s]+)/i)||txt.match(/wa\.me\/([0-9]+)/i);
+  if(mTel)document.getElementById('cons-tel').value=(mTel[1]||'').trim();
+  // CheckIn
+  const mCI=txt.match(/CheckIn[:\s]+([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{2,4})/i)||txt.match(/(?:entrada|check[- ]?in)[:\s]+([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{2,4})/i)||txt.match(/\b([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4})\b/);
+  if(mCI){const ci=convISO(mCI[1]);if(ci)document.getElementById('cons-ci').value=ci;}
+  // CheckOut
+  const mCO=txt.match(/CheckOut[:\s]+([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{2,4})/i)||txt.match(/(?:salida|check[- ]?out)[:\s]+([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{2,4})/i);
+  if(mCO){const co=convISO(mCO[1]);if(co)document.getElementById('cons-co').value=co;}
+  else{
+    // Buscar segunda fecha si hay dos en el texto
+    const todas=txt.match(/\b([0-9]{1,2}\/[0-9]{1,2}\/[0-9]{4})\b/g);
+    if(todas&&todas.length>=2)document.getElementById('cons-co').value=convISO(todas[1]);
+  }
+  // Adultos
+  const mAd=txt.match(/Adultos[:\s]+([0-9]+)/i);
+  if(mAd)document.getElementById('cons-adultos').value=mAd[1];
+  // Menores
+  const mMen=txt.match(/Menores[:\s]+([0-9]+)/i);
+  if(mMen)document.getElementById('cons-menores').value=mMen[1];
+  // Zona por ciudad del email
+  const mCiud=txt.match(/Ciudad[:\s]+([^\n\r]+)/i);
+  if(mCiud){
+    const c=(mCiud[1]||'').toLowerCase();
+    if(c.includes('potrerillos')||c.includes('cabañ'))document.getElementById('cons-zona').value='potrerillos';
+    else if(c.includes('mendoza')||c.includes('ciudad'))document.getElementById('cons-zona').value='ciudad';
+  }
+  // Consulta libre
+  const mCons=txt.match(/Consulta[12]?[:\s]+([^\n\r]+)/gi);
+  if(mCons)document.getElementById('cons-consulta').value=mCons.map(m=>m.replace(/Consulta[12]?[:\s]+/i,'')).join(' / ');
+  verificarDisponibilidad();
+}
+function verificarDisponibilidad(){
+  const ci=document.getElementById('cons-ci')?.value||'';
+  const co=document.getElementById('cons-co')?.value||'';
+  const zona=document.getElementById('cons-zona')?.value||'';
+  const adultos=parseInt(document.getElementById('cons-adultos')?.value)||1;
+  const menores=parseInt(document.getElementById('cons-menores')?.value)||0;
+  const pax=adultos+menores;
+  if(!ci||!co){document.getElementById('cons-resultado').style.display='none';document.getElementById('cons-respuesta-box').style.display='none';return;}
+  const noches=Math.round((new Date(co+'T00:00:00')-new Date(ci+'T00:00:00'))/86400000);
+  if(noches<=0){alert('La fecha de salida debe ser posterior a la entrada.');return;}
+  // Determinar qué unidades revisar
+  let unidades=[];
+  if(zona==='ciudad')unidades=ALOJAMIENTOS_MSN.ciudad;
+  else if(zona==='potrerillos')unidades=ALOJAMIENTOS_MSN.potrerillos;
+  else unidades=[...ALOJAMIENTOS_MSN.ciudad,...ALOJAMIENTOS_MSN.potrerillos];
+  const activos=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA');
+  const diasSolicitados=rango(ci,co);
+  // Verificar cada unidad
+  const disponibles=[],ocupadas=[],proximas=[];
+  unidades.forEach(u=>{
+    const ocup=activos.filter(r=>r.u1===u&&rango(r.cin1,r.cout1).some(d=>diasSolicitados.includes(d)));
+    if(!ocup.length){disponibles.push(u);}
+    else{
+      ocupadas.push({u,reservas:ocup});
+      // Buscar próximas fechas disponibles con la misma cantidad de noches
+      const proxFecha=buscarProxDisponible(u,ci,noches,activos);
+      if(proxFecha)proximas.push({u,desde:proxFecha.ci,hasta:proxFecha.co});
+    }
+  });
+  mostrarResultado(disponibles,ocupadas,proximas,ci,co,noches,pax,zona);
+  generarRespuesta(disponibles,ocupadas,proximas,ci,co,noches,pax,zona);
+}
+function buscarProxDisponible(unidad,desde,noches,activos,maxDias=90){
+  let intento=new Date(desde+'T00:00:00');
+  intento.setDate(intento.getDate()+1);
+  for(let i=0;i<maxDias;i++){
+    const ci=intento.toISOString().split('T')[0];
+    const co=new Date(intento.getTime()+noches*86400000).toISOString().split('T')[0];
+    const dias=rango(ci,co);
+    const choque=activos.some(r=>r.u1===unidad&&rango(r.cin1,r.cout1).some(d=>dias.includes(d)));
+    if(!choque)return{ci,co};
+    intento.setDate(intento.getDate()+1);
+  }
+  return null;
+}
+function mostrarResultado(disponibles,ocupadas,proximas,ci,co,noches,pax,zona){
+  const res=document.getElementById('cons-resultado');
+  let html='<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:8px">';
+  html+='<div style="padding:10px 14px;background:'+(disponibles.length?'#dcfce7':'#fee2e2')+';font-weight:600;font-size:12px">';
+  html+=disponibles.length?'✅ HAY DISPONIBILIDAD — '+fmtF(ci)+' → '+fmtF(co)+' ('+noches+' noches · '+pax+' pax)':'❌ SIN DISPONIBILIDAD para '+fmtF(ci)+' → '+fmtF(co)+' ('+noches+' noches)';
+  html+='</div><div style="padding:12px">';
+  if(disponibles.length){
+    html+='<div style="font-size:12px;font-weight:600;color:var(--ok);margin-bottom:6px">Unidades disponibles:</div>';
+    html+=disponibles.map(u=>'<div style="padding:5px 10px;background:#f0fdf4;border:1px solid #86efac;border-radius:5px;margin-bottom:4px;font-size:12px">🏠 '+u+'</div>').join('');
+  }
+  if(ocupadas.length){
+    html+='<div style="font-size:12px;font-weight:600;color:var(--er);margin:8px 0 4px">Unidades ocupadas en esas fechas:</div>';
+    html+=ocupadas.map(o=>'<div style="padding:5px 10px;background:#fff1f2;border:1px solid #fecaca;border-radius:5px;margin-bottom:4px;font-size:11px">🔴 '+o.u+' — ocupado por: '+o.reservas.map(r=>r.nombre+' ('+fmtF(r.cin1)+' → '+fmtF(r.cout1)+')').join(', ')+'</div>').join('');
+  }
+  if(proximas.length){
+    html+='<div style="font-size:12px;font-weight:600;color:var(--wa);margin:8px 0 4px">Próximas fechas disponibles (misma cant. noches):</div>';
+    html+=proximas.map(p=>'<div style="padding:5px 10px;background:#fffbeb;border:1px solid #fed7aa;border-radius:5px;margin-bottom:4px;font-size:11px">📅 '+p.u+': '+fmtF(p.desde)+' → '+fmtF(p.hasta)+'</div>').join('');
+  }
+  html+='</div></div>';
+  res.innerHTML=html;res.style.display='block';
+}
+function generarRespuesta(disponibles,ocupadas,proximas,ci,co,noches,pax,zona){
+  const nombre=(document.getElementById('cons-nombre')?.value||'').split(' ')[0]||'Estimado/a';
+  const zonaTxt=zona==='ciudad'?'en Mendoza ciudad':zona==='potrerillos'?'en nuestras cabañas en Potrerillos':'en nuestros alojamientos';
+  // Armar mensaje WA
+  let wa='☀ *MENDOZA SOL Y NIEVE*\n\n';
+  wa+='Hola *'+nombre+'*!\n\n';
+  if(disponibles.length){
+    wa+='✅ Tenemos disponibilidad '+zonaTxt+' para las fechas que consultás:\n';
+    wa+='📅 *'+fmtF(ci)+' al '+fmtF(co)+'* ('+noches+' noches · '+pax+' personas)\n\n';
+    wa+='*Unidades disponibles:*\n';
+    disponibles.forEach(u=>wa+='🏠 '+u+'\n');
+    wa+='\nPara confirmar necesitamos:\n';
+    wa+='• Nombre completo de los huéspedes\n';
+    wa+='• DNI o pasaporte\n';
+    const esPotr=disponibles.some(u=>esCabana(u));
+    if(esPotr)wa+='• Seña del 30% para reservar\n\n📲 Respondé este mensaje para coordinar pagos.\n\n';
+    else wa+='• El pago se realiza al momento del ingreso.\n\n📲 Respondé este mensaje para más info.\n\n';
+    wa+='_Check-in desde 14:00 hs · Check-out hasta 10:00 hs_\n+54 9 261 654 3938';
+  } else {
+    wa+='Lo sentimos, no tenemos disponibilidad '+zonaTxt+' para las fechas solicitadas:\n';
+    wa+='📅 *'+fmtF(ci)+' al '+fmtF(co)+'* ('+noches+' noches)\n\n';
+    if(proximas.length){
+      wa+='📆 *Fechas alternativas disponibles* (misma cantidad de noches):\n';
+      proximas.forEach(p=>wa+='🗓 *'+p.u+'*: '+fmtF(p.desde)+' → '+fmtF(p.hasta)+'\n');
+      wa+='\n¿Alguna de estas opciones te resulta conveniente?\n';
+    } else {
+      wa+='Por el momento no encontramos disponibilidad próxima.\nTe recomendamos consultar en otra fecha.\n';
+    }
+    wa+='\n+54 9 261 654 3938 · mendozasolynieve.com.ar';
+  }
+  // Armar email
+  let email='Estimado/a '+nombre+':\n\nGracias por su consulta a Mendoza Sol y Nieve.\n\n';
+  if(disponibles.length){
+    email+='Con mucho gusto le informamos que contamos con disponibilidad para las fechas solicitadas:\n\n';
+    email+='📅 Fechas: '+fmtF(ci)+' al '+fmtF(co)+' ('+noches+' noches · '+pax+' personas)\n\n';
+    email+='Unidades disponibles:\n';
+    disponibles.forEach(u=>email+='  • '+u+'\n');
+    email+='\nPara proceder con la reserva le solicitamos nos envíe:\n';
+    email+='  • Nombre completo del titular\n  • DNI o Pasaporte\n  • Cantidad de huéspedes\n';
+    const esPotr=disponibles.some(u=>esCabana(u));
+    if(esPotr)email+='\nLa confirmación de la reserva requiere el pago del 30% del total como seña, dentro de las 48 horas.\n';
+    else email+='\nEl pago se realiza íntegramente al momento del ingreso.\n';
+    email+='\nNuestros datos bancarios:\nBanco Supervielle | CA ARS | CBU: 0270093920005386120016 | Alias: OSCAR.PORCARIO\n\n';
+    email+='Check-in: desde las 14:00 hs | Check-out: hasta las 10:00 hs\n';
+    email+='Le pedimos que nos indique su horario estimado de llegada.\n\n';
+  } else {
+    email+='Lamentamos informarle que no contamos con disponibilidad para las fechas consultadas:\n\n';
+    email+='📅 Fechas: '+fmtF(ci)+' al '+fmtF(co)+' ('+noches+' noches)\n\n';
+    if(proximas.length){
+      email+='Le ofrecemos las siguientes alternativas disponibles con la misma cantidad de noches:\n\n';
+      proximas.forEach(p=>email+='  • '+p.u+': '+fmtF(p.desde)+' al '+fmtF(p.hasta)+'\n');
+      email+='\nSi alguna de estas opciones le resulta conveniente, con gusto la reservamos.\n\n';
+    } else {
+      email+='Le sugerimos consultar por otras fechas. Estaremos encantados de ayudarle.\n\n';
+    }
+  }
+  email+='Quedamos a su disposición.\nAtentamente,\nMendoza Sol y Nieve\n+54 9 261 654 3938\nmendozasolynieve.com.ar';
+  document.getElementById('cons-msg-wa').value=wa;
+  document.getElementById('cons-msg-email').value=email;
+  document.getElementById('cons-respuesta-box').style.display='block';
+}
+function copiarRespuesta(tipo){
+  const id=tipo==='wa'?'cons-msg-wa':'cons-msg-email';
+  const txt=document.getElementById(id)?.value||'';
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado al portapapeles')).catch(()=>prompt('Copie el texto:',txt));
+}
+function abrirEmailConsulta(){
+  const email=document.getElementById('cons-email')?.value||'';
+  const nombre=(document.getElementById('cons-nombre')?.value||'').split(' ')[0]||'Huésped';
+  const ci=document.getElementById('cons-ci')?.value||'';
+  const sub=encodeURIComponent('Consulta disponibilidad — Mendoza Sol y Nieve');
+  const cuerpo=encodeURIComponent(document.getElementById('cons-msg-email')?.value||'');
+  window.open('mailto:'+email+'?subject='+sub+'&body='+cuerpo,'_blank');
+}
+function limpiarConsulta(){
+  ['cons-txt','cons-nombre','cons-email','cons-tel','cons-ci','cons-co','cons-consulta'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('cons-adultos').value=2;
+  document.getElementById('cons-menores').value=0;
+  document.getElementById('cons-zona').value='';
+  document.getElementById('cons-resultado').style.display='none';
+  document.getElementById('cons-respuesta-box').style.display='none';
 }
 
 // ===== EXPORTAR CSV =====
