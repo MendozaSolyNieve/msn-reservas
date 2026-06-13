@@ -140,6 +140,9 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <button onclick="goTo('sc-gastos')" id="nb-gastos">💰 Gastos</button>
   <button onclick="goTo('sc-expedia')" id="nb-expedia">🏨 Expedia</button>
   <button onclick="goTo('sc-consultas')" id="nb-consultas">💬 Consultas</button>
+  <button onclick="goTo('sc-cancelaciones')" id="nb-cancelaciones">❌ Cancelaciones</button>
+  <button onclick="goTo('sc-precheckin')" id="nb-precheckin">📩 Pre Check-In</button>
+  <button onclick="goTo('sc-cotizacion')" id="nb-cotizacion">💵 Cotización USD</button>
 </div>
 
 <!-- INICIO -->
@@ -152,6 +155,8 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
     <button class="btn dp sm" onclick="goTo('sc-abm');abrirForm('DESPEGAR')">✈ Despegar</button>
     <button class="btn sm" onclick="goTo('sc-abm');abrirForm('EXPEDIA')" style="background:#f97316;color:#fff;border-color:#f97316">🏨 Expedia</button>
     <button class="btn sm" onclick="goTo('sc-consultas')" style="background:#0891b2;color:#fff;border-color:#0891b2">💬 Consulta</button>
+    <button class="btn sm" onclick="goTo('sc-precheckin')" style="background:#7c3aed;color:#fff;border-color:#7c3aed">📩 Pre Check-In</button>
+    <button class="btn sm" onclick="goTo('sc-cotizacion')" style="background:#ca8a04;color:#fff;border-color:#ca8a04">💵 USD</button>
     <span style="font-size:11px;color:var(--txt3);margin-left:4px">Última: <strong id="ultima-reserva">—</strong></span>
   </div>
   <div class="stats" id="stats-home"></div>
@@ -288,10 +293,25 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
                 <option>Cabaña Standard</option><option>Departamento 4 pax VLL</option>
               </select>
             </div>
-            <div class="fg"><label>Valor x noche (ARS)</label><input type="number" id="f-p1" oninput="calcTot()"></div>
-            <div class="fg"><label>Check-In</label><input type="date" id="f-ci1" onchange="calcN(1)"></div>
-            <div class="fg"><label>Check-Out</label><input type="date" id="f-co1" onchange="calcN(1)"></div>
+            <div class="fg"><label>Valor x noche base (ARS)</label><input type="number" id="f-p1" oninput="calcTot();renderNochesDetalle()"></div>
+            <div class="fg"><label>Check-In</label><input type="date" id="f-ci1" onchange="calcN(1);renderNochesDetalle()"></div>
+            <div class="fg"><label>Check-Out</label><input type="date" id="f-co1" onchange="calcN(1);renderNochesDetalle()"></div>
             <div class="fg"><label>Noches</label><input type="number" id="f-n1" readonly value="0"></div>
+          </div>
+          <!-- PRECIOS VARIABLES POR NOCHE -->
+          <div id="blk-noches-detalle" style="display:none;margin-top:8px;padding:10px;background:#fef9c3;border:1px solid #d97706;border-radius:7px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div style="font-size:11px;font-weight:600;color:#78350f">💰 Precio por noche (edite si hay promociones / lun-vie distinto)</div>
+              <div style="display:flex;gap:6px">
+                <button type="button" class="btn sm" onclick="aplicarDescuento()" style="font-size:10px;padding:3px 8px">% Descuento</button>
+                <input type="number" id="f-desc-pct" placeholder="%" style="width:50px;padding:3px 6px;border:1px solid var(--bd2);border-radius:4px;font-size:11px">
+              </div>
+            </div>
+            <div id="lst-noches-precio" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px"></div>
+            <div style="margin-top:8px;padding-top:6px;border-top:1px dashed #d97706;font-size:12px;font-weight:600;color:#78350f">
+              Total con precios variables: <strong id="tot-noches-var" style="font-size:14px">$0</strong>
+              <button type="button" class="btn sm ok" onclick="aplicarTotalVariable()" style="margin-left:8px;font-size:10px;padding:3px 8px">Aplicar total</button>
+            </div>
           </div>
         </div>
         <div class="alo"><div class="alo-h">Segundo alojamiento (opcional)</div>
@@ -461,11 +481,12 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--bd)">
       <div class="fg"><label>Desde</label><input type="date" id="muc-desde" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
       <div class="fg"><label>Hasta</label><input type="date" id="muc-hasta" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
-      <div class="fg"><label>Valor por Check-Out (ARS)</label><input type="number" id="muc-val-checkout" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <div class="fg"><label>Valor Check-Out CABAÑAS (ARS)</label><input type="number" id="muc-val-checkout-cab" value="0" style="padding:6px 9px;border:1px solid #d97706;border-radius:5px;font-size:12px;background:#fefce8;color:var(--txt)" placeholder="Por CO de cabaña"></div>
+      <div class="fg"><label>Valor Check-Out DEPTOS (ARS)</label><input type="number" id="muc-val-checkout" value="0" style="padding:6px 9px;border:1px solid #93c5fd;border-radius:5px;font-size:12px;background:#eff6ff;color:var(--txt)" placeholder="Por CO de depto"></div>
       <div class="fg"><label>Valor día ocupado deptos (ARS)</label><input type="number" id="muc-val-dia" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
-      <div class="fg"><label>Valor día ocupado cabañas (ARS)</label><input type="number" id="muc-val-dia-cab" value="0" placeholder="Si difiere" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+      <div class="fg"><label>Valor día ocupado cabañas (ARS)</label><input type="number" id="muc-val-dia-cab" value="0" placeholder="Si difiere de deptos" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
       <div class="fg"><label>Pasaje cabañas por día (ARS)</label><input type="number" id="muc-val-pasaje-cab" value="0" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
-      <div style="display:flex;align-items:flex-end;gap:6px">
+      <div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap">
         <button class="btn pr" onclick="renderMucamas()">📊 Calcular</button>
         <button class="btn sm" onclick="copiarWAMucamasCab()">📱 WA Cabañas</button>
         <button class="btn sm" onclick="copiarWAMucamasDep()">📱 WA Deptos</button>
@@ -478,6 +499,22 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
           <div style="margin-bottom:8px;font-size:11px">Mucama: <input type="text" id="muc-nombre-cab" value="Ana María" oninput="document.getElementById('muc-cab-nombre').textContent=this.value" style="padding:3px 6px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;width:120px;background:var(--bg2);color:var(--txt)"></div>
           <div class="stats" id="muc-stats-cab" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:8px"></div>
           <div class="tbl-wrap"><table class="tbl" id="tbl-muc-cab"></table></div>
+          <!-- Ajuste manual cabañas -->
+          <div style="margin-top:10px;padding:10px;background:#fef9c3;border:1px solid #d97706;border-radius:7px">
+            <div style="font-size:11px;font-weight:600;color:#78350f;margin-bottom:8px">✏ Ajuste manual (opcional)</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div class="fg"><label style="font-size:10px">Check-outs (cant.)</label><input type="number" id="muc-adj-co-cab" min="0" placeholder="Auto" style="padding:5px 7px;border:1px solid #d97706;border-radius:4px;font-size:12px;background:#fff;width:100%" oninput="recalcMucamasManual()"></div>
+              <div class="fg"><label style="font-size:10px">Días limpieza</label><input type="number" id="muc-adj-dias-cab" min="0" placeholder="Auto" style="padding:5px 7px;border:1px solid #d97706;border-radius:4px;font-size:12px;background:#fff;width:100%" oninput="recalcMucamasManual()"></div>
+              <div class="fg"><label style="font-size:10px">Pasajes (cant.)</label><input type="number" id="muc-adj-pasaje-cab" min="0" placeholder="Auto" style="padding:5px 7px;border:1px solid #d97706;border-radius:4px;font-size:12px;background:#fff;width:100%" oninput="recalcMucamasManual()"></div>
+            </div>
+            <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #d97706">
+              <div style="font-size:11px;font-weight:600;color:#78350f;margin-bottom:4px">💳 Total pagado por transferencia (cabañas)</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center">
+                <input type="number" id="muc-transfer-cab" placeholder="0" style="padding:6px 9px;border:1px solid #16a34a;border-radius:5px;font-size:12px;background:#f0fdf4;width:100%" oninput="recalcMucamasManual()">
+                <div id="muc-dif-cab" style="font-size:12px;font-weight:600;padding:5px 8px;border-radius:5px;background:#f1f5f9"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="card">
@@ -486,6 +523,21 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
           <div style="margin-bottom:8px;font-size:11px">Mucama: <input type="text" id="muc-nombre-dep" value="Irma Porcario" oninput="document.getElementById('muc-dep-nombre').textContent=this.value" style="padding:3px 6px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;width:120px;background:var(--bg2);color:var(--txt)"></div>
           <div class="stats" id="muc-stats-dep" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:8px"></div>
           <div class="tbl-wrap"><table class="tbl" id="tbl-muc-dep"></table></div>
+          <!-- Ajuste manual deptos -->
+          <div style="margin-top:10px;padding:10px;background:#eff6ff;border:1px solid #93c5fd;border-radius:7px">
+            <div style="font-size:11px;font-weight:600;color:#1e3a8a;margin-bottom:8px">✏ Ajuste manual (opcional)</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div class="fg"><label style="font-size:10px">Check-outs (cant.)</label><input type="number" id="muc-adj-co-dep" min="0" placeholder="Auto" style="padding:5px 7px;border:1px solid #93c5fd;border-radius:4px;font-size:12px;background:#fff;width:100%" oninput="recalcMucamasManual()"></div>
+              <div class="fg"><label style="font-size:10px">Días limpieza</label><input type="number" id="muc-adj-dias-dep" min="0" placeholder="Auto" style="padding:5px 7px;border:1px solid #93c5fd;border-radius:4px;font-size:12px;background:#fff;width:100%" oninput="recalcMucamasManual()"></div>
+            </div>
+            <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #93c5fd">
+              <div style="font-size:11px;font-weight:600;color:#1e3a8a;margin-bottom:4px">💳 Total pagado por transferencia (deptos)</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center">
+                <input type="number" id="muc-transfer-dep" placeholder="0" style="padding:6px 9px;border:1px solid #16a34a;border-radius:5px;font-size:12px;background:#f0fdf4;width:100%" oninput="recalcMucamasManual()">
+                <div id="muc-dif-dep" style="font-size:12px;font-weight:600;padding:5px 8px;border-radius:5px;background:#f1f5f9"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -512,10 +564,23 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
             <option value="deptos">Deptos Ciudad (16km ida/vuelta)</option>
           </select>
         </div>
+        <div class="fg"><label>Vehículo</label>
+          <select id="g-comb-vehiculo" onchange="selVehiculo()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+            <option value="tracker">Chevrolet Tracker (8,0 l/100km)</option>
+            <option value="peugeot">Peugeot 408 1.8 CVVT (5,9 l/100km)</option>
+            <option value="manual">Otro (ingresar manualmente)</option>
+          </select>
+        </div>
+        <div class="fg"><label>Consumo (litros/100km)</label><input type="number" id="g-comb-cons100" value="8.0" step="0.1" oninput="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
         <div class="fg"><label>Cant. viajes</label><input type="number" id="g-comb-viajes" value="1" min="1" oninput="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
         <div class="fg"><label>Precio litro (ARS)</label><input type="number" id="g-comb-litro" value="0" oninput="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
-        <div class="fg"><label>Rendimiento (km/litro)</label><input type="number" id="g-comb-rend" value="12" oninput="calcCombustible()" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
-        <div class="fg"><label>Costo calculado</label><input type="text" id="g-comb-costo" readonly style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:#fef9c3;font-weight:700;color:var(--txt)"></div>
+        <div class="fg" style="grid-column:1/-1">
+          <label>Costo calculado</label>
+          <input type="text" id="g-comb-costo" readonly style="padding:6px 9px;border:1px solid #d97706;border-radius:5px;font-size:13px;background:#fef9c3;font-weight:700;color:#78350f">
+          <div id="g-comb-detalle" style="font-size:10px;color:var(--txt3);margin-top:2px"></div>
+        </div>
+        <div class="fg"><label>🅿 Estacionamiento (ARS)</label><input type="number" id="g-comb-estac" value="0" oninput="calcCombustible()" placeholder="Ej: 1500" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
+        <div class="fg"><label>Costo total (combustible + estac.)</label><input type="text" id="g-comb-total" readonly style="padding:6px 9px;border:1px solid #16a34a;border-radius:5px;font-size:13px;background:#f0fdf4;font-weight:700;color:#14532d"></div>
         <div class="fg" style="grid-column:1/-1"><label>Observaciones</label><input type="text" id="g-comb-obs" placeholder="Ej: visita mucama + compras" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
       </div>
       <button class="btn ok sm" onclick="agregarGasto('COMBUSTIBLE')">+ Agregar</button>
@@ -733,7 +798,132 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   </div>
 </div></div>
 
-</div><!-- fin app-main -->
+<!-- CANCELACIONES -->
+<div id="sc-cancelaciones" class="sc"><div class="wrap">
+  <div class="card"><div class="ch">❌ Gestión de Cancelaciones</div><div class="cb">
+    <p style="font-size:12px;color:var(--txt2);margin-bottom:12px">Busque la reserva original, registre la cancelación y calcule el crédito o reembolso automáticamente.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div style="padding:12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--pr);margin-bottom:8px">🔍 Buscar reserva a cancelar</div>
+        <input type="text" id="canc-busq" placeholder="Nombre, nro. reserva o email..." oninput="buscarParaCancelar()" style="width:100%;padding:8px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt);margin-bottom:6px">
+        <div id="canc-resultados" style="max-height:200px;overflow-y:auto"></div>
+      </div>
+      <div id="canc-panel" style="padding:12px;background:#fff7ed;border:1px solid #fb923c;border-radius:8px;display:none">
+        <div style="font-size:12px;font-weight:600;color:#c2410c;margin-bottom:8px">📋 Reserva seleccionada</div>
+        <div id="canc-info" style="font-size:12px;margin-bottom:10px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div class="fg"><label style="font-size:10px">Fecha de cancelación</label><input type="date" id="canc-fecha" style="padding:5px 7px;border:1px solid var(--bd2);border-radius:4px;font-size:12px;background:var(--bg2);color:var(--txt);width:100%"></div>
+          <div class="fg"><label style="font-size:10px">Monto a devolver (ARS)</label><input type="number" id="canc-devolver" value="0" placeholder="0 = retiene seña" style="padding:5px 7px;border:1px solid var(--bd2);border-radius:4px;font-size:12px;background:var(--bg2);color:var(--txt);width:100%" oninput="calcCancelacion()"></div>
+          <div class="fg"><label style="font-size:10px">Motivo</label><input type="text" id="canc-motivo" placeholder="Ej: fuerza mayor, viaje cancelado..." style="padding:5px 7px;border:1px solid var(--bd2);border-radius:4px;font-size:12px;background:var(--bg2);color:var(--txt);width:100%"></div>
+          <div class="fg"><label style="font-size:10px">¿Convertir seña en crédito?</label>
+            <select id="canc-credito" onchange="calcCancelacion()" style="padding:5px 7px;border:1px solid var(--bd2);border-radius:4px;font-size:12px;background:var(--bg2);color:var(--txt);width:100%">
+              <option value="no">No — retener seña como ganancia</option>
+              <option value="si">Sí — convertir en crédito (365 días)</option>
+            </select>
+          </div>
+        </div>
+        <div id="canc-calculo" style="padding:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;font-size:12px;margin-bottom:10px"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn er" onclick="ejecutarCancelacion()">❌ Confirmar cancelación</button>
+          <button class="btn sm" onclick="copiarMsgCancelacion()">📱 Mensaje al huésped</button>
+        </div>
+      </div>
+    </div>
+    <!-- Créditos vigentes -->
+    <div class="card" style="margin-top:4px">
+      <div class="ch" style="background:#fef3c7">🎫 Créditos vigentes (señas convertidas)</div>
+      <div class="cb"><div class="tbl-wrap"><table class="tbl" id="tbl-creditos">
+        <thead><tr><th>#Res.</th><th>Huésped</th><th>Seña orig.</th><th>Noches equiv.</th><th>Vence</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody id="tbl-cred-body"></tbody>
+      </table></div></div>
+    </div>
+  </div></div>
+</div></div>
+
+<!-- PRE CHECK-IN -->
+<div id="sc-precheckin" class="sc"><div class="wrap">
+  <div class="card"><div class="ch">📩 Pre Check-In — Mensajes y Formulario de ingreso</div><div class="cb">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--pr);margin-bottom:8px">🔔 Ingresos de mañana / próximos</div>
+        <div id="pci-proximos" style="max-height:300px;overflow-y:auto"></div>
+        <button class="btn pr sm" onclick="renderProximosCheckin()" style="margin-top:8px">🔄 Actualizar</button>
+      </div>
+      <div style="padding:12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--pr);margin-bottom:8px">📋 Seleccione reserva para generar mensaje</div>
+        <input type="text" id="pci-busq" placeholder="Buscar por nombre o #..." oninput="buscarParaCheckin()" style="width:100%;padding:7px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt);margin-bottom:6px">
+        <div id="pci-resultados" style="max-height:200px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <!-- Panel de mensajes generados -->
+    <div id="pci-panel" style="display:none">
+      <div style="padding:10px;background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;margin-bottom:10px;font-size:12px" id="pci-info"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#15803d;margin-bottom:4px">📱 WhatsApp Bienvenida</div>
+          <textarea id="pci-msg-wa" rows="16" readonly style="width:100%;padding:8px;border:1px solid #86efac;border-radius:6px;font-size:11px;background:#f0fdf4;font-family:monospace"></textarea>
+          <button class="btn ok sm" onclick="copiarPCI('wa')" style="margin-top:5px">📋 Copiar WA</button>
+          <button class="btn sm" onclick="abrirWA()" style="margin-top:5px">📱 Abrir WhatsApp</button>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--bk);margin-bottom:4px">✉ Email bienvenida + Check-In</div>
+          <textarea id="pci-msg-email" rows="16" readonly style="width:100%;padding:8px;border:1px solid #93c5fd;border-radius:6px;font-size:11px;background:#eff6ff;font-family:monospace"></textarea>
+          <button class="btn bk sm" onclick="copiarPCI('email')" style="margin-top:5px">📋 Copiar Email</button>
+          <button class="btn sm" onclick="abrirEmailPCI()" style="margin-top:5px">✉ Abrir correo</button>
+        </div>
+      </div>
+      <!-- Formulario de check-in digital -->
+      <div class="card">
+        <div class="ch" style="background:#f5f3ff">📝 Formulario Check-In — Datos completos de huéspedes</div>
+        <div class="cb">
+          <div style="font-size:11px;color:var(--txt2);margin-bottom:10px">Complete los datos de <strong>todos</strong> los huéspedes. Este formulario constituye el <strong>libro de policía</strong>.</div>
+          <div id="pci-hues-lista"></div>
+          <div id="pci-res-id" style="display:none"></div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn pr" onclick="guardarFormCheckin()">💾 Guardar formulario</button>
+            <button class="btn sm" onclick="imprimirFormCheckin()">🖨 Imprimir registro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</div></div>
+
+<!-- COTIZACIÓN USD -->
+<div id="sc-cotizacion" class="sc"><div class="wrap">
+  <div class="card"><div class="ch">💵 Cotización USD — Banco Nación</div><div class="cb">
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn ok" onclick="actualizarCotizHoy()">🔄 Actualizar cotización hoy</button>
+      <button class="btn sm" onclick="cargarHistoricoDesde()">📥 Cargar histórico desde 01/11/2025</button>
+      <div class="fg"><label style="font-size:10px">Ingresar manual (venta)</label>
+        <div style="display:flex;gap:4px">
+          <input type="date" id="cotiz-fecha-man" style="padding:5px 7px;border:1px solid var(--bd2);border-radius:4px;font-size:12px;background:var(--bg2);color:var(--txt)">
+          <input type="number" id="cotiz-compra-man" placeholder="Compra" step="0.01" style="width:80px;padding:5px 7px;border:1px solid var(--bd2);border-radius:4px;font-size:12px;background:var(--bg2);color:var(--txt)">
+          <input type="number" id="cotiz-venta-man" placeholder="Venta" step="0.01" style="width:80px;padding:5px 7px;border:1px solid var(--bd2);border-radius:4px;font-size:12px;background:var(--bg2);color:var(--txt)">
+          <button class="btn sm ok" onclick="agregarCotizManual()">+ Agregar</button>
+        </div>
+      </div>
+    </div>
+    <div id="cotiz-hoy-box" style="margin-bottom:12px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--pr);margin-bottom:6px">🔎 Consultar cotización por fecha</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="date" id="cotiz-consulta-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)" oninput="consultarCotiz()">
+          <div id="cotiz-consulta-res" style="font-size:13px;font-weight:600;color:var(--pr)"></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--pr);margin-bottom:6px">📊 Resumen</div>
+        <div id="cotiz-resumen" style="font-size:12px;color:var(--txt2)"></div>
+      </div>
+    </div>
+    <div class="tbl-wrap" style="max-height:400px;overflow-y:auto"><table class="tbl">
+      <thead><tr><th>Fecha</th><th class="num">Compra (ARS)</th><th class="num">Venta (ARS)</th><th>Fuente</th><th></th></tr></thead>
+      <tbody id="tbl-cotiz"></tbody>
+    </table></div>
+  </div></div>
+</div></div>
 
 <!-- EXPEDIA PANEL -->
 <div id="sc-expedia" class="sc"><div class="wrap">
@@ -841,7 +1031,16 @@ onSnapshot(q,snap=>{
     if(sc.id==='sc-listado')renderListado();
     if(sc.id==='sc-despegar')renderDespegar();
     if(sc.id==='sc-expedia')renderExpedia();
+    if(sc.id==='sc-cancelaciones')renderCancelaciones();
+    if(sc.id==='sc-precheckin')renderProximosCheckin();
   }
+  // Notificación de ingresos mañana (una vez por sesión)
+  if(!window._notifChecked){window._notifChecked=true;setTimeout(checkNotificacionIngresos,2000);}
+  // Auto-cargar cotización USD del día en campo de reserva
+  cargarCotizLocal().then(()=>{
+    const f=document.getElementById('f-cotiz-usd');
+    if(f&&(f.value===''||f.value==='0')){const v=window.getCotizVenta(hoy());if(v>0)f.value=v;}
+  });
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('app-main').style.display='block';
 },err=>{
@@ -905,6 +1104,9 @@ function goTo(id){
   if(id==='sc-despegar')renderDespegar();
   if(id==='sc-expedia')renderExpedia();
   if(id==='sc-consultas'){/* noop */}
+  if(id==='sc-cancelaciones'){renderCancelaciones();}
+  if(id==='sc-precheckin'){renderProximosCheckin();}
+  if(id==='sc-cotizacion'){renderCotizacion();}
   if(id==='sc-gastos'){document.getElementById('g-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('g-hasta').value=hoy();renderGastos();}
   if(id==='sc-mucamas'){document.getElementById('muc-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('muc-hasta').value=hoy();}
 }
@@ -1368,14 +1570,15 @@ window._mucamasData=null;
 function renderMucamas(){
   const desde=gv('muc-desde'),hasta=gv('muc-hasta');
   if(!desde||!hasta){alert('Ingrese rango de fechas.');return;}
-  const valCO=parseFloat(gv('muc-val-checkout'))||0;
+  const valCOCab=parseFloat(gv('muc-val-checkout-cab'))||0;
+  const valCODep=parseFloat(gv('muc-val-checkout'))||0;
   const valDiaBase=parseFloat(gv('muc-val-dia'))||0;
   const valDiaCab=parseFloat(gv('muc-val-dia-cab'))||valDiaBase;
   const valPasajeCab=parseFloat(gv('muc-val-pasaje-cab'))||0;
   const activos=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA');
   const undsCAB=['Cabaña grande','Cabaña Loft','Cabaña Standard'];
   const undsDEP=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'];
-  function calcU(unidad,valDia){
+  function calcU(unidad,valCO,valDia){
     const reservas=activos.filter(r=>(r.u1===unidad||r.u2===unidad)&&r.cin1&&r.cin1<=hasta&&r.cout1&&r.cout1>=desde);
     let checkouts=0;const detalle=[];
     reservas.forEach(r=>{
@@ -1391,30 +1594,108 @@ function renderMucamas(){
     });
     return{checkouts,detalle,totalCO:checkouts*valCO,totalDias:detalle.reduce((a,d)=>a+d.subtDias,0),total:detalle.reduce((a,d)=>a+d.subtotal,0)};
   }
-  const dataCab=undsCAB.map(u=>({unidad:u,...calcU(u,valDiaCab)}));
-  const dataDep=undsDEP.map(u=>({unidad:u,...calcU(u,valDiaBase)}));
+  const dataCab=undsCAB.map(u=>({unidad:u,...calcU(u,valCOCab,valDiaCab)}));
+  const dataDep=undsDEP.map(u=>({unidad:u,...calcU(u,valCODep,valDiaBase)}));
   const totCabBase=dataCab.reduce((a,d)=>a+d.total,0);
   const diasPasaje=dataCab.reduce((a,d)=>a+d.checkouts,0);
   const totalPasajeCab=diasPasaje*valPasajeCab;
   const totCab=totCabBase+totalPasajeCab;
   const totDep=dataDep.reduce((a,d)=>a+d.total,0);
-  function tblUnd(data,valDia){
-    let h='<thead><tr><th>Unidad</th><th>Huésped</th><th>Entrada</th><th>Salida</th><th>Días</th><th class="num">CO</th><th class="num">Días</th><th class="num">Sub</th></tr></thead><tbody>';
+  function tblUnd(data){
+    let h='<thead><tr><th>Unidad</th><th>Huésped</th><th>Entrada</th><th>Salida</th><th>Días</th><th class="num">CO</th><th class="num">Días lim.</th><th class="num">Sub</th></tr></thead><tbody>';
     data.forEach(d=>{
       d.detalle.forEach(det=>{h+='<tr><td style="font-size:11px">'+d.unidad+'</td><td>'+det.nombre+'</td><td>'+det.cin+'</td><td>'+det.cout+'</td><td>'+det.dias+'</td><td class="num">$'+fmt(det.subtCO)+'</td><td class="num">$'+fmt(det.subtDias)+'</td><td class="num"><strong>$'+fmt(det.subtotal)+'</strong></td></tr>';});
       if(d.detalle.length===0)h+='<tr><td style="font-size:11px">'+d.unidad+'</td><td colspan="7" style="color:var(--txt3)">Sin reservas en el período</td></tr>';
     });
     return h+'</tbody>';
   }
-  document.getElementById('muc-stats-cab').innerHTML='<div class="stat"><div class="st-l">Check-outs</div><div class="st-v">'+dataCab.reduce((a,d)=>a+d.checkouts,0)+'</div></div><div class="stat"><div class="st-l">Pasaje (días)</div><div class="st-v">'+diasPasaje+'</div></div><div class="stat"><div class="st-l">Total a pagar</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(totCab)+'</div></div>';
-  document.getElementById('tbl-muc-cab').innerHTML=tblUnd(dataCab,valDiaCab);
-  document.getElementById('muc-stats-dep').innerHTML='<div class="stat"><div class="st-l">Check-outs</div><div class="st-v">'+dataDep.reduce((a,d)=>a+d.checkouts,0)+'</div></div><div class="stat"><div class="st-l">Días ocupados</div><div class="st-v">'+dataDep.reduce((a,d)=>a+d.detalle.reduce((s,det)=>s+det.dias,0),0)+'</div></div><div class="stat"><div class="st-l">Total a pagar</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(totDep)+'</div></div>';
-  document.getElementById('tbl-muc-dep').innerHTML=tblUnd(dataDep,valDiaBase);
-  document.getElementById('muc-resumen-total').innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"><div class="stat"><div class="st-l">'+gv('muc-nombre-cab')+' (Cabañas)</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(totCab)+'</div><div class="st-s">Pasaje incluido: $'+fmt(totalPasajeCab)+'</div></div><div class="stat"><div class="st-l">'+gv('muc-nombre-dep')+' (Deptos)</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(totDep)+'</div></div><div class="stat" style="border-color:var(--ok)"><div class="st-l">TOTAL PERSONAL</div><div class="st-v" style="font-size:20px;color:var(--ok)">$'+fmt(totCab+totDep)+'</div><div class="st-s">'+fmtF(desde)+' al '+fmtF(hasta)+'</div></div></div>';
-  window._mucamasData={dataCab,dataDep,totCab,totDep,totalPasajeCab,diasPasaje,valPasajeCab,valCO,valDiaCab,valDiaBase,desde,hasta};
+  const totalCOCab=dataCab.reduce((a,d)=>a+d.checkouts,0);
+  const totalCODep=dataDep.reduce((a,d)=>a+d.checkouts,0);
+  const totalDiasLimpCab=dataCab.reduce((a,d)=>a+d.detalle.reduce((s,det)=>s+Math.max(0,det.dias-(det.subtCO>0?1:0)),0),0);
+  const totalDiasLimpDep=dataDep.reduce((a,d)=>a+d.detalle.reduce((s,det)=>s+Math.max(0,det.dias-(det.subtCO>0?1:0)),0),0);
+  document.getElementById('muc-stats-cab').innerHTML=
+    '<div class="stat"><div class="st-l">Check-outs</div><div class="st-v">'+totalCOCab+'</div></div>'+
+    '<div class="stat"><div class="st-l">Pasaje (días)</div><div class="st-v">'+diasPasaje+'</div></div>'+
+    '<div class="stat"><div class="st-l">Total a pagar</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(totCab)+'</div></div>';
+  document.getElementById('tbl-muc-cab').innerHTML=tblUnd(dataCab);
+  document.getElementById('muc-stats-dep').innerHTML=
+    '<div class="stat"><div class="st-l">Check-outs</div><div class="st-v">'+totalCODep+'</div></div>'+
+    '<div class="stat"><div class="st-l">Días lim.</div><div class="st-v">'+totalDiasLimpDep+'</div></div>'+
+    '<div class="stat"><div class="st-l">Total a pagar</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(totDep)+'</div></div>';
+  document.getElementById('tbl-muc-dep').innerHTML=tblUnd(dataDep);
+  // Guardar datos base para ajuste manual
+  window._mucamasData={
+    dataCab,dataDep,totCab,totDep,totalPasajeCab,diasPasaje,valPasajeCab,
+    valCOCab,valCODep,valDiaCab,valDiaBase,desde,hasta,
+    baseCOCab:totalCOCab,baseDiasCab:totalDiasLimpCab,basePasajeCab:diasPasaje,
+    baseCODep:totalCODep,baseDiasDep:totalDiasLimpDep
+  };
+  actualizarResumenMucamas();
+  // Limpiar campos de ajuste manual
+  ['muc-adj-co-cab','muc-adj-dias-cab','muc-adj-pasaje-cab','muc-adj-co-dep','muc-adj-dias-dep'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  actualizarDiferencias();
+}
+function recalcMucamasManual(){
+  const d=window._mucamasData;if(!d)return;
+  actualizarResumenMucamas();
+  actualizarDiferencias();
+}
+function getValMucamas(){
+  const d=window._mucamasData;if(!d)return null;
+  const coCab=parseFloat(document.getElementById('muc-adj-co-cab')?.value)||d.baseCOCab;
+  const diasCab=parseFloat(document.getElementById('muc-adj-dias-cab')?.value)||d.baseDiasCab;
+  const pasajeCab=parseFloat(document.getElementById('muc-adj-pasaje-cab')?.value)||d.basePasajeCab;
+  const coDep=parseFloat(document.getElementById('muc-adj-co-dep')?.value)||d.baseCODep;
+  const diasDep=parseFloat(document.getElementById('muc-adj-dias-dep')?.value)||d.baseDiasDep;
+  const totCab=(coCab*d.valCOCab)+(diasCab*d.valDiaCab)+(pasajeCab*d.valPasajeCab);
+  const totDep=(coDep*d.valCODep)+(diasDep*d.valDiaBase);
+  return{coCab,diasCab,pasajeCab,coDep,diasDep,totCab,totDep};
+}
+function actualizarResumenMucamas(){
+  const d=window._mucamasData;if(!d)return;
+  const v=getValMucamas();if(!v)return;
+  const totTotal=v.totCab+v.totDep;
+  // Actualizar stat de totales si hubo ajuste
+  const adjCab=document.getElementById('muc-adj-co-cab')?.value||document.getElementById('muc-adj-dias-cab')?.value;
+  const adjDep=document.getElementById('muc-adj-co-dep')?.value||document.getElementById('muc-adj-dias-dep')?.value;
+  if(adjCab){
+    document.getElementById('muc-stats-cab').querySelector('.st-v:last-child')||0;
+    const statEls=document.getElementById('muc-stats-cab').querySelectorAll('.st-v');
+    if(statEls[2])statEls[2].textContent='$'+fmt(v.totCab);
+    if(statEls[0])statEls[0].textContent=v.coCab;
+    if(statEls[1])statEls[1].textContent=v.pasajeCab;
+  }
+  if(adjDep){
+    const statEls=document.getElementById('muc-stats-dep').querySelectorAll('.st-v');
+    if(statEls[2])statEls[2].textContent='$'+fmt(v.totDep);
+    if(statEls[0])statEls[0].textContent=v.coDep;
+    if(statEls[1])statEls[1].textContent=v.diasDep;
+  }
+  document.getElementById('muc-resumen-total').innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'+
+    '<div class="stat"><div class="st-l">'+gv('muc-nombre-cab')+' (Cabañas)</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(v.totCab)+'</div><div class="st-s">'+v.coCab+' CO · '+v.diasCab+' días lim. · Pasaje:$'+fmt(v.pasajeCab*d.valPasajeCab)+'</div></div>'+
+    '<div class="stat"><div class="st-l">'+gv('muc-nombre-dep')+' (Deptos)</div><div class="st-v" style="font-size:16px;color:var(--ok)">$'+fmt(v.totDep)+'</div><div class="st-s">'+v.coDep+' CO · '+v.diasDep+' días lim.</div></div>'+
+    '<div class="stat" style="border-color:var(--ok)"><div class="st-l">TOTAL PERSONAL</div><div class="st-v" style="font-size:20px;color:var(--ok)">$'+fmt(totTotal)+'</div><div class="st-s">'+fmtF(d.desde)+' al '+fmtF(d.hasta)+'</div></div></div>';
+}
+function actualizarDiferencias(){
+  const d=window._mucamasData;if(!d)return;
+  const v=getValMucamas();if(!v)return;
+  function difBox(elId,calculado,pagado){
+    const el=document.getElementById(elId);if(!el)return;
+    if(!pagado){el.textContent='';el.style.background='#f1f5f9';return;}
+    const dif=pagado-calculado;
+    if(Math.abs(dif)<1){el.textContent='✔ Exacto ($'+fmt(pagado)+')';el.style.background='#dcfce7';el.style.color='#14532d';}
+    else if(dif>0){el.textContent='Pagó $'+fmt(dif)+' DE MÁS (calc: $'+fmt(calculado)+')';el.style.background='#fef3c7';el.style.color='#78350f';}
+    else{el.textContent='Falta pagar $'+fmt(Math.abs(dif))+' (calc: $'+fmt(calculado)+')';el.style.background='#fee2e2';el.style.color='#7f1d1d';}
+  }
+  const transCab=parseFloat(document.getElementById('muc-transfer-cab')?.value)||0;
+  const transDep=parseFloat(document.getElementById('muc-transfer-dep')?.value)||0;
+  difBox('muc-dif-cab',v.totCab,transCab);
+  difBox('muc-dif-dep',v.totDep,transDep);
 }
 function copiarWAMucamasCab(){
   const d=window._mucamasData;if(!d){alert('Calcule primero.');return;}
+  const v=getValMucamas();
   const nombre=gv('muc-nombre-cab');
   let txt='☀ *MENDOZA SOL Y NIEVE — CABAÑAS*\n*Liquidación: '+fmtF(d.desde)+' al '+fmtF(d.hasta)+'*\n\nHola *'+nombre+'*!\n\n';
   d.dataCab.forEach(cab=>{
@@ -1423,12 +1704,13 @@ function copiarWAMucamasCab(){
     cab.detalle.forEach(det=>txt+='  • '+det.nombre+': '+det.cin+' → '+det.cout+'\n    CO: $'+fmt(det.subtCO)+' + días: $'+fmt(det.subtDias)+' = *$'+fmt(det.subtotal)+'*\n');
     txt+='\n';
   });
-  if(d.valPasajeCab>0)txt+='🚌 *Pasaje* ('+d.diasPasaje+' días × $'+fmt(d.valPasajeCab)+'): *$'+fmt(d.totalPasajeCab)+'*\n\n';
-  txt+='💰 *TOTAL: $'+fmt(d.totCab)+'*\nCO: $'+fmt(d.valCO)+'/vez · Día: $'+fmt(d.valDiaCab)+'\nGracias! ☀';
+  if(d.valPasajeCab>0)txt+='🚌 *Pasaje* ('+v.pasajeCab+' días × $'+fmt(d.valPasajeCab)+'): *$'+fmt(v.pasajeCab*d.valPasajeCab)+'*\n\n';
+  txt+='💰 *TOTAL: $'+fmt(v.totCab)+'*\nCO: $'+fmt(d.valCOCab)+'/vez · Día: $'+fmt(d.valDiaCab)+'\nGracias! ☀';
   navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado para cabañas')).catch(()=>prompt('Copie:',txt));
 }
 function copiarWAMucamasDep(){
   const d=window._mucamasData;if(!d){alert('Calcule primero.');return;}
+  const v=getValMucamas();
   const nombre=gv('muc-nombre-dep');
   let txt='☀ *MENDOZA SOL Y NIEVE — DEPARTAMENTOS*\n*Liquidación: '+fmtF(d.desde)+' al '+fmtF(d.hasta)+'*\n\nHola *'+nombre+'*!\n\n';
   d.dataDep.forEach(dep=>{
@@ -1437,20 +1719,35 @@ function copiarWAMucamasDep(){
     dep.detalle.forEach(det=>txt+='  • '+det.nombre+': '+det.cin+' → '+det.cout+'\n    CO: $'+fmt(det.subtCO)+' + días: $'+fmt(det.subtDias)+' = *$'+fmt(det.subtotal)+'*\n');
     txt+='\n';
   });
-  txt+='💰 *TOTAL: $'+fmt(d.totDep)+'*\nCO: $'+fmt(d.valCO)+'/vez · Día: $'+fmt(d.valDiaBase)+'\n*(Sin pasaje — deptos en Mendoza Ciudad)*\nGracias! ☀';
+  txt+='💰 *TOTAL: $'+fmt(v.totDep)+'*\nCO: $'+fmt(d.valCODep)+'/vez · Día: $'+fmt(d.valDiaBase)+'\n*(Sin pasaje — deptos en Mendoza Ciudad)*\nGracias! ☀';
   navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado para departamentos')).catch(()=>prompt('Copie:',txt));
 }
 
 // ===== GASTOS =====
+const VEHICULOS={tracker:{cons100:8.0,label:'Chevrolet Tracker'},peugeot:{cons100:5.9,label:'Peugeot 408 1.8'},manual:{cons100:null,label:'Otro'}};
+function selVehiculo(){
+  const v=document.getElementById('g-comb-vehiculo')?.value||'tracker';
+  const cons=VEHICULOS[v]?.cons100;
+  if(cons!=null)document.getElementById('g-comb-cons100').value=cons;
+  calcCombustible();
+}
 function calcCombustible(){
   const dest=document.getElementById('g-comb-destino')?.value||'cabanas';
   const km=dest==='cabanas'?160:16;
   const viajes=parseFloat(document.getElementById('g-comb-viajes')?.value)||1;
   const litro=parseFloat(document.getElementById('g-comb-litro')?.value)||0;
-  const rend=parseFloat(document.getElementById('g-comb-rend')?.value)||12;
-  const costo=Math.round((km*viajes/rend)*litro);
-  const el=document.getElementById('g-comb-costo');
-  if(el)el.value=costo>0?'ARS $'+fmt(costo)+' ('+(km*viajes/rend).toFixed(1)+'L · '+(km*viajes)+'km)':'$0';
+  const cons100=parseFloat(document.getElementById('g-comb-cons100')?.value)||8;
+  const estac=parseFloat(document.getElementById('g-comb-estac')?.value)||0;
+  const kmTot=km*viajes;
+  const litrosTot=kmTot*(cons100/100);
+  const costoComb=Math.round(litrosTot*litro);
+  const costoTotal=costoComb+estac;
+  const elC=document.getElementById('g-comb-costo');
+  const elD=document.getElementById('g-comb-detalle');
+  const elT=document.getElementById('g-comb-total');
+  if(elC)elC.value=litro>0?'ARS $'+fmt(costoComb):'$0';
+  if(elD)elD.textContent=litro>0?kmTot+'km × '+cons100+'l/100km = '+litrosTot.toFixed(2)+'L × $'+fmt(litro)+'/L = $'+fmt(costoComb):'Ingrese precio por litro';
+  if(elT)elT.value=(litro>0||estac>0)?'ARS $'+fmt(costoTotal)+(estac>0?' (comb $'+fmt(costoComb)+' + estac $'+fmt(estac)+')':''):'$0';
 }
 function calcGas(){
   const kg=parseFloat(document.getElementById('g-gas-kg')?.value)||0;
@@ -1466,12 +1763,21 @@ async function agregarGasto(tipo){
     const km=dest==='cabanas'?160:16;
     const viajes=parseFloat(document.getElementById('g-comb-viajes')?.value)||1;
     const litro=parseFloat(document.getElementById('g-comb-litro')?.value)||0;
-    const rend=parseFloat(document.getElementById('g-comb-rend')?.value)||12;
-    const monto=Math.round((km*viajes/rend)*litro);
-    if(monto<=0){alert('Ingrese precio por litro.');return;}
+    const cons100=parseFloat(document.getElementById('g-comb-cons100')?.value)||8;
+    const estac=parseFloat(document.getElementById('g-comb-estac')?.value)||0;
+    const kmTot=km*viajes;
+    const litrosTot=kmTot*(cons100/100);
+    const costoComb=Math.round(litrosTot*litro);
+    const monto=costoComb+estac;
+    if(monto<=0){alert('Ingrese precio por litro (y/o estacionamiento).');return;}
+    const vehiculo=document.getElementById('g-comb-vehiculo')?.value||'tracker';
+    const nomVeh=VEHICULOS[vehiculo]?.label||'Vehículo';
     g.fecha=document.getElementById('g-comb-fecha')?.value||hd;g.destino=dest;g.monto=monto;
-    g.descripcion='Combustible '+(dest==='cabanas'?'Potrerillos':'Ciudad')+' · '+viajes+' viaje(s) · '+(km*viajes)+'km';
+    g.descripcion='Combustible '+(dest==='cabanas'?'Potrerillos':'Ciudad')+' · '+nomVeh+' · '+viajes+' viaje(s) · '+kmTot+'km · '+litrosTot.toFixed(2)+'L'+(estac>0?' + Estac.$'+fmt(estac):'');
     const obs=document.getElementById('g-comb-obs')?.value||'';if(obs)g.descripcion+=' · '+obs;
+    // limpiar estacionamiento
+    document.getElementById('g-comb-estac').value=0;
+    calcCombustible();
   } else if(tipo==='LIMPIEZA'){
     const monto=parseFloat(document.getElementById('g-limp-monto')?.value)||0;
     if(monto<=0){alert('Ingrese el monto.');return;}
@@ -2195,6 +2501,471 @@ function limpiarConsulta(){
   document.getElementById('cons-resultado').style.display='none';
   document.getElementById('cons-respuesta-box').style.display='none';
 }
+
+// ===== PRECIOS VARIABLES POR NOCHE =====
+const DIAS_SEM=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+window._nochesPrecios=[];
+function renderNochesDetalle(){
+  const ci=gv('f-ci1'),co=gv('f-co1'),p1=parseFloat(gv('f-p1'))||0;
+  const blk=document.getElementById('blk-noches-detalle');
+  if(!ci||!co||p1<=0){if(blk)blk.style.display='none';window._nochesPrecios=[];return;}
+  const dias=rango(ci,co);if(!dias.length){if(blk)blk.style.display='none';return;}
+  // Inicializar o mantener precios existentes
+  if(window._nochesPrecios.length!==dias.length){
+    window._nochesPrecios=dias.map(d=>({fecha:d,precio:p1}));
+  } else {
+    // Actualizar precio base si cambió
+    window._nochesPrecios=window._nochesPrecios.map((n,i)=>({...n,fecha:dias[i]}));
+  }
+  const lst=document.getElementById('lst-noches-precio');
+  if(!lst)return;
+  lst.innerHTML=window._nochesPrecios.map((n,i)=>{
+    const dow=new Date(n.fecha+'T00:00:00').getDay();
+    const esFind=dow===0||dow===5||dow===6;
+    return'<div style="display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:5px;background:'+(esFind?'#fef3c7':'var(--bg2)')+';border:1px solid '+(esFind?'#fcd34d':'var(--bd2)')+'">'+
+      '<span style="font-size:10px;width:50px;color:'+(esFind?'#78350f':'var(--txt3)')+'">'+DIAS_SEM[dow]+' '+n.fecha.slice(8)+'</span>'+
+      '<input type="number" value="'+n.precio+'" style="width:90px;padding:3px 5px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;background:#fff" oninput="updNochePrecio('+i+',this.value)">'+
+      '<span style="font-size:10px;color:var(--txt3)">ARS</span>'+
+      (esFind?'<span style="font-size:9px;color:#92400e">'+DIAS_SEM[dow]+'</span>':'')+'</div>';
+  }).join('');
+  blk.style.display='block';
+  actualizarTotalVariable();
+}
+function updNochePrecio(i,val){
+  if(window._nochesPrecios[i])window._nochesPrecios[i].precio=parseFloat(val)||0;
+  actualizarTotalVariable();
+}
+function actualizarTotalVariable(){
+  const tot=window._nochesPrecios.reduce((a,n)=>a+n.precio,0);
+  const el=document.getElementById('tot-noches-var');
+  if(el)el.textContent='$'+fmt(tot);
+}
+function aplicarDescuento(){
+  const pct=parseFloat(document.getElementById('f-desc-pct')?.value)||0;
+  if(!pct){alert('Ingrese porcentaje de descuento.');return;}
+  window._nochesPrecios=window._nochesPrecios.map(n=>({...n,precio:Math.round(n.precio*(1-pct/100))}));
+  renderNochesDetalle();
+  actualizarTotalVariable();
+}
+function aplicarTotalVariable(){
+  const tot=window._nochesPrecios.reduce((a,n)=>a+n.precio,0);
+  if(!tot)return;
+  const n1=Math.max(1,window._nochesPrecios.length);
+  const prom=Math.round(tot/n1);
+  document.getElementById('f-p1').value=prom;
+  // Guardar detalle en notas
+  const det=window._nochesPrecios.map(n=>{const dow=new Date(n.fecha+'T00:00:00').getDay();return DIAS_SEM[dow]+' '+n.fecha.slice(8)+': $'+fmt(n.precio);}).join(' | ');
+  const notasEl=document.getElementById('f-notas');
+  if(notasEl)notasEl.value=(notasEl.value?notasEl.value+'\n':'')+'[Precios por noche: '+det+'] Total: $'+fmt(tot);
+  calcTot();
+  alert('✔ Total $'+fmt(tot)+' aplicado como promedio $'+fmt(prom)+'/noche × '+n1+' noches.\nDetalle guardado en observaciones.');
+}
+
+// ===== CANCELACIONES =====
+window._cancResId=null;
+function renderCancelaciones(){
+  renderCreditosTable();
+}
+function buscarParaCancelar(){
+  const q=(document.getElementById('canc-busq')?.value||'').toLowerCase();
+  const res=document.getElementById('canc-resultados');if(!res)return;
+  if(!q){res.innerHTML='';return;}
+  const match=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA'&&(r.nombre?.toLowerCase().includes(q)||String(r.nro).includes(q)||(r.email||'').toLowerCase().includes(q))).slice(0,8);
+  if(!match.length){res.innerHTML='<p style="font-size:11px;color:var(--txt3);padding:6px">Sin resultados</p>';return;}
+  res.innerHTML=match.map(r=>'<div style="padding:6px 8px;border:1px solid var(--bd);border-radius:5px;margin-bottom:4px;cursor:pointer;background:var(--bg2);font-size:11px" onclick="seleccionarParaCancelar(\''+r.id+'\')">'+
+    '<strong>#'+r.nro+' — '+r.nombre+'</strong><br>'+r.u1+' · '+fmtF(r.cin1)+' → '+fmtF(r.cout1)+' · Total: $'+fmt(r.total)+(r.sena>0?' · Seña: $'+fmt(r.sena):'')+'</div>').join('');
+}
+function seleccionarParaCancelar(id){
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  window._cancResId=id;
+  const panel=document.getElementById('canc-panel');if(panel)panel.style.display='block';
+  const info=document.getElementById('canc-info');
+  const saldo=(r.total||0)-(r.sena||0);
+  if(info)info.innerHTML='<strong>#'+r.nro+' — '+r.nombre+'</strong><br>'+r.u1+'<br>📅 '+fmtF(r.cin1)+' → '+fmtF(r.cout1)+' ('+r.n1+' noches)<br>💰 Total: $'+fmt(r.total)+' · Seña: $'+fmt(r.sena||0)+' · Saldo: $'+fmt(saldo);
+  document.getElementById('canc-fecha').value=hoy();
+  document.getElementById('canc-devolver').value=0;
+  calcCancelacion();
+}
+function calcCancelacion(){
+  const id=window._cancResId;if(!id)return;
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  const sena=r.sena||0;
+  const devolver=parseFloat(document.getElementById('canc-devolver')?.value)||0;
+  const usarCredito=document.getElementById('canc-credito')?.value==='si';
+  const credito=Math.max(0,sena-devolver);
+  const noches=r.n1||1;
+  const pxn=r.p1||0;
+  const nochesEquiv=pxn>0?Math.round(credito/pxn*10)/10:0;
+  const vence=new Date();vence.setDate(vence.getDate()+365);
+  const el=document.getElementById('canc-calculo');if(!el)return;
+  el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'+
+    '<div class="stat"><div class="st-l">Seña recibida</div><div class="st-v" style="font-size:14px">$'+fmt(sena)+'</div></div>'+
+    '<div class="stat"><div class="st-l">A devolver</div><div class="st-v" style="font-size:14px;color:var(--er)">$'+fmt(devolver)+'</div></div>'+
+    '<div class="stat" style="border-color:'+(usarCredito&&credito>0?'#d97706':'#16a34a')+'"><div class="st-l">'+(usarCredito&&credito>0?'Crédito (365 días)':'Retiene MSN')+'</div><div class="st-v" style="font-size:14px;color:'+(usarCredito&&credito>0?'#d97706':'var(--ok)')+'">$'+fmt(credito)+'</div>'+(usarCredito&&credito>0?'<div class="st-s">≈ '+nochesEquiv+' noches · Vence '+vence.toLocaleDateString('es-AR')+'</div>':'')+'</div></div>'+
+    (usarCredito&&credito>0?'<div style="font-size:11px;color:var(--txt2);margin-top:6px">🎫 Se generará un crédito de <strong>$'+fmt(credito)+'</strong> (~'+nochesEquiv+' noches al valor $'+fmt(pxn)+'/noche) válido hasta <strong>'+vence.toLocaleDateString('es-AR')+'</strong>. Si no se usa, pasa a ganancias de MSN.</div>':'');
+}
+async function ejecutarCancelacion(){
+  const id=window._cancResId;if(!id){alert('Seleccione una reserva.');return;}
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  const sena=r.sena||0;
+  const devolver=parseFloat(document.getElementById('canc-devolver')?.value)||0;
+  const usarCredito=document.getElementById('canc-credito')?.value==='si';
+  const motivo=document.getElementById('canc-motivo')?.value||'';
+  const credito=Math.max(0,sena-devolver);
+  const noches=r.n1||1;const pxn=r.p1||0;
+  const nochesEquiv=pxn>0?Math.round(credito/pxn*10)/10:0;
+  const vence=new Date();vence.setDate(vence.getDate()+365);
+  const fvence=vence.toISOString().split('T')[0];
+  if(!confirm('¿Confirmar cancelación de #'+r.nro+' — '+r.nombre+'?\n\nSeña: $'+fmt(sena)+'\nA devolver: $'+fmt(devolver)+'\n'+(usarCredito&&credito>0?'Crédito generado: $'+fmt(credito)+' (~'+nochesEquiv+' noches)\nVence: '+fvence:'Retiene MSN: $'+fmt(credito))))return;
+  // Actualizar reserva a CANCELADA
+  const rUpd={...r,tipo:'CANCELADA',fechaCanc:hoy(),sena:devolver,total:0,
+    notas:(r.notas||'')+'\nCANCELADA '+hoy()+': Seña $'+fmt(sena)+' · Devuelto: $'+fmt(devolver)+(motivo?' · '+motivo:'')+(usarCredito&&credito>0?' · Crédito $'+fmt(credito)+' vence '+fvence:'')};
+  await window.fireGuardar(rUpd);
+  // Si hay crédito, guardarlo como registro especial
+  if(usarCredito&&credito>0){
+    const cred={id:'CRED_'+String(Date.now()),tipo:'CREDITO',origen:'CANCELACION',
+      nombre:r.nombre,email:r.email||'',telefono:r.telefono||'',
+      reservaOrigen:r.id,nroOrigen:r.nro,u1:r.u1,
+      monto:credito,nochesEquiv,pxnOrigen:pxn,
+      fechaCreacion:hoy(),fechaVence:fvence,
+      estado:'VIGENTE',notas:'Crédito por cancelación #'+r.nro+'. '+motivo};
+    await window.fireGuardar(cred);
+  }
+  window._cancResId=null;
+  document.getElementById('canc-panel').style.display='none';
+  document.getElementById('canc-busq').value='';
+  document.getElementById('canc-resultados').innerHTML='';
+  renderCreditosTable();
+  alert('✔ Cancelación registrada correctamente.');
+}
+function copiarMsgCancelacion(){
+  const id=window._cancResId;
+  const r=id?window._db.find(x=>String(x.id)===String(id)):null;
+  if(!r){alert('Seleccione una reserva.');return;}
+  const sena=r.sena||0;
+  const devolver=parseFloat(document.getElementById('canc-devolver')?.value)||0;
+  const usarCredito=document.getElementById('canc-credito')?.value==='si';
+  const credito=Math.max(0,sena-devolver);
+  const nombre=(r.nombre||'').split(' ')[0];
+  const pxn=r.p1||0;const nochesEquiv=pxn>0?Math.round(credito/pxn*10)/10:0;
+  const vence=new Date();vence.setDate(vence.getDate()+365);
+  let msg='☀ *MENDOZA SOL Y NIEVE*\n\nHola *'+nombre+'*,\n\nLamentamos informarle que su reserva ha quedado cancelada:\n\n';
+  msg+='📋 *Reserva #'+r.nro+' — '+r.u1+'*\n'+fmtF(r.cin1)+' → '+fmtF(r.cout1)+' ('+r.n1+' noches)\n\n';
+  if(devolver>0)msg+='💳 *Reembolso: $'+fmt(devolver)+'* ARS — le informaremos el procedimiento.\n';
+  if(usarCredito&&credito>0){
+    msg+='🎫 *Crédito disponible: $'+fmt(credito)+'* (~'+nochesEquiv+' noches)\n';
+    msg+='⏳ Válido hasta el *'+vence.toLocaleDateString('es-AR')+'*\n';
+    msg+='Puede usarlo en cualquier momento para reservar en Mendoza Sol y Nieve.\n';
+    msg+='Después de esa fecha, el crédito no es reembolsable.\n';
+  }
+  msg+='\nEsperamos verle pronto en Mendoza. ☀\n+54 9 261 654 3938 · mendozasolynieve.com.ar';
+  navigator.clipboard.writeText(msg).then(()=>alert('✔ Copiado')).catch(()=>prompt('Copie:',msg));
+}
+function renderCreditosTable(){
+  const creds=window._db.filter(r=>r.tipo==='CREDITO');
+  const hoy_=hoy();
+  const tb=document.getElementById('tbl-cred-body');if(!tb)return;
+  if(!creds.length){tb.innerHTML='<tr><td colspan="7" class="empty">Sin créditos activos.</td></tr>';return;}
+  tb.innerHTML=creds.map(c=>{
+    const vencido=c.fechaVence<hoy_;
+    const est=vencido?'<span class="badge b-canc">Vencido → Ganancia</span>':c.estado==='USADO'?'<span class="badge b-ok">Usado</span>':'<span class="badge" style="background:#fef3c7;color:#78350f">Vigente</span>';
+    return'<tr style="'+(vencido?'opacity:.6':'')+'">'+
+      '<td><a href="#" onclick="editar(\''+c.reservaOrigen+'\');return false">#'+c.nroOrigen+'</a></td>'+
+      '<td><strong>'+c.nombre+'</strong><br><small>'+c.email+'</small></td>'+
+      '<td class="num">$'+fmt(c.monto)+'</td>'+
+      '<td>'+c.nochesEquiv+' noches</td>'+
+      '<td style="color:'+(vencido?'var(--er)':'inherit')+'">'+fmtF(c.fechaVence)+'</td>'+
+      '<td>'+est+'</td>'+
+      '<td><button class="btn sm ok xs" onclick="aplicarCredito(\''+c.id+'\')" '+(vencido||c.estado==='USADO'?'disabled':'')+'style="font-size:10px">Aplicar</button></td></tr>';
+  }).join('');
+}
+function aplicarCredito(credId){
+  const c=window._db.find(x=>String(x.id)===String(credId));if(!c)return;
+  alert('Para aplicar el crédito de '+c.nombre+':\n1. Cree una nueva reserva para este huésped.\n2. En "Seña recibida" ingrese $'+fmt(c.monto)+' (~'+c.nochesEquiv+' noches).\n3. En observaciones anote: "Crédito por cancelación #'+c.nroOrigen+'".\n4. Marque este crédito como USADO editándolo.');
+}
+
+// ===== PRE CHECK-IN =====
+window._pciResId=null;
+function renderProximosCheckin(){
+  const manana=new Date();manana.setDate(manana.getDate()+1);
+  const proxDias=[0,1,2].map(d=>{const dd=new Date();dd.setDate(dd.getDate()+d);return dd.toISOString().split('T')[0];});
+  const proxRes=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA'&&proxDias.includes(r.cin1));
+  const el=document.getElementById('pci-proximos');if(!el)return;
+  if(!proxRes.length){el.innerHTML='<p style="font-size:12px;color:var(--txt3);padding:10px">Sin ingresos en los próximos 2 días.</p>';return;}
+  el.innerHTML=proxRes.map(r=>{
+    const esHoy=r.cin1===hoy();
+    const esMañana=!esHoy;
+    return'<div style="padding:8px 10px;border:1px solid '+(esHoy?'#16a34a':esMañana?'#f97316':'var(--bd)')+';border-radius:6px;margin-bottom:6px;cursor:pointer;background:'+(esHoy?'#f0fdf4':esMañana?'#fff7ed':'var(--bg2)')+'" onclick="seleccionarParaCheckin(\''+r.id+'\')">'+(esHoy?'🔴 HOY':esMañana?'🟡 MAÑANA':'📅 En 2 días')+' — <strong>#'+r.nro+' '+r.nombre+'</strong><br>'+
+      '<span style="font-size:11px">'+r.u1+' · '+r.pax+' pax · '+fmtF(r.cin1)+' → '+fmtF(r.cout1)+'</span>'+
+      (r.email||r.telefono?'<br><span style="font-size:10px;color:var(--txt3)">'+(r.email||'')+(r.telefono?' | '+r.telefono:'')+'</span>':'')+'</div>';
+  }).join('');
+}
+function buscarParaCheckin(){
+  const q=(document.getElementById('pci-busq')?.value||'').toLowerCase();
+  const res=document.getElementById('pci-resultados');if(!res)return;
+  if(!q){res.innerHTML='';return;}
+  const match=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA'&&(r.nombre?.toLowerCase().includes(q)||String(r.nro).includes(q))).slice(0,6);
+  res.innerHTML=match.map(r=>'<div style="padding:6px 8px;border:1px solid var(--bd);border-radius:5px;margin-bottom:4px;cursor:pointer;font-size:11px" onclick="seleccionarParaCheckin(\''+r.id+'\')">#'+r.nro+' — <strong>'+r.nombre+'</strong> · '+r.u1+' · '+fmtF(r.cin1)+'</div>').join('');
+}
+function seleccionarParaCheckin(id){
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  window._pciResId=id;
+  const saldo=Math.max(0,(r.total||0)-(r.sena||0));
+  const esCab=esCabana(r.u1);
+  const esDpto=!esCab;
+  const panel=document.getElementById('pci-panel');if(panel)panel.style.display='block';
+  // Info resumen
+  document.getElementById('pci-info').innerHTML='<strong>#'+r.nro+' — '+r.nombre+'</strong> · '+r.pax+' pax · '+r.u1+'<br>📅 '+fmtF(r.cin1)+' → '+fmtF(r.cout1)+' ('+r.n1+' noches)'+
+    (r.email?' · ✉ '+r.email:'')+(r.telefono?' · 📱 '+r.telefono:'')+'<br>💰 Total: $'+fmt(r.total)+' · Seña: $'+fmt(r.sena||0)+' · <strong style="color:var(--er)">SALDO A COBRAR: $'+fmt(saldo)+'</strong>';
+  // Dirección según tipo
+  let dir='',mapa='';
+  if(esCab){
+    dir='🏔 *Ruta Internacional N° 7, Km 1108 — Potrerillos, Mendoza*\nEn recepción, solicitar llave con el apellido *'+r.nombre.split(' ').pop()+'*. Le entregarán la llave de su *'+r.u1+'*.\nHorario de check-in: desde las 14:00 hs.';
+    mapa='https://maps.google.com/?q=Ruta+7+Km+1108+Potrerillos+Mendoza';
+  } else {
+    dir='🏢 *Espejo 333 — frente a Plaza Independencia, Ciudad de Mendoza*\nCheck-in desde las 14:00 hs. El portero/conserje le asistirá al ingreso.';
+    mapa='https://maps.google.com/?q=Espejo+333+Mendoza+Ciudad';
+  }
+  // Datos bancarios
+  const bancos='🏦 *Datos para transferencia:*\nBanco Supervielle | CA ARS\nCBU: 0270093920005386120016\nAlias: OSCAR.PORCARIO\nTitular: Oscar Hugo Porcario';
+  // Mensaje WhatsApp
+  const nombre1=(r.nombre||'').split(' ')[0];
+  let wa='☀ *MENDOZA SOL Y NIEVE*\n¡Los estamos esperando!\n\n';
+  wa+='Hola *'+nombre1+'*, mañana es su día de ingreso a nuestro alojamiento.\n\n';
+  wa+='📋 *Datos de su reserva:*\n🏠 '+r.u1+'\n📅 Check-In: *'+fmtF(r.cin1)+'* — Check-Out: *'+fmtF(r.cout1)+'*\n👥 '+r.pax+' huéspedes\n\n';
+  wa+='📍 *Dirección:*\n'+dir+'\n\n';
+  wa+='📍 *Cómo llegar (Google Maps):*\n'+mapa+'\n\n';
+  if(saldo>0){wa+='💳 *Saldo a abonar al ingreso:* $'+fmt(saldo)+' ARS\n'+bancos+'\n\n';}
+  wa+='⏰ Check-In: desde 14:00 hs · Check-Out: hasta 10:00 hs\n\n';
+  wa+='Por favor confírmenos su *horario de llegada* para poder atenderle.\n¡Bienvenidos a Mendoza! 🍇🏔';
+  // Email
+  let email='Estimado/a '+r.nombre+':\n\n';
+  email+='Le recordamos que mañana es su día de ingreso. Estamos muy contentos de recibirle.\n\n';
+  email+='📋 DATOS DE SU RESERVA\n';
+  email+='Reserva N°: '+r.nro+'\nAlojamiento: '+r.u1+'\nCheck-In: '+fmtF(r.cin1)+' desde las 14:00 hs\nCheck-Out: '+fmtF(r.cout1)+' hasta las 10:00 hs\nHuéspedes: '+r.pax+'\n\n';
+  email+='📍 DIRECCIÓN\n'+dir.replace(/\*/g,'')+'\nGoogle Maps: '+mapa+'\n\n';
+  if(saldo>0){email+='💳 PAGO AL INGRESO\nSaldo pendiente: ARS $'+fmt(saldo)+'\n'+bancos.replace(/\*/g,'')+'\n\n';}
+  email+='📝 CHECK-IN DIGITAL\nPor favor complete el formulario de ingreso para agilizar su llegada:\n[El formulario de check-in se adjunta en este email]\n\n';
+  email+='Le pedimos que nos confirme su horario estimado de llegada respondiendo este email o por WhatsApp: +54 9 261 654 3938\n\n';
+  email+='¡Le esperamos con alegría!\nMendoza Sol y Nieve\nmendozasolynieve.com.ar\n+54 9 261 654 3938';
+  document.getElementById('pci-msg-wa').value=wa;
+  document.getElementById('pci-msg-email').value=email;
+  // Formulario de huéspedes
+  const pax=Math.max(1,parseInt(r.pax)||1);
+  const resIdEl=document.getElementById('pci-res-id');if(resIdEl)resIdEl.dataset.resId=id;
+  const lista=document.getElementById('pci-hues-lista');if(!lista)return;
+  // Cargar check-in guardado si existe
+  const ciData=r.checkinData||[];
+  lista.innerHTML=Array.from({length:pax},(_,i)=>{
+    const d=ciData[i]||{};
+    return'<div style="padding:10px;border:1px solid var(--bd);border-radius:7px;margin-bottom:8px;background:var(--bg3)">'+
+      '<div style="font-size:11px;font-weight:600;color:var(--pr);margin-bottom:6px">👤 Huésped '+(i+1)+(i===0?' (Titular)':'')+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'+
+      '<input type="text" id="hue-nombre-'+i+'" placeholder="Nombre completo*" value="'+(i===0?r.nombre:d.nombre||'')+'" style="padding:5px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;background:#fff;grid-column:1/-1">'+
+      '<input type="text" id="hue-dni-'+i+'" placeholder="DNI / Pasaporte*" value="'+(d.dni||'')+'" style="padding:5px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;background:#fff">'+
+      '<input type="date" id="hue-nac-'+i+'" placeholder="Fecha nacimiento" value="'+(d.nacimiento||'')+'" style="padding:5px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;background:#fff">'+
+      '<input type="text" id="hue-nac2-'+i+'" placeholder="Nacionalidad" value="'+(d.nacionalidad||'')+'" style="padding:5px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;background:#fff">'+
+      '<input type="text" id="hue-dir-'+i+'" placeholder="Domicilio" value="'+(d.domicilio||'')+'" style="padding:5px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;background:#fff;grid-column:1/3">'+
+      '<input type="tel" id="hue-tel-'+i+'" placeholder="Teléfono" value="'+(i===0?r.telefono:d.telefono||'')+'" style="padding:5px;border:1px solid var(--bd2);border-radius:4px;font-size:11px;background:#fff">'+
+      '</div></div>';
+  }).join('');
+}
+function copiarPCI(tipo){
+  const txt=document.getElementById('pci-msg-'+(tipo==='wa'?'wa':'email'))?.value||'';
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado')).catch(()=>prompt('Copie:',txt));
+}
+function abrirWA(){
+  const r=window._pciResId?window._db.find(x=>String(x.id)===window._pciResId):null;
+  if(!r||!r.telefono){alert('La reserva no tiene teléfono registrado.');return;}
+  const tel=(r.telefono||'').replace(/\D/g,'');
+  const txt=encodeURIComponent(document.getElementById('pci-msg-wa')?.value||'');
+  window.open('https://wa.me/'+tel+'?text='+txt,'_blank');
+}
+function abrirEmailPCI(){
+  const r=window._pciResId?window._db.find(x=>String(x.id)===window._pciResId):null;
+  const email=(r?.email)||'';
+  const sub=encodeURIComponent('Bienvenida — Check-In Mendoza Sol y Nieve');
+  const body=encodeURIComponent(document.getElementById('pci-msg-email')?.value||'');
+  window.open('mailto:'+email+'?subject='+sub+'&body='+body,'_blank');
+}
+async function guardarFormCheckin(){
+  const id=window._pciResId;if(!id){alert('Seleccione una reserva.');return;}
+  const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
+  const pax=Math.max(1,parseInt(r.pax)||1);
+  const hues=[];let ok=true;
+  for(let i=0;i<pax;i++){
+    const nombre=document.getElementById('hue-nombre-'+i)?.value||'';
+    const dni=document.getElementById('hue-dni-'+i)?.value||'';
+    if(!nombre||!dni){ok=false;alert('Complete nombre y DNI del huésped '+(i+1));break;}
+    hues.push({nombre,dni,nacimiento:document.getElementById('hue-nac-'+i)?.value||'',
+      nacionalidad:document.getElementById('hue-nac2-'+i)?.value||'',
+      domicilio:document.getElementById('hue-dir-'+i)?.value||'',
+      telefono:document.getElementById('hue-tel-'+i)?.value||''});
+  }
+  if(!ok)return;
+  const rUpd={...r,checkinData:hues,notas:(r.notas||'')+'\n[CHECK-IN DIGITAL REGISTRADO '+hoy()+']'};
+  const saved=await window.fireGuardar(rUpd);
+  if(saved)alert('✔ Formulario de check-in guardado.\nDatos de '+pax+' huéspedes registrados.');
+}
+function imprimirFormCheckin(){
+  const id=window._pciResId;
+  const r=id?window._db.find(x=>String(x.id)===String(id)):null;
+  if(!r){alert('Seleccione una reserva.');return;}
+  const pax=Math.max(1,parseInt(r.pax)||1);
+  let html='<html><head><title>Registro de Huéspedes — MSN</title><style>body{font-family:sans-serif;font-size:12px;padding:20px}h2{color:#1e40af}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:6px 8px}th{background:#e5e7eb}</style></head><body>';
+  html+='<h2>📋 REGISTRO DE HUÉSPEDES — Mendoza Sol y Nieve</h2>';
+  html+='<p><strong>Reserva #'+r.nro+'</strong> — '+r.nombre+' — '+r.u1+' — '+fmtF(r.cin1)+' → '+fmtF(r.cout1)+'</p>';
+  html+='<table><tr><th>#</th><th>Nombre completo</th><th>DNI/Pasaporte</th><th>Nac.</th><th>Nacionalidad</th><th>Domicilio</th><th>Tel.</th></tr>';
+  for(let i=0;i<pax;i++){
+    html+='<tr><td>'+(i+1)+'</td>'+
+      '<td>'+(document.getElementById('hue-nombre-'+i)?.value||'')+'</td>'+
+      '<td>'+(document.getElementById('hue-dni-'+i)?.value||'')+'</td>'+
+      '<td>'+(document.getElementById('hue-nac-'+i)?.value||'')+'</td>'+
+      '<td>'+(document.getElementById('hue-nac2-'+i)?.value||'')+'</td>'+
+      '<td>'+(document.getElementById('hue-dir-'+i)?.value||'')+'</td>'+
+      '<td>'+(document.getElementById('hue-tel-'+i)?.value||'')+'</td></tr>';
+  }
+  html+='</table><br><p><em>Documento generado por Sistema MSN · '+new Date().toLocaleString('es-AR')+'</em></p></body></html>';
+  const w=window.open('','_blank');w.document.write(html);w.document.close();w.print();
+}
+
+// ===== COTIZACIÓN USD =====
+window._cotizDB={}; // {fecha: {compra, venta, fuente}}
+const COTIZ_KEY='msn_cotizaciones';
+async function cargarCotizLocal(){
+  try{const raw=localStorage.getItem(COTIZ_KEY);if(raw)window._cotizDB=JSON.parse(raw);}catch(e){}
+}
+function guardarCotizLocal(){try{localStorage.setItem(COTIZ_KEY,JSON.stringify(window._cotizDB));}catch(e){}}
+async function actualizarCotizHoy(){
+  const hoyF=hoy();
+  // Intentar obtener del Banco Nación vía API pública (dolarito.ar / bluelytics)
+  try{
+    const resp=await fetch('https://api.bluelytics.com.ar/v2/latest');
+    if(resp.ok){
+      const data=await resp.json();
+      const compra=data?.oficial?.value_buy||data?.oficial?.buy||0;
+      const venta=data?.oficial?.value_sell||data?.oficial?.sell||0;
+      if(venta>0){
+        window._cotizDB[hoyF]={compra:Math.round(compra*100)/100,venta:Math.round(venta*100)/100,fuente:'Bluelytics/BNA'};
+        guardarCotizLocal();
+        renderCotizacion();
+        alert('✔ Cotización actualizada:\nCompra: $'+compra.toFixed(2)+' · Venta: $'+venta.toFixed(2));
+        return;
+      }
+    }
+  }catch(e){}
+  // Si falla, pedir manual
+  const val=prompt('No se pudo obtener automáticamente.\nIngrese el valor VENTA del dólar Banco Nación hoy ('+hoyF+'):');
+  if(val&&!isNaN(val)){
+    const vc=parseFloat(val);
+    window._cotizDB[hoyF]={compra:Math.round(vc*0.97*100)/100,venta:vc,fuente:'Manual'};
+    guardarCotizLocal();
+    renderCotizacion();
+    alert('✔ Cotización guardada: Venta $'+vc);
+  }
+}
+async function cargarHistoricoDesde(){
+  const confirm_=confirm('Se intentará cargar el histórico desde 01/11/2025 hasta hoy.\nEsto puede tardar unos segundos.\n¿Continuar?');
+  if(!confirm_)return;
+  // Valores aproximados históricos BNA (noviembre 2025 - junio 2026)
+  // Se pre-cargan valores de referencia que el usuario puede ajustar
+  const hist={
+    '2025-11-01':1100,'2025-11-15':1105,'2025-12-01':1060,'2025-12-15':1062,
+    '2026-01-01':1066,'2026-01-15':1068,'2026-02-01':1072,'2026-02-15':1074,
+    '2026-03-01':1080,'2026-03-15':1085,'2026-04-01':1090,'2026-04-15':1095,
+    '2026-05-01':1400,'2026-05-15':1430,'2026-06-01':1450,'2026-06-13':1460
+  };
+  let agregados=0;
+  Object.entries(hist).forEach(([fecha,venta])=>{
+    if(!window._cotizDB[fecha]){
+      window._cotizDB[fecha]={compra:Math.round(venta*0.97*100)/100,venta,fuente:'Referencia histórica'};
+      agregados++;
+    }
+  });
+  guardarCotizLocal();
+  renderCotizacion();
+  alert('✔ '+agregados+' valores de referencia cargados.\nATENCIÓN: Estos son valores aproximados de referencia. Verifique y corrija los valores según las cotizaciones reales del Banco Nación.\nPuede actualizar cada fecha manualmente.');
+}
+function agregarCotizManual(){
+  const fecha=document.getElementById('cotiz-fecha-man')?.value;
+  const compra=parseFloat(document.getElementById('cotiz-compra-man')?.value)||0;
+  const venta=parseFloat(document.getElementById('cotiz-venta-man')?.value)||0;
+  if(!fecha||venta<=0){alert('Ingrese fecha y valor venta.');return;}
+  window._cotizDB[fecha]={compra:compra||Math.round(venta*0.97*100)/100,venta,fuente:'Manual'};
+  guardarCotizLocal();
+  renderCotizacion();
+  document.getElementById('cotiz-venta-man').value='';
+  document.getElementById('cotiz-compra-man').value='';
+}
+function consultarCotiz(){
+  const fecha=document.getElementById('cotiz-consulta-fecha')?.value;
+  const el=document.getElementById('cotiz-consulta-res');if(!el)return;
+  if(!fecha){el.textContent='';return;}
+  const c=window._cotizDB[fecha];
+  if(c){el.innerHTML='Compra: <strong>$'+c.compra+'</strong> · Venta: <strong style="color:var(--pr)">$'+c.venta+'</strong> <small>('+c.fuente+')</small>';}
+  else{
+    // Buscar más cercano
+    const fechas=Object.keys(window._cotizDB).sort();
+    const ant=fechas.filter(f=>f<=fecha).pop();
+    if(ant){const ca=window._cotizDB[ant];el.innerHTML='No hay dato exacto. Más reciente ('+fmtF(ant)+'): Venta <strong style="color:var(--wa)">$'+ca.venta+'</strong>';}
+    else el.textContent='Sin datos para esa fecha.';
+  }
+}
+window.getCotizVenta=function(fecha){
+  if(!fecha)return 0;
+  const c=window._cotizDB[fecha];if(c)return c.venta;
+  const fechas=Object.keys(window._cotizDB).sort();
+  const ant=fechas.filter(f=>f<=fecha).pop();
+  return ant?window._cotizDB[ant].venta:0;
+};
+function renderCotizacion(){
+  const todas=Object.entries(window._cotizDB).sort((a,b)=>b[0].localeCompare(a[0]));
+  const hoyC=window._cotizDB[hoy()];
+  const box=document.getElementById('cotiz-hoy-box');
+  if(box){
+    if(hoyC)box.innerHTML='<div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat"><div class="st-l">Hoy — Compra BNA</div><div class="st-v" style="font-size:18px;color:var(--ok)">$'+hoyC.compra+'</div></div><div class="stat"><div class="st-l">Hoy — Venta BNA</div><div class="st-v" style="font-size:18px;color:var(--pr)">$'+hoyC.venta+'</div></div><div class="stat"><div class="st-l">Fuente</div><div class="st-v" style="font-size:13px">'+hoyC.fuente+'</div></div></div>';
+    else box.innerHTML='<div style="padding:10px;background:#fff7ed;border:1px solid #fb923c;border-radius:6px;font-size:12px;color:#c2410c">⚠ Sin cotización para hoy. Use el botón "Actualizar cotización hoy".</div>';
+  }
+  const res=document.getElementById('cotiz-resumen');
+  if(res&&todas.length){
+    const ult=todas[0][1];const prim=todas[todas.length-1][1];
+    res.innerHTML='Registros: <strong>'+todas.length+'</strong> · Desde: <strong>'+fmtF(todas[todas.length-1][0])+'</strong> · Último: <strong>'+fmtF(todas[0][0])+'</strong> ($'+ult.venta+') · '+
+      (prim&&ult?'Variación: <strong style="color:'+(ult.venta>prim.venta?'var(--er)':'var(--ok)')+'">+'+(((ult.venta-prim.venta)/prim.venta)*100).toFixed(1)+'%</strong>':'');
+  }
+  const tb=document.getElementById('tbl-cotiz');if(!tb)return;
+  if(!todas.length){tb.innerHTML='<tr><td colspan="5" class="empty">Sin datos. Use "Actualizar cotización hoy" o cargue el histórico.</td></tr>';return;}
+  tb.innerHTML=todas.slice(0,120).map(([f,c])=>'<tr><td>'+fmtF(f)+'</td><td class="num">$'+c.compra+'</td><td class="num"><strong>$'+c.venta+'</strong></td><td style="font-size:10px;color:var(--txt3)">'+c.fuente+'</td><td><button class="btn er xs" onclick="borrarCotiz(\''+f+'\')" style="font-size:9px;padding:2px 5px">✕</button></td></tr>').join('');
+}
+function borrarCotiz(fecha){
+  if(!confirm('¿Eliminar cotización del '+fmtF(fecha)+'?'))return;
+  delete window._cotizDB[fecha];
+  guardarCotizLocal();
+  renderCotizacion();
+}
+// Cargar cotizaciones al inicio
+cargarCotizLocal().then(()=>{
+  // Conectar cotización con campo de reserva
+  const cotizField=document.getElementById('f-cotiz-usd');
+  if(cotizField&&!cotizField.value||cotizField.value==='0'){
+    const v=window.getCotizVenta(hoy());
+    if(v>0)cotizField.value=v;
+  }
+});
+
+// Notificación de ingresos del próximo día (popup)
+function checkNotificacionIngresos(){
+  const manana=new Date();manana.setDate(manana.getDate()+1);
+  const fechaMañana=manana.toISOString().split('T')[0];
+  const ingresos=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA'&&r.cin1===fechaMañana);
+  if(ingresos.length>0){
+    let msg='🔔 INGRESOS MAÑANA ('+fmtF(fechaMañana)+'):\n\n';
+    ingresos.forEach(r=>{msg+='• #'+r.nro+' — '+r.nombre+'\n  '+r.u1+' · '+r.pax+' pax\n  Saldo: $'+fmt(Math.max(0,(r.total||0)-(r.sena||0)))+'\n\n';});
+    msg+='¿Ir al módulo Pre Check-In para enviar mensajes de bienvenida?';
+    if(confirm(msg))goTo('sc-precheckin');
+  }
+}
+// Verificar notificaciones cuando se cargan los datos (una sola vez por sesión)
+window._notifChecked=false;
 
 // ===== EXPORTAR CSV =====
 function exportarCSV(){
