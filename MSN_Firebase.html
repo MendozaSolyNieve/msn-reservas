@@ -2696,7 +2696,7 @@ function buscarParaCheckin(){
   res.innerHTML=match.map(r=>'<div style="padding:6px 8px;border:1px solid var(--bd);border-radius:5px;margin-bottom:4px;cursor:pointer;font-size:11px" onclick="seleccionarParaCheckin(\''+r.id+'\')">#'+r.nro+' — <strong>'+r.nombre+'</strong> · '+r.u1+' · '+fmtF(r.cin1)+'</div>').join('');
 }
 // ⚠ AJUSTAR con la URL real de GitHub Pages donde está publicado precheckin.html
-const PCI_BASE_URL='https://TU-USUARIO.github.io/TU-REPOSITORIO/precheckin.html';
+const PCI_BASE_URL='https://mendozasolynieve.github.io/msn-reservas/precheckin.html';
 function generarLinkPCI(reservaId){return PCI_BASE_URL+'?id='+reservaId;}
 
 function seleccionarParaCheckin(id){
@@ -2731,12 +2731,10 @@ function seleccionarParaCheckin(id){
   if(saldo>0)wa+='💳 *Saldo al ingreso: $'+fmt(saldo)+'* ARS\n'+bancos+'\n\n';
   if(r.lateHora)wa+='⏰ *Late Check-Out hasta '+r.lateHora+'*\n\n';
   wa+='📝 *Complete su Pre Check-In online antes de llegar* (2 min.):\n'+link+'\n\n';
-  wa+='📝 *Complete su Pre Check-In online antes de llegar* (2 min.):\n'+link+'\n\n';
   wa+='⏰ Check-In: desde 14:00 hs · Check-Out: hasta 10:00 hs\n\n*Por favor confírmenos su horario de llegada.*\n¡Bienvenidos a Mendoza! 🍇🏔';
   let email='Estimado/a '+r.nombre+':\n\nMañana es su día de llegada. ¡Estamos muy contentos de recibirle!\n\nSU RESERVA\nReserva N°: '+r.nro+'\nAlojamiento: '+r.u1+'\nCheck-In: '+fmtF(r.cin1)+' desde las 14:00 hs\nCheck-Out: '+fmtF(r.cout1)+' hasta las 10:00 hs\nHuéspedes: '+r.pax+'\n\nDIRECCIÓN\n'+dir.replace(/\*/g,'')+'\nGoogle Maps: '+mapa+'\n\n';
   if(saldo>0)email+='PAGO AL INGRESO\nSaldo pendiente: ARS $'+fmt(saldo)+'\n'+bancos.replace(/\*/g,'')+'\n\n';
   if(r.lateHora)email+='Late Check-Out hasta '+r.lateHora+' incluido.\n\n';
-  email+='PRE CHECK-IN ONLINE\nPor favor complete el formulario de registro antes de su llegada (2 minutos):\n'+link+'\n\n';
   email+='PRE CHECK-IN ONLINE\nPor favor complete el formulario de registro antes de su llegada (2 minutos):\n'+link+'\n\n';
   email+='Le pedimos que confirme su horario de llegada respondiendo este email o por WhatsApp: +54 9 261 654 3938\n\n¡Le esperamos con alegría!\nMendoza Sol y Nieve\nmendozasolynieve.com.ar\n+54 9 261 654 3938';
   document.getElementById('pci-msg-wa').value=wa;
