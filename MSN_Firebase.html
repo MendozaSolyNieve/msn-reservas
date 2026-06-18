@@ -159,6 +159,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <button onclick="goTo('sc-consultas')" id="nb-consultas">💬 Consultas</button>
   <button onclick="goTo('sc-cancelaciones')" id="nb-cancelaciones">❌ Cancelaciones</button>
   <button onclick="goTo('sc-precheckin')" id="nb-precheckin">📩 Pre Check-In</button>
+  <button onclick="goTo('sc-recepcion')" id="nb-recepcion">🏔 Recepción</button>
   <button onclick="goTo('sc-cotizacion')" id="nb-cotizacion">💵 USD</button>
   <button onclick="goTo('sc-tarifas')" id="nb-tarifas">🏷 Tarifas</button>
   <button onclick="goTo('sc-balance')" id="nb-balance">📈 Balance</button>
@@ -175,6 +176,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
     <button class="btn sm" onclick="goTo('sc-abm');abrirForm('EXPEDIA')" style="background:#f97316;color:#fff;border-color:#f97316">🏨 Expedia</button>
     <button class="btn sm" onclick="goTo('sc-consultas')" style="background:#0891b2;color:#fff;border-color:#0891b2">💬 Consulta</button>
     <button class="btn sm" onclick="goTo('sc-precheckin')" style="background:#7c3aed;color:#fff;border-color:#7c3aed">📩 Pre Check-In</button>
+    <button class="btn sm" onclick="goTo('sc-recepcion')" style="background:#b45309;color:#fff;border-color:#b45309">🏔 Recepción</button>
     <button class="btn sm" onclick="goTo('sc-cotizacion')" style="background:#ca8a04;color:#fff;border-color:#ca8a04">💵 USD</button>
     <button class="btn sm" onclick="goTo('sc-tarifas')" style="background:#0f4c81;color:#fff;border-color:#0f4c81">🏷 Tarifas</button>
     <span style="font-size:11px;color:var(--txt3);margin-left:4px">Última: <strong id="ultima-reserva">—</strong></span>
@@ -893,7 +895,6 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
     </div>
     <div id="pci-panel" style="display:none">
       <div style="padding:10px;background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;margin-bottom:10px;font-size:12px" id="pci-info"></div>
-
       <!-- LINK FORMULARIO ONLINE -->
       <div style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:8px;padding:12px;margin-bottom:10px">
         <div style="font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:8px">🔗 Formulario Online de Pre Check-In para el huésped</div>
@@ -903,14 +904,9 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
           <button class="btn sm" onclick="enviarLinkWA()" style="background:#16a34a;color:#fff;border-color:#16a34a;white-space:nowrap">📱 Enviar por WA</button>
           <button class="btn sm" onclick="abrirLinkPCI()" style="background:#0f4c81;color:#fff;border-color:#0f4c81;white-space:nowrap">🔗 Abrir formulario</button>
         </div>
-        <div id="pci-estado-completado" style="display:none;margin-top:8px;padding:6px 10px;background:#dcfce7;border:1px solid #86efac;border-radius:5px;font-size:12px;font-weight:600;color:#14532d">
-          ✅ Pre Check-In completado por el huésped
-        </div>
-        <div id="pci-estado-pendiente" style="margin-top:8px;padding:6px 10px;background:#fef9c3;border:1px solid #fde68a;border-radius:5px;font-size:12px;color:#78350f">
-          ⏳ Pendiente — el huésped aún no completó el formulario
-        </div>
+        <div id="pci-estado-completado" style="display:none;margin-top:8px;padding:6px 10px;background:#dcfce7;border:1px solid #86efac;border-radius:5px;font-size:12px;font-weight:600;color:#14532d">✅ Pre Check-In completado por el huésped</div>
+        <div id="pci-estado-pendiente" style="margin-top:8px;padding:6px 10px;background:#fef9c3;border:1px solid #fde68a;border-radius:5px;font-size:12px;color:#78350f">⏳ Pendiente — el huésped aún no completó el formulario</div>
       </div>
-
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <div>
           <div style="font-size:12px;font-weight:600;color:#15803d;margin-bottom:4px">📱 WhatsApp Bienvenida</div>
@@ -941,6 +937,50 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 </div></div>
 
 <!-- COTIZACIÓN USD -->
+<div id="sc-recepcion" class="sc"><div class="wrap">
+  <div class="card">
+    <div class="ch">🏔 Recepción Cabañas Potrerillos — Aviso de Ingresos
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn ok sm" onclick="generarAvisoRecepcion()">🔄 Generar aviso</button>
+        <button class="btn sm" onclick="copiarAvisoRecepcion()" style="background:#0f4c81;color:#fff;border-color:#0f4c81">📋 Copiar</button>
+        <button class="btn sm" onclick="enviarAvisoWA()" style="background:#16a34a;color:#fff;border-color:#16a34a">📱 Enviar por WA</button>
+      </div>
+    </div>
+    <div class="cb">
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+        <label style="font-size:12px;font-weight:600;color:var(--txt2)">📅 Fecha de ingresos:</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="date" id="rec-fecha" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)">
+          <button class="btn sm pr" onclick="document.getElementById('rec-fecha').value=hoy();generarAvisoRecepcion()">Hoy</button>
+          <button class="btn sm" onclick="document.getElementById('rec-fecha').value=manana();generarAvisoRecepcion()">Mañana</button>
+          <span id="rec-conteo" style="font-size:12px;color:var(--txt3)"></span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#b45309;margin-bottom:6px">📱 Mensaje para Recepción (WhatsApp)</div>
+          <textarea id="rec-msg-wa" rows="28" style="width:100%;padding:9px;border:1px solid #fed7aa;border-radius:6px;font-size:11px;background:#fffbeb;font-family:monospace;color:var(--txt);resize:vertical"></textarea>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--pr);margin-bottom:6px">📋 Vista previa de ingresos detectados</div>
+          <div id="rec-preview" style="background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:10px;min-height:200px;font-size:12px;max-height:500px;overflow-y:auto"></div>
+          <div style="margin-top:10px;padding:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;font-size:11px">
+            <strong>📞 Tel. Recepción Potrerillos:</strong><br>
+            <input type="text" id="rec-tel" value="549261XXXXXXX" style="padding:4px 7px;border:1px solid var(--bd2);border-radius:4px;font-size:12px;width:100%;margin-top:4px;background:var(--bg2);color:var(--txt)" placeholder="+549261... (sin + ni espacios)">
+            <div style="margin-top:4px;font-size:10px;color:var(--txt3)">Formato para WA: 549261XXXXXXX (país+área+número sin espacios)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sin ingresos -->
+      <div id="rec-sin-ingresos" style="display:none;padding:20px;text-align:center;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;color:#15803d;font-size:14px">
+        ✅ Sin ingresos de cabañas para la fecha seleccionada.
+      </div>
+    </div>
+  </div>
+</div></div>
+
 <div id="sc-cotizacion" class="sc"><div class="wrap">
   <div class="card"><div class="ch">💵 Cotización USD — Histórico</div><div class="cb">
     <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
@@ -1066,8 +1106,9 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 <div id="sc-tarifas" class="sc"><div class="wrap">
   <div class="card">
     <div class="ch">🏷 Tarifas y Cotizaciones — Historial de precios por alojamiento
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn ok sm" onclick="guardarTarifas()">💾 Guardar tarifas</button>
+        <button class="btn sm" style="background:#7c3aed;color:#fff;border-color:#7c3aed" onclick="mostrarImportarPlanilla()">📊 Cargar desde planilla</button>
         <button class="btn sm" onclick="cargarFeriados()">📅 Importar feriados</button>
         <button class="btn sm pr" onclick="importarRecesos()">🏫 Importar recesos</button>
       </div>
@@ -1154,7 +1195,51 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
           <th>Min.noc.</th><th></th>
         </tr></thead><tbody id="tbl-historial-tarifas"></tbody></table></div>
       </div>
+
+      <!-- MODAL IMPORTAR PLANILLA -->
+      <div id="modal-importar-planilla" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;overflow:auto">
+        <div style="background:#fff;max-width:780px;margin:30px auto;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+          <div style="background:#7c3aed;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">
+            <strong>📊 Cargar tarifas desde Calculadora (planilla U$S base 46)</strong>
+            <button onclick="document.getElementById('modal-importar-planilla').style.display='none'" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button>
+          </div>
+          <div style="padding:16px">
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:10px 14px;font-size:12px;color:#78350f;margin-bottom:14px">
+              ⚠ <strong>Importante:</strong> Los valores están en U$S y se cargarán <strong>tal cual de la planilla</strong> (base U$S 46).<br>
+              El tipo de cambio se aplica al cotizar cada reserva. Temporadas: <strong>Baja = tarifa básica · Feriado Largo = feriados/vacaciones · Verano = dic–feb</strong><br>
+              Se asignan períodos de vigencia: Baja (1 mar–30 nov 2026), Feriado Largo (fechas de feriados), Verano (1 dic 2026–28 feb 2027).
+            </div>
+            <div id="preview-planilla" style="font-size:12px;max-height:360px;overflow-y:auto"></div>
+            <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end">
+              <button class="btn sm" onclick="document.getElementById('modal-importar-planilla').style.display='none'">Cancelar</button>
+              <button class="btn ok" onclick="confirmarImportarPlanilla()" id="btn-confirmar-import">✅ Importar todas las tarifas</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+      <!-- MODAL IMPORTAR PLANILLA -->
+      <div id="modal-importar-planilla" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;overflow:auto">
+        <div style="background:#fff;max-width:820px;margin:30px auto;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+          <div style="background:#7c3aed;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">
+            <strong>📊 Cargar tarifas desde Calculadora (U$S — base U$S 46)</strong>
+            <button onclick="document.getElementById('modal-importar-planilla').style.display='none'" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button>
+          </div>
+          <div style="padding:16px">
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:10px 14px;font-size:12px;color:#78350f;margin-bottom:14px">
+              ⚠ <strong>Los valores se cargan en U$S exactamente como figuran en la planilla</strong> (base U$S 46).<br>
+              El tipo de cambio se aplica al cotizar cada reserva. Baja = tarifa directa · Fer/Vac = feriados y vacaciones · Rec.Inv = receso invernal · Verano = dic–feb.<br>
+              <strong>Si ya tiene tarifas cargadas, esta importación las sobrescribirá.</strong>
+            </div>
+            <div id="preview-planilla" style="font-size:12px;max-height:380px;overflow-y:auto"></div>
+            <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end">
+              <button class="btn sm" onclick="document.getElementById('modal-importar-planilla').style.display='none'">Cancelar</button>
+              <button class="btn ok" onclick="confirmarImportarPlanilla()" id="btn-confirmar-import">✅ Importar todas las tarifas</button>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </div></div>
 
@@ -1290,6 +1375,7 @@ function goTo(id){
   if(id==='sc-cancelaciones')renderCancelaciones();
   if(id==='sc-precheckin')renderProximosCheckin();
   if(id==='sc-cotizacion')renderCotizacion();
+  if(id==='sc-recepcion'){document.getElementById('rec-fecha').value=hoy();generarAvisoRecepcion();}
   if(id==='sc-consultas')renderConsultasGuardadas();
   if(id==='sc-tarifas')renderTarifasAlo();
   if(id==='sc-balance'){const hd=hoy();sv('bal-desde',hd.substring(0,8)+'01');sv('bal-hasta',hd);}
@@ -2600,8 +2686,7 @@ function renderProximosCheckin(){
   if(!proxRes.length){el.innerHTML='<p style="font-size:12px;color:var(--txt3);padding:10px">Sin ingresos en los próximos 2 días.</p>';return;}
   el.innerHTML=proxRes.map(r=>{
     const esHoy=r.cin1===hoy();const esMañana=r.cin1===new Date(Date.now()+86400000).toISOString().split('T')[0];
-    const pciOk=r.pciCompletado?'<span style="font-size:10px;background:#dcfce7;color:#14532d;border-radius:3px;padding:1px 5px;font-weight:700;margin-left:4px">✅ PCI</span>':'<span style="font-size:10px;background:#fef9c3;color:#78350f;border-radius:3px;padding:1px 5px;font-weight:700;margin-left:4px">⏳ PCI</span>';
-    return'<div style="padding:8px 10px;border:1px solid '+(esHoy?'#16a34a':esMañana?'#f97316':'var(--bd)')+';border-radius:6px;margin-bottom:6px;cursor:pointer;background:'+(esHoy?'#f0fdf4':esMañana?'#fff7ed':'var(--bg2)')+'" onclick="seleccionarParaCheckin(\''+r.id+'\')">'+(esHoy?'🔴 HOY':esMañana?'🟡 MAÑANA':'📅 En 2 días')+' — <strong>#'+r.nro+' '+r.nombre+'</strong>'+pciOk+'<br><span style="font-size:11px">'+r.u1+' · '+r.pax+' pax · '+fmtF(r.cin1)+' → '+fmtF(r.cout1)+'</span>'+(r.email||r.telefono?'<br><span style="font-size:10px;color:var(--txt3)">'+(r.email||'')+(r.telefono?' | '+r.telefono:'')+'</span>':'')+'</div>';
+    return'<div style="padding:8px 10px;border:1px solid '+(esHoy?'#16a34a':esMañana?'#f97316':'var(--bd)')+';border-radius:6px;margin-bottom:6px;cursor:pointer;background:'+(esHoy?'#f0fdf4':esMañana?'#fff7ed':'var(--bg2)')+'" onclick="seleccionarParaCheckin(\''+r.id+'\')">'+(esHoy?'🔴 HOY':esMañana?'🟡 MAÑANA':'📅 En 2 días')+' — <strong>#'+r.nro+' '+r.nombre+'</strong><br><span style="font-size:11px">'+r.u1+' · '+r.pax+' pax · '+fmtF(r.cin1)+' → '+fmtF(r.cout1)+'</span>'+(r.email||r.telefono?'<br><span style="font-size:10px;color:var(--txt3)">'+(r.email||'')+(r.telefono?' | '+r.telefono:'')+'</span>':'')+'</div>';
   }).join('');
 }
 function buscarParaCheckin(){
@@ -2610,20 +2695,15 @@ function buscarParaCheckin(){
   const match=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA'&&((r.nombre||'').toLowerCase().includes(q)||String(r.nro).includes(q))).slice(0,6);
   res.innerHTML=match.map(r=>'<div style="padding:6px 8px;border:1px solid var(--bd);border-radius:5px;margin-bottom:4px;cursor:pointer;font-size:11px" onclick="seleccionarParaCheckin(\''+r.id+'\')">#'+r.nro+' — <strong>'+r.nombre+'</strong> · '+r.u1+' · '+fmtF(r.cin1)+'</div>').join('');
 }
-// URL base donde está publicado el precheckin.html en GitHub Pages
-// ⚠ AJUSTAR si cambia la URL de GitHub Pages
+// ⚠ AJUSTAR con la URL real de GitHub Pages donde está publicado precheckin.html
 const PCI_BASE_URL='https://TU-USUARIO.github.io/TU-REPOSITORIO/precheckin.html';
+function generarLinkPCI(reservaId){return PCI_BASE_URL+'?id='+reservaId;}
 
-function generarLinkPCI(reservaId){
-  return PCI_BASE_URL+'?id='+reservaId;
-}
 function seleccionarParaCheckin(id){
   const r=window._db.find(x=>String(x.id)===String(id));if(!r)return;
   window._pciResId=id;
   const saldo=Math.max(0,(r.total||0)-(r.sena||0));const esCab=esCabana(r.u1);
   document.getElementById('pci-panel').style.display='block';
-  document.getElementById('pci-info').innerHTML='<strong>#'+r.nro+' — '+r.nombre+'</strong> · '+r.pax+' pax · '+r.u1+'<br>📅 '+fmtF(r.cin1)+' → '+fmtF(r.cout1)+' ('+r.n1+' noches)'+(r.email?' · ✉ '+r.email:'')+(r.telefono?' · 📱 '+r.telefono:'')+'<br>💰 <strong style="color:var(--er)">Saldo a cobrar: $'+fmt(saldo)+'</strong>';
-
   // Link formulario online
   const link=generarLinkPCI(id);
   const linkEl=document.getElementById('pci-link');if(linkEl)linkEl.value=link;
@@ -2632,10 +2712,8 @@ function seleccionarParaCheckin(id){
   const elPend=document.getElementById('pci-estado-pendiente');
   if(elComp)elComp.style.display=completado?'block':'none';
   if(elPend)elPend.style.display=completado?'none':'block';
-  if(completado&&elComp&&r.pciTimestamp){
-    const dt=new Date(r.pciTimestamp);elComp.innerHTML='✅ Pre Check-In completado por el huésped · '+dt.toLocaleString('es-AR');
-  }
-
+  if(completado&&elComp&&r.pciTimestamp){const dt=new Date(r.pciTimestamp);elComp.innerHTML='✅ Pre Check-In completado · '+dt.toLocaleString('es-AR');}
+  document.getElementById('pci-info').innerHTML='<strong>#'+r.nro+' — '+r.nombre+'</strong> · '+r.pax+' pax · '+r.u1+'<br>📅 '+fmtF(r.cin1)+' → '+fmtF(r.cout1)+' ('+r.n1+' noches)'+(r.email?' · ✉ '+r.email:'')+(r.telefono?' · 📱 '+r.telefono:'')+'<br>💰 <strong style="color:var(--er)">Saldo a cobrar: $'+fmt(saldo)+'</strong>';
   const nombre1=(r.nombre||'').split(' ')[0];
   let dir='',mapa='';
   if(esCab){
@@ -2652,12 +2730,14 @@ function seleccionarParaCheckin(id){
   let wa='☀ *MENDOZA SOL Y NIEVE*\n¡Los estamos esperando!\n\nHola *'+nombre1+'*, mañana es su día de llegada.\n\n📋 *Su reserva:*\n🏠 '+r.u1+'\n📅 Check-In: *'+fmtF(r.cin1)+'* · Check-Out: *'+fmtF(r.cout1)+'*\n👥 '+r.pax+' huéspedes\n\n📍 *Dirección:*\n'+dir+'\n\n📍 *Google Maps:* '+mapa+'\n\n';
   if(saldo>0)wa+='💳 *Saldo al ingreso: $'+fmt(saldo)+'* ARS\n'+bancos+'\n\n';
   if(r.lateHora)wa+='⏰ *Late Check-Out hasta '+r.lateHora+'*\n\n';
-  wa+='📝 *Por favor complete su Pre Check-In online antes de llegar:*\n'+link+'\n(Tarda menos de 2 minutos)\n\n';
+  wa+='📝 *Complete su Pre Check-In online antes de llegar* (2 min.):\n'+link+'\n\n';
+  wa+='📝 *Complete su Pre Check-In online antes de llegar* (2 min.):\n'+link+'\n\n';
   wa+='⏰ Check-In: desde 14:00 hs · Check-Out: hasta 10:00 hs\n\n*Por favor confírmenos su horario de llegada.*\n¡Bienvenidos a Mendoza! 🍇🏔';
   let email='Estimado/a '+r.nombre+':\n\nMañana es su día de llegada. ¡Estamos muy contentos de recibirle!\n\nSU RESERVA\nReserva N°: '+r.nro+'\nAlojamiento: '+r.u1+'\nCheck-In: '+fmtF(r.cin1)+' desde las 14:00 hs\nCheck-Out: '+fmtF(r.cout1)+' hasta las 10:00 hs\nHuéspedes: '+r.pax+'\n\nDIRECCIÓN\n'+dir.replace(/\*/g,'')+'\nGoogle Maps: '+mapa+'\n\n';
   if(saldo>0)email+='PAGO AL INGRESO\nSaldo pendiente: ARS $'+fmt(saldo)+'\n'+bancos.replace(/\*/g,'')+'\n\n';
   if(r.lateHora)email+='Late Check-Out hasta '+r.lateHora+' incluido.\n\n';
-  email+='PRE CHECK-IN ONLINE\nPor favor complete el formulario de registro antes de su llegada (lleva menos de 2 minutos):\n'+link+'\n\n';
+  email+='PRE CHECK-IN ONLINE\nPor favor complete el formulario de registro antes de su llegada (2 minutos):\n'+link+'\n\n';
+  email+='PRE CHECK-IN ONLINE\nPor favor complete el formulario de registro antes de su llegada (2 minutos):\n'+link+'\n\n';
   email+='Le pedimos que confirme su horario de llegada respondiendo este email o por WhatsApp: +54 9 261 654 3938\n\n¡Le esperamos con alegría!\nMendoza Sol y Nieve\nmendozasolynieve.com.ar\n+54 9 261 654 3938';
   document.getElementById('pci-msg-wa').value=wa;
   document.getElementById('pci-msg-email').value=email;
@@ -2679,26 +2759,6 @@ function seleccionarParaCheckin(id){
   }).join('');
 }
 function copiarPCI(tipo){const txt=document.getElementById(tipo==='wa'?'pci-msg-wa':'pci-msg-email')?.value||'';navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado')).catch(()=>prompt('Copie:',txt));}
-function copiarLinkPCI(){
-  const link=document.getElementById('pci-link')?.value||'';
-  if(!link){alert('Primero seleccione una reserva.');return;}
-  navigator.clipboard.writeText(link).then(()=>alert('✔ Link copiado al portapapeles')).catch(()=>prompt('Copie el link:',link));
-}
-function abrirLinkPCI(){
-  const link=document.getElementById('pci-link')?.value||'';
-  if(!link){alert('Primero seleccione una reserva.');return;}
-  window.open(link,'_blank');
-}
-function enviarLinkWA(){
-  const r=window._pciResId?window._db.find(x=>String(x.id)===window._pciResId):null;
-  if(!r){alert('Primero seleccione una reserva.');return;}
-  const tel=(r.telefono||'').replace(/\D/g,'');
-  if(!tel){alert('La reserva no tiene teléfono registrado.');return;}
-  const link=generarLinkPCI(window._pciResId);
-  const nombre1=(r.nombre||'').split(' ')[0];
-  const msg='☀ *MENDOZA SOL Y NIEVE*\n\nHola *'+nombre1+'*, le enviamos el formulario de Pre Check-In para completar antes de su llegada. Tarda menos de 2 minutos:\n\n📝 '+link+'\n\nReserva #'+r.nro+' · '+r.u1+'\n📅 Check-In: '+fmtF(r.cin1)+'\n\nAntes cualquier consulta: +54 9 261 654 3938';
-  window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(msg),'_blank');
-}
 function abrirWA(){
   const r=window._pciResId?window._db.find(x=>String(x.id)===window._pciResId):null;
   if(!r||!r.telefono){alert('La reserva no tiene teléfono registrado.');return;}
@@ -2724,7 +2784,6 @@ async function guardarFormCheckin(){
   const saved=await window.fireGuardar(rUpd);
   if(saved){
     alert('✔ Formulario de check-in guardado. '+pax+' huéspedes registrados.');
-    // Actualizar indicador de estado en el panel
     const elComp=document.getElementById('pci-estado-completado');
     const elPend=document.getElementById('pci-estado-pendiente');
     if(elComp){elComp.style.display='block';elComp.innerHTML='✅ Pre Check-In completado · '+new Date().toLocaleString('es-AR');}
@@ -3001,6 +3060,110 @@ function renderHistorialTarifas(){
 }
 async function eliminarTarifa(id){if(!confirm('¿Eliminar esta tarifa?'))return;try{await window.fireEliminarTarifa(id);renderHistorialTarifas();}catch(e){alert('Error: '+e.message);}}
 
+// ===== IMPORTAR TARIFAS DESDE PLANILLA =====
+// Valores en U$S según Calculadora de Tarifas (base U$S 46)
+// Columnas: [baja, feriadoLargo, recisoInv, verano, plat_baja, plat_ferLargo, plat_recInv, plat_verano]
+// Las tarifas de plataforma son las tarifas con comisión ya incorporada (para publicar en Booking/Despegar)
+const TARIFAS_PLANILLA=[
+  // MENDOZA CIUDAD — DEPARTAMENTO 2
+  {alo:'Departamento Ciudad de Mendoza 2',pax:2,baja:46,ferLargo:53,recInv:53,verano:53,platBaja:53,platFerLargo:60,platRecInv:60,platVerano:60},
+  {alo:'Departamento Ciudad de Mendoza 2',pax:3,baja:50,ferLargo:55,recInv:55,verano:55,platBaja:60,platFerLargo:65,platRecInv:65,platVerano:65},
+  {alo:'Departamento Ciudad de Mendoza 2',pax:4,baja:50,ferLargo:55,recInv:55,verano:55,platBaja:60,platFerLargo:65,platRecInv:65,platVerano:65},
+  // MENDOZA CIUDAD — DEPARTAMENTO 3
+  {alo:'Departamento Ciudad de Mendoza 3',pax:2,baja:48,ferLargo:56,recInv:56,verano:56,platBaja:56,platFerLargo:63,platRecInv:63,platVerano:63},
+  {alo:'Departamento Ciudad de Mendoza 3',pax:3,baja:53,ferLargo:58,recInv:58,verano:58,platBaja:63,platFerLargo:68,platRecInv:68,platVerano:68},
+  {alo:'Departamento Ciudad de Mendoza 3',pax:4,baja:53,ferLargo:58,recInv:58,verano:58,platBaja:63,platFerLargo:68,platRecInv:68,platVerano:68},
+  // POTRERILLOS — LOFT
+  {alo:'Cabaña Loft',pax:2,baja:65,ferLargo:82,recInv:82,verano:82,platBaja:75,platFerLargo:94,platRecInv:94,platVerano:94},
+  {alo:'Cabaña Loft',pax:3,baja:70,ferLargo:90,recInv:90,verano:90,platBaja:80,platFerLargo:98,platRecInv:98,platVerano:98},
+  {alo:'Cabaña Loft',pax:4,baja:70,ferLargo:90,recInv:90,verano:90,platBaja:80,platFerLargo:98,platRecInv:98,platVerano:98},
+  // POTRERILLOS — STANDARD
+  {alo:'Cabaña Standard',pax:2,baja:72,ferLargo:90,recInv:90,verano:90,platBaja:83,platFerLargo:103,platRecInv:103,platVerano:103},
+  {alo:'Cabaña Standard',pax:3,baja:77,ferLargo:99,recInv:99,verano:99,platBaja:88,platFerLargo:108,platRecInv:108,platVerano:108},
+  {alo:'Cabaña Standard',pax:4,baja:77,ferLargo:99,recInv:99,verano:99,platBaja:88,platFerLargo:108,platRecInv:108,platVerano:108},
+  // POTRERILLOS — GRANDE 15
+  {alo:'Cabaña grande',pax:2,baja:79,ferLargo:99,recInv:99,verano:99,platBaja:91,platFerLargo:114,platRecInv:114,platVerano:114},
+  {alo:'Cabaña grande',pax:3,baja:87,ferLargo:109,recInv:109,verano:109,platBaja:97,platFerLargo:119,platRecInv:119,platVerano:119},
+  {alo:'Cabaña grande',pax:4,baja:87,ferLargo:109,recInv:109,verano:109,platBaja:97,platFerLargo:119,platRecInv:119,platVerano:119},
+  {alo:'Cabaña grande',pax:5,baja:95,ferLargo:120,recInv:120,verano:120,platBaja:106,platFerLargo:130,platRecInv:130,platVerano:130},
+  {alo:'Cabaña grande',pax:6,baja:95,ferLargo:120,recInv:120,verano:120,platBaja:106,platFerLargo:130,platRecInv:130,platVerano:130},
+  {alo:'Cabaña grande',pax:7,baja:95,ferLargo:120,recInv:120,verano:120,platBaja:106,platFerLargo:130,platRecInv:130,platVerano:130},
+  // LAS LEÑAS — solo feriado largo (temporada invernal)
+  {alo:'Departamento 4 pax VLL',pax:2,baja:0,ferLargo:180,recInv:180,verano:0,platBaja:0,platFerLargo:220,platRecInv:220,platVerano:0},
+  {alo:'Departamento 4 pax VLL',pax:3,baja:0,ferLargo:200,recInv:200,verano:0,platBaja:0,platFerLargo:240,platRecInv:240,platVerano:0},
+  {alo:'Departamento 4 pax VLL',pax:4,baja:0,ferLargo:200,recInv:200,verano:0,platBaja:0,platFerLargo:240,platRecInv:240,platVerano:0},
+];
+
+function mostrarImportarPlanilla(){
+  const modal=document.getElementById('modal-importar-planilla');
+  const preview=document.getElementById('preview-planilla');
+  // Agrupar por alojamiento para mostrar preview
+  const grupos={};
+  TARIFAS_PLANILLA.forEach(t=>{
+    if(!grupos[t.alo])grupos[t.alo]=[];
+    grupos[t.alo].push(t);
+  });
+  let html='<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#f3f4f6"><th style="padding:5px 8px;text-align:left;border:1px solid #e5e7eb">Alojamiento</th><th style="padding:5px 8px;border:1px solid #e5e7eb">Pax</th><th style="padding:5px 8px;border:1px solid #e5e7eb;color:#16a34a">Baja U$S</th><th style="padding:5px 8px;border:1px solid #e5e7eb;color:#7c3aed">Fer/Vac U$S</th><th style="padding:5px 8px;border:1px solid #e5e7eb;color:#0891b2">Rec.Inv U$S</th><th style="padding:5px 8px;border:1px solid #e5e7eb;color:#f97316">Verano U$S</th><th style="padding:5px 8px;border:1px solid #e5e7eb;background:#fff1f2;color:#dc2626">Plat.Baja</th><th style="padding:5px 8px;border:1px solid #e5e7eb;background:#fff1f2;color:#dc2626">Plat.Fer</th></tr></thead><tbody>';
+  TARIFAS_PLANILLA.forEach((t,i)=>{
+    const bg=i%2===0?'#fff':'#f9fafb';
+    html+=`<tr style="background:${bg}">
+      <td style="padding:4px 8px;border:1px solid #e5e7eb;font-weight:${t.pax===2?'700':'400'}">${t.alo}</td>
+      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center">${t.pax}</td>
+      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#16a34a;font-weight:600">${t.baja||'—'}</td>
+      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#7c3aed;font-weight:600">${t.ferLargo||'—'}</td>
+      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#0891b2;font-weight:600">${t.recInv||'—'}</td>
+      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#f97316;font-weight:600">${t.verano||'—'}</td>
+      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#dc2626">${t.platBaja||'—'}</td>
+      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#dc2626">${t.platFerLargo||'—'}</td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  preview.innerHTML=html;
+  modal.style.display='block';
+}
+
+async function confirmarImportarPlanilla(){
+  const btn=document.getElementById('btn-confirmar-import');
+  btn.disabled=true;btn.textContent='⏳ Importando...';
+  const TEMP_MAP=[
+    {key:'BAJA',campo:'baja',desde:'2026-03-01',hasta:'2026-11-30'},
+    {key:'FERIADO_LARGO',campo:'ferLargo',desde:'2026-01-01',hasta:'2026-12-31'},
+    {key:'RECESO_INVERNAL',campo:'recInv',desde:'2026-07-01',hasta:'2026-07-31'},
+    {key:'VERANO',campo:'verano',desde:'2026-12-01',hasta:'2027-02-28'},
+  ];
+  let total=0,errores=0;
+  for(const t of TARIFAS_PLANILLA){
+    for(const temp of TEMP_MAP){
+      const noche=t[temp.campo];
+      if(!noche)continue;
+      const late=Math.round(noche*0.5);
+      const finde=Math.round(noche*1.15);
+      const semanal=Math.round(noche*6.5); // 7 noches con pequeño descuento
+      const mensual=Math.round(noche*25);  // 28 noches con descuento
+      const ferLar=Math.round(noche*2);    // tarifa feriado largo = 2 noches
+      const tar={
+        id:'TAR_'+t.alo.replace(/\s/g,'_').toUpperCase()+'_'+temp.key+'_PAX'+t.pax,
+        alojamiento:t.alo,pax:t.pax,temporada:temp.key,
+        desde:temp.desde,hasta:temp.hasta,
+        valorNoche:noche,valorFinde:finde,
+        minNoches:temp.key==='FERIADO_LARGO'?2:temp.key==='VERANO'?3:1,
+        valorSemanal:semanal,minSemanal:7,
+        valorMensual:mensual,minMensual:28,
+        valorFerLargo:ferLar,valorLate:late,
+        platBaja:t.platBaja||0,platFerLargo:t.platFerLargo||0,
+        fechaCarga:hoy(),fuentePlanilla:true
+      };
+      try{await window.fireGuardarTarifa(tar);total++;}
+      catch(e){console.error('Error importando',tar.id,e);errores++;}
+    }
+  }
+  document.getElementById('modal-importar-planilla').style.display='none';
+  btn.disabled=false;btn.textContent='✅ Importar todas las tarifas';
+  alert('✔ Importación completada.\n'+total+' tarifas guardadas'+(errores>0?' · '+errores+' errores (ver consola)':'')+'.\n\nPuede modificar cualquier valor manualmente en el historial.');
+  renderHistorialTarifas();
+  renderTarifasAlo();
+}
+
 // ===== PRECIOS VARIABLES POR NOCHE =====
 const DIAS_SEM=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 window._nochesPrecios=[];
@@ -3142,6 +3305,126 @@ function exportarCSV(){
   window._db.forEach(r=>{c+=r.nro+';'+r.fecha+';'+r.tipo+';'+r.origen+';'+(r.pnr||'')+';'+(r.idDp||r.idExpedia||'')+';'+r.nombre+';'+(r.dni||'')+';'+r.pax+';'+(r.pais||'')+';'+(r.email||'')+';'+(r.telefono||'')+';'+(r.u1||'')+';'+r.cin1+';'+r.cout1+';'+r.n1+';'+r.p1+';'+(r.u2||'')+';'+(r.cin2||'')+';'+(r.cout2||'')+';'+(r.n2||0)+';'+(r.p2||0)+';'+r.total+';'+(r.sena||0)+';'+((r.total||0)-(r.sena||0))+';'+(r.lateHora||'')+';'+(r.lateValor||0)+';'+(r.precioUSD||0)+';'+(r.cotizUsd||0)+';'+(r.descMovilARS||0)+';'+(r.comisionPct||0)+';'+(r.comisionARS||0)+';'+(r.pagoDp||'')+';'+(r.liqDp||'')+';'+(r.fechaCanc||'')+';'+(r.medioPago||'')+';'+(r.notas||'').replace(/[\n\r;]/g,' ')+'\r\n';});
   const a=document.createElement('a');a.href=encodeURI(c);a.download='MSN_Reservas_'+hoy()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
+
+// ==================== MÓDULO RECEPCIÓN CABAÑAS ====================
+function manana(){const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().split('T')[0];}
+
+function nombreCabana(u1){
+  const s=(u1||'').toLowerCase();
+  if(s.includes('grande'))return'CABAÑA 15';
+  if(s.includes('loft'))  return'CABAÑA 16';
+  if(s.includes('standard'))return'CABAÑA 14';
+  return u1||'CABAÑA';
+}
+
+function generarAvisoRecepcion(){
+  const fecha=document.getElementById('rec-fecha')?.value||hoy();
+  if(!window._db||!window._db.length){
+    document.getElementById('rec-conteo').textContent='(Sin datos cargados)';
+    return;
+  }
+  // Filtrar ingresos de cabañas para esa fecha (reserva activa, cin1 o cin2)
+  const ingresos=window._db.filter(r=>{
+    if(r.cancelada||r.cancelado)return false;
+    if(!esCabana(r.u1))return false;
+    return r.cin1===fecha||(r.cin2&&r.cin2===fecha);
+  });
+
+  document.getElementById('rec-sin-ingresos').style.display=ingresos.length?'none':'block';
+  document.getElementById('rec-msg-wa').value='';
+
+  if(!ingresos.length){
+    document.getElementById('rec-preview').innerHTML='<span style="color:var(--txt3)">No hay ingresos de cabañas para esta fecha.</span>';
+    document.getElementById('rec-conteo').textContent='0 ingresos';
+    return;
+  }
+
+  document.getElementById('rec-conteo').textContent=ingresos.length+' ingreso(s) de cabañas';
+
+  // Preview visual
+  const previewHTML=ingresos.map(r=>{
+    const saldo=Math.max(0,(r.total||0)-(r.sena||0));
+    const cab=nombreCabana(r.u1);
+    const pciOk=r.pciCompletado?'<span style="background:#dcfce7;color:#14532d;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700">✅ PCI OK</span>':'<span style="background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700">⚠ Sin PCI</span>';
+    return`<div style="padding:10px;border:1px solid #fed7aa;border-radius:7px;margin-bottom:8px;background:#fffbeb">
+      <div style="font-weight:700;font-size:13px;color:#b45309">${cab} — #${r.nro} ${r.nombre} ${pciOk}</div>
+      <div style="font-size:11px;margin-top:4px;color:var(--txt2)">👥 ${r.pax} personas · 📅 Ingreso: ${fmtF(r.cin1)} · Egreso: ${fmtF(r.cout1)} (${r.n1} noches)</div>
+      ${r.lateHora?`<div style="font-size:11px;color:#7c3aed">⏰ Late Check-Out hasta ${r.lateHora} hs</div>`:''}
+      <div style="font-size:11px;margin-top:2px;color:${saldo>0?'#dc2626':'#15803d'};font-weight:600">${saldo>0?'💳 Saldo pendiente: $'+fmt(saldo)+' ARS':'✅ Todo abonado'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('rec-preview').innerHTML=previewHTML;
+
+  // Mensaje WA
+  const fechaDisplay=fmtF(fecha);
+  let msg='Hola. En el día de hoy ingresan a mis cabañas:
+
+';
+
+  ingresos.forEach((r,idx)=>{
+    const saldo=Math.max(0,(r.total||0)-(r.sena||0));
+    const cab=nombreCabana(r.u1);
+    msg+='━━━━━━━━━━━━━━━━
+';
+    msg+=`🏠 ${cab}
+`;
+    msg+=`👤 ${r.nombre}
+`;
+    msg+=`👥 Cantidad de personas: ${r.pax}
+`;
+    msg+=`📅 Ingreso: ${fmtF(r.cin1)}
+`;
+    msg+=`📅 Egreso: ${fmtF(r.cout1)}
+`;
+    if(r.lateHora){
+      msg+=`⏰ Late Check-Out: SÍ — salida hasta las ${r.lateHora} hs
+`;
+    }else{
+      msg+=`⏰ Check-Out: hasta las 10:00 hs
+`;
+    }
+    if(saldo>0){
+      msg+=`💳 Cobrar al ingreso: $${fmt(saldo)} ARS
+`;
+      msg+=`   (Transferencia: Alias OSCAR.PORCARIO o efectivo)
+`;
+    }else{
+      msg+=`✅ Totalmente abonado — no se cobra nada
+`;
+    }
+    msg+=`📋 Check-In digital: ${r.pciCompletado?'✅ Completado':'⚠ Pendiente — solicitar datos al ingresar'}
+`;
+    if(idx<ingresos.length-1)msg+='
+';
+  });
+
+  msg+='
+━━━━━━━━━━━━━━━━
+';
+  msg+=`📌 Recordar: el huésped debe presentar comprobante de pago al ingreso.
+`;
+  msg+=`⏰ Check-In desde las 14:00 hs.
+
+`;
+  msg+='Saludos, Oscar';
+
+  document.getElementById('rec-msg-wa').value=msg;
+}
+
+function copiarAvisoRecepcion(){
+  const txt=document.getElementById('rec-msg-wa')?.value||'';
+  if(!txt){alert('Primero genere el aviso.');return;}
+  navigator.clipboard.writeText(txt).then(()=>alert('✔ Mensaje copiado')).catch(()=>prompt('Copie el mensaje:',txt));
+}
+
+function enviarAvisoWA(){
+  const txt=document.getElementById('rec-msg-wa')?.value||'';
+  if(!txt){alert('Primero genere el aviso.');return;}
+  const tel=(document.getElementById('rec-tel')?.value||'').replace(/\D/g,'');
+  if(!tel||tel.length<10){alert('Ingrese el número de WhatsApp de recepción en el campo de teléfono.');return;}
+  window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(txt),'_blank');
+}
+// ==================== FIN MÓDULO RECEPCIÓN ====================
 </script>
 </body>
 </html>
