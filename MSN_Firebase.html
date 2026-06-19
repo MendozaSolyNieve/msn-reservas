@@ -2707,6 +2707,7 @@ function seleccionarParaCheckin(id){
   // Link formulario online
   const link=generarLinkPCI(id);
   const linkEl=document.getElementById('pci-link');if(linkEl)linkEl.value=link;
+  window._pciLink=link; // guardar globalmente por si acaso
   const completado=r.pciCompletado===true;
   const elComp=document.getElementById('pci-estado-completado');
   const elPend=document.getElementById('pci-estado-pendiente');
@@ -2730,12 +2731,12 @@ function seleccionarParaCheckin(id){
   let wa='☀ *MENDOZA SOL Y NIEVE*\n¡Los estamos esperando!\n\nHola *'+nombre1+'*, mañana es su día de llegada.\n\n📋 *Su reserva:*\n🏠 '+r.u1+'\n📅 Check-In: *'+fmtF(r.cin1)+'* · Check-Out: *'+fmtF(r.cout1)+'*\n👥 '+r.pax+' huéspedes\n\n📍 *Dirección:*\n'+dir+'\n\n📍 *Google Maps:* '+mapa+'\n\n';
   if(saldo>0)wa+='💳 *Saldo al ingreso: $'+fmt(saldo)+'* ARS\n'+bancos+'\n\n';
   if(r.lateHora)wa+='⏰ *Late Check-Out hasta '+r.lateHora+'*\n\n';
-  wa+='📝 *Complete su Pre Check-In online antes de llegar* (2 min.):\n'+link+'\n\n';
+  wa+='📝 *Complete su Pre Check-In online antes de llegar* (2 min.):\n'+generarLinkPCI(id)+'\n\n';
   wa+='⏰ Check-In: desde 14:00 hs · Check-Out: hasta 10:00 hs\n\n*Por favor confírmenos su horario de llegada.*\n¡Bienvenidos a Mendoza! 🍇🏔';
   let email='Estimado/a '+r.nombre+':\n\nMañana es su día de llegada. ¡Estamos muy contentos de recibirle!\n\nSU RESERVA\nReserva N°: '+r.nro+'\nAlojamiento: '+r.u1+'\nCheck-In: '+fmtF(r.cin1)+' desde las 14:00 hs\nCheck-Out: '+fmtF(r.cout1)+' hasta las 10:00 hs\nHuéspedes: '+r.pax+'\n\nDIRECCIÓN\n'+dir.replace(/\*/g,'')+'\nGoogle Maps: '+mapa+'\n\n';
   if(saldo>0)email+='PAGO AL INGRESO\nSaldo pendiente: ARS $'+fmt(saldo)+'\n'+bancos.replace(/\*/g,'')+'\n\n';
   if(r.lateHora)email+='Late Check-Out hasta '+r.lateHora+' incluido.\n\n';
-  email+='PRE CHECK-IN ONLINE\nPor favor complete el formulario de registro antes de su llegada (2 minutos):\n'+link+'\n\n';
+  email+='PRE CHECK-IN ONLINE\nPor favor complete el formulario de registro antes de su llegada (2 minutos):\n'+generarLinkPCI(id)+'\n\n';
   email+='Le pedimos que confirme su horario de llegada respondiendo este email o por WhatsApp: +54 9 261 654 3938\n\n¡Le esperamos con alegría!\nMendoza Sol y Nieve\nmendozasolynieve.com.ar\n+54 9 261 654 3938';
   document.getElementById('pci-msg-wa').value=wa;
   document.getElementById('pci-msg-email').value=email;
