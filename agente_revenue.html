@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agente Revenue — Mendoza Sol y Nieve</title>
+<style>
+:root {
+  --bg: #f5f5f0;
+  --surface: #ffffff;
+  --surface2: #fafaf8;
+  --border: #e2e0d8;
+  --border2: #c8c5bb;
+  --txt: #1a1917;
+  --txt2: #5c5a54;
+  --txt3: #9c9a94;
+  --accent: #0f4c81;
+  --accent-bg: #e8f0f9;
+  --green: #15803d;
+  --green-bg: #dcfce7;
+  --green-border: #86efac;
+  --amber: #92400e;
+  --amber-bg: #fef3c7;
+  --amber-border: #fcd34d;
+  --red: #991b1b;
+  --red-bg: #fee2e2;
+  --purple: #5b21b6;
+  --purple-bg: #ede9fe;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{background:#0a3560;color:#fff;display:flex;flex-direction:column;}
+.sb-header{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,.12);}
+.sb-logo{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.55;margin-bottom:5px;}
+.sb-title{font-size:17px;font-weight:600;line-height:1.3;}
+.sb-badge{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:11px;background:rgba(255,255,255,.12);padding:3px 9px;border-radius:20px;}
+.sb-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:#fbbf24;display:block;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.sb-nav{padding:14px 0;flex:1;}
+.sb-nav-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.4;padding:0 18px;margin-bottom:6px;margin-top:10px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;cursor:pointer;opacity:.75;transition:all .15s;border-left:2px solid transparent;}
+.nav-item:hover{opacity:1;background:rgba(255,255,255,.07);}
+.nav-item.active{opacity:1;background:rgba(255,255,255,.12);border-left-color:#fbbf24;}
+
+.sb-metric{padding:8px 18px;}
+.sb-metric-card{background:rgba(255,255,255,.08);border-radius:var(--radius);padding:10px 12px;margin-bottom:6px;}
+.sb-metric-val{font-size:18px;font-weight:700;}
+.sb-metric-lbl{font-size:11px;opacity:.6;margin-top:1px;}
+.sb-metric-sub{font-size:10px;opacity:.45;margin-top:2px;}
+
+/* TOPBAR */
+.topbar{padding:13px 22px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.topbar-title{font-size:15px;font-weight:600;}
+.topbar-sub{font-size:12px;color:var(--txt3);}
+
+/* TABS */
+.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 22px;}
+.tab{padding:10px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt2);transition:all .15s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+
+.content-area{flex:1;overflow-y:auto;padding:22px;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow);}
+.card-title{font-size:13px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:7px;margin-bottom:14px;}
+.btn{padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--txt);transition:all .15s;}
+.btn:hover{background:var(--bg);}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:#0c3d6a;}
+.btn-amber{background:#d97706;color:#fff;border-color:#d97706;}
+.btn-amber:hover{background:#b45309;}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* EVENTO CARDS */
+.eventos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+.evento-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:all .2s;}
+.evento-card:hover{border-color:var(--border2);box-shadow:0 4px 12px rgba(0,0,0,.08);}
+.evento-card-header{padding:12px 14px;display:flex;align-items:flex-start;gap:10px;}
+.evento-zona{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:10px;white-space:nowrap;}
+.zona-mendoza{background:#dbeafe;color:#1e40af;}
+.zona-potrerillos{background:#dcfce7;color:#166534;}
+.zona-lenas{background:#ede9fe;color:#5b21b6;}
+.evento-nombre{font-size:14px;font-weight:600;line-height:1.3;flex:1;}
+.evento-fecha{font-size:12px;color:var(--txt2);margin-top:2px;}
+.evento-body{padding:0 14px 12px;}
+.evento-impacto{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.impacto-bar{height:6px;border-radius:3px;background:var(--border);flex:1;overflow:hidden;}
+.impacto-fill{height:100%;border-radius:3px;background:#f59e0b;}
+.impacto-label{font-size:11px;font-weight:700;color:#92400e;white-space:nowrap;}
+.evento-sugerencia{background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--radius);padding:9px 11px;font-size:12px;color:var(--amber);line-height:1.5;margin-bottom:8px;}
+.evento-acciones{display:flex;gap:6px;}
+
+/* ALERTAS */
+.alerta{display:flex;gap:10px;padding:12px 14px;border-radius:var(--radius);margin-bottom:8px;align-items:flex-start;}
+.alerta-alta{background:#fff7ed;border:1px solid #fed7aa;}
+.alerta-media{background:var(--amber-bg);border:1px solid var(--amber-border);}
+.alerta-baja{background:var(--accent-bg);border:1px solid #bfdbfe;}
+.alerta-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.alerta-titulo{font-size:13px;font-weight:600;}
+.alerta-desc{font-size:12px;color:var(--txt2);margin-top:2px;line-height:1.5;}
+.alerta-fecha{font-size:11px;color:var(--txt3);margin-top:4px;}
+
+/* TARIFA AJUSTE */
+.tarifa-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.tarifa-row:last-child{border-bottom:none;}
+.tarifa-alo{font-size:13px;font-weight:500;flex:1;}
+.tarifa-actual{font-size:13px;color:var(--txt3);}
+.tarifa-arrow{font-size:16px;color:var(--amber);}
+.tarifa-nueva{font-size:14px;font-weight:700;color:var(--green);}
+.tarifa-pct{font-size:11px;padding:2px 7px;border-radius:10px;background:var(--green-bg);color:var(--green);font-weight:600;}
+
+/* CALENDARIO */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:12px;}
+.cal-header{font-size:11px;color:var(--txt3);text-align:center;padding:4px;}
+.cal-day{aspect-ratio:1;border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;cursor:pointer;position:relative;transition:all .15s;}
+.cal-day.vacio{background:transparent;}
+.cal-day.normal{background:var(--surface2);border:1px solid var(--border);}
+.cal-day.normal:hover{border-color:var(--border2);}
+.cal-day.evento{background:#fff7ed;border:1px solid #fed7aa;}
+.cal-day.evento-alto{background:#fef3c7;border:1px solid var(--amber-border);}
+.cal-day.hoy{border:2px solid var(--accent);}
+.cal-day-num{font-size:12px;font-weight:600;}
+.cal-dot{width:5px;height:5px;border-radius:50%;margin-top:2px;}
+.cal-leyenda{display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--txt2);}
+.cal-leyenda-item{display:flex;align-items:center;gap:5px;}
+.cal-leyenda-dot{width:8px;height:8px;border-radius:50%;}
+
+/* CONFIG */
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:12px;color:var(--txt2);margin-bottom:4px;font-weight:500;}
+.fg input,.fg select{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--surface2);color:var(--txt);font-family:inherit;}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--accent);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* LOADING */
+.loading-overlay{display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;gap:14px;}
+.loading-overlay.show{display:flex;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);padding:11px 16px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transform:translateY(6px);transition:all .3s;z-index:100;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;}
+.badge-amber{background:var(--amber-bg);color:var(--amber);}
+.badge-green{background:var(--green-bg);color:var(--green);}
+.badge-blue{background:var(--accent-bg);color:var(--accent);}
+.badge-purple{background:var(--purple-bg);color:var(--purple);}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--txt3);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-title{font-size:15px;font-weight:600;color:var(--txt2);margin-bottom:6px;}
+.empty-desc{font-size:13px;line-height:1.6;max-width:300px;margin:0 auto;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">Mendoza Sol y Nieve</div>
+    <div class="sb-title">Agente<br>Revenue</div>
+    <div class="sb-badge">Detección activa</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-nav-title">Vistas</div>
+    <div class="nav-item active" onclick="setTab('alertas')" id="nav-alertas"><span>🔔</span> Alertas y sugerencias</div>
+    <div class="nav-item" onclick="setTab('eventos')" id="nav-eventos"><span>📅</span> Eventos detectados</div>
+    <div class="nav-item" onclick="setTab('calendario')" id="nav-calendario"><span>🗓</span> Calendario de precios</div>
+    <div class="nav-item" onclick="setTab('config')" id="nav-config"><span>⚙️</span> Configuración</div>
+    <div class="sb-nav-title" style="margin-top:14px">Agentes MSN</div>
+    <div class="nav-item" style="opacity:.6;cursor:default"><span>💵</span> Cotización</div>
+    <div class="nav-item" style="opacity:.6;cursor:default"><span>📋</span> Recepción</div>
+    <div class="nav-item active" style="border-left-color:#fbbf24"><span>📈</span> Revenue ← estás acá</div>
+  </div>
+  <div class="sb-metric">
+    <div class="sb-nav-title">Próximas semanas</div>
+    <div class="sb-metric-card">
+      <div class="sb-metric-val" id="sb-eventos-count">—</div>
+      <div class="sb-metric-lbl">Eventos detectados</div>
+      <div class="sb-metric-sub">Mendoza · Potrerillos · Las Leñas</div>
+    </div>
+    <div class="sb-metric-card">
+      <div class="sb-metric-val" id="sb-alertas-count">—</div>
+      <div class="sb-metric-lbl">Alertas de precio</div>
+      <div class="sb-metric-sub">Oportunidades de subir tarifa</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div style="display:flex;flex-direction:column;overflow:hidden;flex:1;">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Alertas y sugerencias de precio</div>
+      <div class="topbar-sub">El agente detecta eventos y sugiere ajustes de tarifa con piso y techo</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+      <span id="ultima-busqueda" style="font-size:11px;color:var(--txt3)"></span>
+      <button class="btn btn-amber btn-sm" onclick="buscarEventos()" id="btn-buscar">🔍 Buscar eventos ahora</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" id="tab-alertas" onclick="setTab('alertas')">🔔 Alertas</div>
+    <div class="tab" id="tab-eventos" onclick="setTab('eventos')">📅 Eventos</div>
+    <div class="tab" id="tab-calendario" onclick="setTab('calendario')">🗓 Calendario</div>
+    <div class="tab" id="tab-config" onclick="setTab('config')">⚙️ Config</div>
+  </div>
+
+  <div class="content-area" id="content-area">
+
+    <!-- ALERTAS -->
+    <div id="panel-alertas">
+      <div id="loading-alertas" class="loading-overlay">
+        <div class="spinner"></div>
+        <div style="font-size:13px;color:var(--txt2)">Buscando eventos en Mendoza, Potrerillos y Las Leñas...</div>
+      </div>
+      <div id="alertas-content">
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">Sin búsqueda todavía</div>
+          <div class="empty-desc">Hacé clic en "Buscar eventos ahora" y el agente detecta eventos próximos y sugiere ajustes de tarifa.</div>
+          <button class="btn btn-amber" style="margin-top:16px" onclick="buscarEventos()">🔍 Buscar eventos ahora</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENTOS -->
+    <div id="panel-eventos" style="display:none">
+      <div id="loading-eventos" class="loading-overlay">
+        <div class="spinner"></div>
+        <div style="font-size:13px;color:var(--txt2)">Detectando eventos...</div>
+      </div>
+      <div id="eventos-content">
+        <div class="empty-state">
+          <div class="empty-icon">📅</div>
+          <div class="empty-title">Sin eventos cargados</div>
+          <div class="empty-desc">Hacé la búsqueda primero desde la pestaña Alertas.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDARIO -->
+    <div id="panel-calendario" style="display:none">
+      <div class="card">
+        <div class="card-title">🗓 Calendario de precios — próximos 60 días</div>
+        <div id="cal-container"></div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div id="panel-config" style="display:none">
+      <div class="card">
+        <div class="card-title">🔑 API Key</div>
+        <div class="fg"><label>Groq API Key (gratuita)</label><input type="password" id="f-groq-key" placeholder="gsk_..."></div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:-6px">Sin key usa Claude. Con Groq es gratis.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">💵 Tarifas base (U$S por noche) — piso y techo</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:14px">Estos valores definen el rango que el agente usa para sugerir subas.</div>
+        <div id="tarifas-config-list"></div>
+        <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="guardarConfig()">💾 Guardar configuración</button>
+      </div>
+      <div class="card">
+        <div class="card-title">📍 Zonas de búsqueda</div>
+        <div class="fg"><label>Radio de búsqueda Mendoza Capital (km)</label><input type="number" id="f-radio-mendoza" value="20"></div>
+        <div class="fg"><label>Radio Potrerillos (km)</label><input type="number" id="f-radio-potrerillos" value="30"></div>
+        <div class="fg"><label>Radio Valle de Las Leñas (km)</label><input type="number" id="f-radio-lenas" value="50"></div>
+        <div class="fg"><label>Anticipación mínima para alertar (días)</label><input type="number" id="f-anticipacion" value="7"></div>
+        <button class="btn btn-primary btn-sm" onclick="guardarConfig()">💾 Guardar</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// ESTADO
+// ============================================================
+const ALOJAMIENTOS = [
+  {id:'dpto2', nombre:'Depto Mendoza 2', zona:'mendoza', pisoUSD:46, techoUSD:70, maxPax:4},
+  {id:'dpto3', nombre:'Depto Mendoza 3', zona:'mendoza', pisoUSD:48, techoUSD:72, maxPax:4},
+  {id:'loft', nombre:'Cabaña Loft', zona:'potrerillos', pisoUSD:65, techoUSD:100, maxPax:4},
+  {id:'standard', nombre:'Cabaña Standard', zona:'potrerillos', pisoUSD:72, techoUSD:115, maxPax:6},
+  {id:'grande', nombre:'Cabaña Grande', zona:'potrerillos', pisoUSD:79, techoUSD:130, maxPax:7},
+  {id:'lenas', nombre:'Depto Las Leñas', zona:'lenas', pisoUSD:180, techoUSD:280, maxPax:4},
+];
+
+let eventosDetectados = [];
+let alertasGeneradas = [];
+let ultimaBusqueda = null;
+
+// ============================================================
+// TABS
+// ============================================================
+function setTab(tab) {
+  ['alertas','eventos','calendario','config'].forEach(t => {
+    document.getElementById('panel-'+t).style.display = t===tab ? 'block' : 'none';
+    document.getElementById('tab-'+t)?.classList.toggle('active', t===tab);
+    document.getElementById('nav-'+t)?.classList.toggle('active', t===tab);
+  });
+  const titles = {alertas:'Alertas y sugerencias de precio', eventos:'Eventos detectados', calendario:'Calendario de precios', config:'Configuración'};
+  document.getElementById('topbar-title').textContent = titles[tab];
+  if(tab==='calendario') renderCalendario();
+  if(tab==='config') renderConfigTarifas();
+}
+
+// ============================================================
+// BUSCAR EVENTOS CON IA
+// ============================================================
+async function buscarEventos() {
+  const btn = document.getElementById('btn-buscar');
+  btn.disabled = true; btn.textContent = '⏳ Buscando...';
+
+  document.getElementById('loading-alertas').classList.add('show');
+  document.getElementById('alertas-content').style.display = 'none';
+  document.getElementById('loading-eventos').classList.add('show');
+  document.getElementById('eventos-content').style.display = 'none';
+
+  const hoy = new Date();
+  const en60dias = new Date(hoy.getTime() + 60*24*60*60*1000);
+  const fmtFecha = d => d.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+
+  const prompt = `Sos un experto en revenue management hotelero para Mendoza, Argentina.
+
+Hoy es ${fmtFecha(hoy)}. Buscá eventos, festivales, feriados, ferias, competencias deportivas, recesos escolares y cualquier acontecimiento que aumente la demanda turística en estas 3 zonas durante los próximos 60 días (hasta ${fmtFecha(en60dias)}):
+
+1. MENDOZA CIUDAD (radio 20km): vendimia, bodegas, festivales culturales, eventos en el Parque San Martín, partidos de fútbol importantes, ferias, eventos en el Teatro Independencia, etc.
+2. POTRERILLOS / CORDILLERA (radio 30km): eventos de aventura, rafting, montañismo, festivales en la zona del dique, temporadas de ski cercanas, actividades al aire libre.
+3. VALLE DE LAS LEÑAS / MALARGÜE (radio 50km): temporada de ski, campeonatos, eventos del resort, festividades locales.
+
+También considerá:
+- Feriados nacionales argentinos en ese período
+- Recesos escolares
+- Fin de semanas largos
+- Temporada alta de esquí (julio-agosto)
+
+Respondé SOLO con un JSON válido, sin texto extra, sin markdown, sin backticks. Formato exacto:
+
+{"eventos":[{"nombre":"nombre del evento","zona":"mendoza|potrerillos|lenas","fechaInicio":"YYYY-MM-DD","fechaFin":"YYYY-MM-DD","tipo":"festival|feriado|receso|deportivo|cultural|ski","impacto":1-10,"descripcion":"descripción corta","fuenteProbable":"vendimia mendoza / feriado nacional / etc"}]}
+
+Incluí entre 8 y 15 eventos reales y probables. Impacto 1-3 bajo, 4-6 medio, 7-10 alto.`;
+
+  try {
+    const groqKey = document.getElementById('f-groq-key')?.value || localStorage.getItem('msn-groq-key') || '';
+    let jsonText = '';
+
+    if(groqKey && groqKey.startsWith('gsk_')) {
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+groqKey},
+        body: JSON.stringify({
+          model:'llama-3.3-70b-versatile',
+          max_tokens:2000,
+          temperature:0.3,
+          messages:[{role:'user',content:prompt}]
+        })
+      });
+      const d = await r.json();
+      jsonText = d.choices?.[0]?.message?.content || '';
+    } else {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens:2000,
+          messages:[{role:'user',content:prompt}]
+        })
+      });
+      const d = await r.json();
+      jsonText = d.content?.[0]?.text || '';
+    }
+
+    // Parsear JSON
+    jsonText = jsonText.replace(/```json|```/g,'').trim();
+    const data = JSON.parse(jsonText);
+    eventosDetectados = data.eventos || [];
+    ultimaBusqueda = new Date();
+    generarAlertas();
+    renderEventos();
+    renderAlertas();
+    document.getElementById('sb-eventos-count').textContent = eventosDetectados.length;
+    document.getElementById('ultima-busqueda').textContent = 'Última búsqueda: ' + ultimaBusqueda.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    console.error(e);
+    mostrarToast('Error al buscar eventos. Verificá la API key.', true);
+    document.getElementById('alertas-content').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">Error en la búsqueda</div>
+        <div class="empty-desc">Verificá tu API key en Configuración y reintentá.</div>
+        <button class="btn btn-amber" style="margin-top:14px" onclick="buscarEventos()">Reintentar</button>
+      </div>`;
+    document.getElementById('alertas-content').style.display = 'block';
+  }
+
+  document.getElementById('loading-alertas').classList.remove('show');
+  document.getElementById('loading-eventos').classList.remove('show');
+  document.getElementById('alertas-content').style.display = 'block';
+  document.getElementById('eventos-content').style.display = 'block';
+  btn.disabled = false; btn.textContent = '🔍 Buscar eventos ahora';
+}
+
+// ============================================================
+// GENERAR ALERTAS DE PRECIO
+// ============================================================
+function generarAlertas() {
+  alertasGeneradas = [];
+  const hoy = new Date();
+
+  eventosDetectados.forEach(ev => {
+    if(!ev.fechaInicio) return;
+    const fechaEv = new Date(ev.fechaInicio);
+    const diasHasta = Math.round((fechaEv - hoy)/(1000*60*60*24));
+    if(diasHasta < 0 || diasHasta > 60) return;
+
+    const alosAfectados = ALOJAMIENTOS.filter(a => {
+      if(ev.zona==='mendoza') return a.zona==='mendoza';
+      if(ev.zona==='potrerillos') return a.zona==='potrerillos';
+      if(ev.zona==='lenas') return a.zona==='lenas';
+      return false;
+    });
+
+    alosAfectados.forEach(alo => {
+      const pct = ev.impacto >= 8 ? 0.35 : ev.impacto >= 6 ? 0.25 : ev.impacto >= 4 ? 0.15 : 0.08;
+      const sugerida = Math.min(Math.round(alo.pisoUSD * (1 + pct)), alo.techoUSD);
+      if(sugerida <= alo.pisoUSD) return;
+      alertasGeneradas.push({
+        evento: ev,
+        alojamiento: alo,
+        tarifaActual: alo.pisoUSD,
+        tarifaSugerida: sugerida,
+        pct: Math.round(pct*100),
+        diasHasta,
+        prioridad: ev.impacto >= 7 ? 'alta' : ev.impacto >= 4 ? 'media' : 'baja'
+      });
+    });
+  });
+
+  // Ordenar por prioridad y cercanía
+  alertasGeneradas.sort((a,b) => {
+    const p = {alta:0,media:1,baja:2};
+    return p[a.prioridad]-p[b.prioridad] || a.diasHasta-b.diasHasta;
+  });
+
+  document.getElementById('sb-alertas-count').textContent = alertasGeneradas.length;
+}
+
+// ============================================================
+// RENDER ALERTAS
+// ============================================================
+function renderAlertas() {
+  const cont = document.getElementById('alertas-content');
+  if(!alertasGeneradas.length) {
+    cont.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">Sin alertas urgentes</div><div class="empty-desc">No se detectaron eventos que justifiquen ajustes de tarifa en los próximos 60 días.</div></div>`;
+    return;
+  }
+
+  // Agrupar por evento
+  const porEvento = {};
+  alertasGeneradas.forEach(a => {
+    const key = a.evento.nombre;
+    if(!porEvento[key]) porEvento[key] = {evento:a.evento, alertas:[]};
+    porEvento[key].alertas.push(a);
+  });
+
+  const priCol = {alta:'alerta-alta',media:'alerta-media',baja:'alerta-baja'};
+  const priIcon = {alta:'🔴',media:'🟡',baja:'🔵'};
+  const zonaLabel = {mendoza:'Mendoza',potrerillos:'Potrerillos',lenas:'Las Leñas'};
+
+  let html = `<div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <span style="font-size:13px;color:var(--txt2);font-weight:500">${alertasGeneradas.length} oportunidades de ajuste detectadas</span>
+    <span class="badge badge-amber">${alertasGeneradas.filter(a=>a.prioridad==='alta').length} alta prioridad</span>
+    <span class="badge badge-blue">${alertasGeneradas.filter(a=>a.prioridad==='media').length} media</span>
+  </div>`;
+
+  Object.values(porEvento).forEach(grupo => {
+    const ev = grupo.evento;
+    const maxPri = grupo.alertas.some(a=>a.prioridad==='alta')?'alta':grupo.alertas.some(a=>a.prioridad==='media')?'media':'baja';
+    const diasHasta = grupo.alertas[0].diasHasta;
+    const fechaFmt = new Date(ev.fechaInicio).toLocaleDateString('es-AR',{day:'numeric',month:'long'});
+    const fechaFinFmt = ev.fechaFin && ev.fechaFin!==ev.fechaInicio ? ' al ' + new Date(ev.fechaFin).toLocaleDateString('es-AR',{day:'numeric',month:'long'}) : '';
+
+    html += `<div class="alerta ${priCol[maxPri]}" style="border-radius:10px;margin-bottom:10px;flex-direction:column">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span class="alerta-icon">${priIcon[maxPri]}</span>
+        <div style="flex:1">
+          <div class="alerta-titulo">${ev.nombre}</div>
+          <div class="alerta-desc">${ev.descripcion || ''}</div>
+          <div class="alerta-fecha">📅 ${fechaFmt}${fechaFinFmt} · En ${diasHasta} días · <span style="font-weight:600">${zonaLabel[ev.zona]||ev.zona}</span></div>
+        </div>
+        <span class="badge ${maxPri==='alta'?'badge-amber':maxPri==='media'?'badge-amber':'badge-blue'}">Impacto ${ev.impacto}/10</span>
+      </div>
+      <div style="margin-top:12px;border-top:1px solid rgba(0,0,0,.08);padding-top:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Ajuste sugerido por alojamiento:</div>
+        ${grupo.alertas.map(a => `
+          <div class="tarifa-row">
+            <div class="tarifa-alo">${a.alojamiento.nombre}</div>
+            <div class="tarifa-actual">U$S ${a.tarifaActual}/noche</div>
+            <div class="tarifa-arrow">→</div>
+            <div class="tarifa-nueva">U$S ${a.tarifaSugerida}/noche</div>
+            <span class="tarifa-pct">+${a.pct}%</span>
+            <div style="font-size:10px;color:var(--txt3);margin-left:4px">techo U$S ${a.alojamiento.techoUSD}</div>
+          </div>`).join('')}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-sm btn-primary" onclick='aplicarAjuste(${JSON.stringify(grupo.alertas.map(a=>({id:a.alojamiento.id,nueva:a.tarifaSugerida})))})'>✅ Aplicar ajuste</button>
+          <button class="btn btn-sm" onclick="descartarAlerta('${ev.nombre}')">✕ Descartar</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  cont.innerHTML = html;
+}
+
+// ============================================================
+// RENDER EVENTOS
+// ============================================================
+function renderEventos() {
+  const cont = document.getElementById('eventos-content');
+  if(!eventosDetectados.length) {
+    cont.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">Sin eventos</div></div>';
+    return;
+  }
+
+  const zonaColor = {mendoza:'zona-mendoza', potrerillos:'zona-potrerillos', lenas:'zona-lenas'};
+  const zonaLabel = {mendoza:'Mendoza', potrerillos:'Potrerillos', lenas:'Las Leñas'};
+  const tipoIcon = {festival:'🎉',feriado:'🏛️',receso:'🏫',deportivo:'⚽',cultural:'🎭',ski:'⛷️'};
+
+  const ordenados = [...eventosDetectados].sort((a,b)=>new Date(a.fechaInicio)-new Date(b.fechaInicio));
+
+  let html = `<div class="eventos-grid">`;
+  ordenados.forEach(ev => {
+    const fecha = new Date(ev.fechaInicio).toLocaleDateString('es-AR',{day:'numeric',month:'long'});
+    const fechaFin = ev.fechaFin && ev.fechaFin!==ev.fechaInicio ? ' al '+new Date(ev.fechaFin).toLocaleDateString('es-AR',{day:'numeric',month:'long'}) : '';
+    const impactoPct = (ev.impacto/10)*100;
+    html += `
+      <div class="evento-card">
+        <div class="evento-card-header">
+          <div>
+            <span class="evento-zona ${zonaColor[ev.zona]||'zona-mendoza'}">${zonaLabel[ev.zona]||ev.zona}</span>
+            <div class="evento-nombre" style="margin-top:6px">${tipoIcon[ev.tipo]||'📌'} ${ev.nombre}</div>
+            <div class="evento-fecha">${fecha}${fechaFin}</div>
+          </div>
+        </div>
+        <div class="evento-body">
+          <div class="evento-impacto">
+            <span style="font-size:11px;color:var(--txt3)">Impacto:</span>
+            <div class="impacto-bar"><div class="impacto-fill" style="width:${impactoPct}%"></div></div>
+            <span class="impacto-label">${ev.impacto}/10</span>
+          </div>
+          <div class="evento-sugerencia">${ev.descripcion || 'Evento con impacto en demanda turística.'}</div>
+          <div style="font-size:11px;color:var(--txt3)">Fuente probable: ${ev.fuenteProbable||'—'}</div>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  cont.innerHTML = html;
+}
+
+// ============================================================
+// CALENDARIO
+// ============================================================
+function renderCalendario() {
+  const cont = document.getElementById('cal-container');
+  const hoy = new Date();
+  const diasEventos = {};
+
+  eventosDetectados.forEach(ev => {
+    const ini = new Date(ev.fechaInicio);
+    const fin = ev.fechaFin ? new Date(ev.fechaFin) : new Date(ev.fechaInicio);
+    for(let d = new Date(ini); d <= fin; d.setDate(d.getDate()+1)) {
+      const key = d.toISOString().split('T')[0];
+      if(!diasEventos[key]) diasEventos[key] = [];
+      diasEventos[key].push(ev);
+    }
+  });
+
+  const meses = [];
+  for(let i=0; i<2; i++) {
+    const m = new Date(hoy.getFullYear(), hoy.getMonth()+i, 1);
+    meses.push(m);
+  }
+
+  let html = '';
+  const diasSem = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const mesesNom = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  meses.forEach(mes => {
+    const y = mes.getFullYear(), m = mes.getMonth();
+    const diasEnMes = new Date(y, m+1, 0).getDate();
+    const primerDia = new Date(y, m, 1).getDay();
+
+    html += `<div style="margin-bottom:24px">
+      <div style="font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:10px">${mesesNom[m]} ${y}</div>
+      <div class="cal-grid">
+        ${diasSem.map(d=>`<div class="cal-header">${d}</div>`).join('')}
+        ${Array(primerDia).fill('<div class="cal-day vacio"></div>').join('')}`;
+
+    for(let d=1; d<=diasEnMes; d++) {
+      const fecha = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const esHoy = fecha === hoy.toISOString().split('T')[0];
+      const evs = diasEventos[fecha] || [];
+      const maxImpacto = evs.length ? Math.max(...evs.map(e=>e.impacto)) : 0;
+      let cls = 'normal';
+      if(maxImpacto>=7) cls='evento-alto';
+      else if(maxImpacto>=4) cls='evento';
+      const dotColor = maxImpacto>=7?'#f59e0b':maxImpacto>=4?'#fcd34d':'transparent';
+      const tooltip = evs.length ? evs.map(e=>e.nombre).join(', ') : '';
+      html += `<div class="cal-day ${cls}${esHoy?' hoy':''}" title="${tooltip}">
+        <div class="cal-day-num">${d}</div>
+        ${evs.length?`<div class="cal-dot" style="background:${dotColor}"></div>`:'<div class="cal-dot" style="background:transparent"></div>'}
+      </div>`;
+    }
+    html += `</div></div>`;
+  });
+
+  html += `<div class="cal-leyenda">
+    <div class="cal-leyenda-item"><div class="cal-leyenda-dot" style="background:#f59e0b"></div>Evento alto impacto</div>
+    <div class="cal-leyenda-item"><div class="cal-leyenda-dot" style="background:#fcd34d"></div>Evento medio impacto</div>
+    <div class="cal-leyenda-item"><div class="cal-leyenda-dot" style="background:#bfdbfe"></div>Evento bajo impacto</div>
+  </div>`;
+
+  cont.innerHTML = html;
+}
+
+// ============================================================
+// ACCIONES
+// ============================================================
+function aplicarAjuste(ajustes) {
+  ajustes.forEach(a => {
+    const alo = ALOJAMIENTOS.find(x=>x.id===a.id);
+    if(alo) alo.pisoUSD = a.nueva;
+  });
+  mostrarToast('✅ Tarifas actualizadas — recordá reflejarlos en MSN Firebase');
+  renderAlertas();
+}
+
+function descartarAlerta(nombre) {
+  eventosDetectados = eventosDetectados.filter(e=>e.nombre!==nombre);
+  generarAlertas();
+  renderAlertas();
+  mostrarToast('Alerta descartada');
+}
+
+// ============================================================
+// CONFIG TARIFAS
+// ============================================================
+function renderConfigTarifas() {
+  const cont = document.getElementById('tarifas-config-list');
+  cont.innerHTML = ALOJAMIENTOS.map(a=>`
+    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:13px;font-weight:500;margin-bottom:8px">${a.nombre}</div>
+      <div class="row2">
+        <div class="fg" style="margin:0"><label>Piso U$S</label><input type="number" id="piso-${a.id}" value="${a.pisoUSD}"></div>
+        <div class="fg" style="margin:0"><label>Techo U$S</label><input type="number" id="techo-${a.id}" value="${a.techoUSD}"></div>
+      </div>
+    </div>`).join('');
+  const savedKey = localStorage.getItem('msn-groq-key');
+  if(savedKey) document.getElementById('f-groq-key').value = savedKey;
+}
+
+function guardarConfig() {
+  ALOJAMIENTOS.forEach(a => {
+    const piso = parseFloat(document.getElementById('piso-'+a.id)?.value);
+    const techo = parseFloat(document.getElementById('techo-'+a.id)?.value);
+    if(piso) a.pisoUSD = piso;
+    if(techo) a.techoUSD = techo;
+  });
+  const key = document.getElementById('f-groq-key')?.value;
+  if(key) localStorage.setItem('msn-groq-key', key);
+  mostrarToast('✅ Configuración guardada');
+}
+
+function mostrarToast(msg, error=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = error?'#fee2e2':'var(--green-bg)';
+  t.style.borderColor = error?'#fca5a5':'var(--green-border)';
+  t.style.color = error?'var(--red)':'var(--green)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+// Init
+const savedKey = localStorage.getItem('msn-groq-key');
+</script>
+</body>
+</html>

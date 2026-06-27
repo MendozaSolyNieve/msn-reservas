@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agente Concierge — Mendoza Sol y Nieve</title>
+<style>
+:root {
+  --bg:#f5f5f0;--surface:#fff;--surface2:#fafaf8;--border:#e2e0d8;--border2:#c8c5bb;
+  --txt:#1a1917;--txt2:#5c5a54;--txt3:#9c9a94;
+  --accent:#0f4c81;--accent-bg:#e8f0f9;
+  --green:#15803d;--green-bg:#dcfce7;--green-border:#86efac;
+  --amber:#92400e;--amber-bg:#fef3c7;--amber-border:#fcd34d;
+  --purple:#5b21b6;--purple-bg:#ede9fe;--purple-border:#c4b5fd;
+  --teal:#0f766e;--teal-bg:#ccfbf1;--teal-border:#5eead4;
+  --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+.app{display:grid;grid-template-columns:260px 1fr 360px;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{background:#0a3560;color:#fff;display:flex;flex-direction:column;}
+.sb-header{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,.12);}
+.sb-logo{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.55;margin-bottom:5px;}
+.sb-title{font-size:17px;font-weight:600;line-height:1.3;}
+.sb-badge{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:11px;background:rgba(255,255,255,.12);padding:3px 9px;border-radius:20px;}
+.sb-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:#5eead4;display:block;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sb-nav{padding:14px 0;flex:1;overflow-y:auto;}
+.sb-nav-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.4;padding:0 18px;margin-bottom:6px;margin-top:10px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;cursor:pointer;opacity:.75;transition:all .15s;border-left:2px solid transparent;}
+.nav-item:hover{opacity:1;background:rgba(255,255,255,.07);}
+.nav-item.active{opacity:1;background:rgba(255,255,255,.12);border-left-color:#5eead4;}
+
+/* HUESPEDES ACTIVOS */
+.huesped-list{padding:10px 14px;overflow-y:auto;max-height:340px;}
+.huesped-item{padding:9px 11px;border-radius:var(--radius);margin-bottom:5px;cursor:pointer;background:rgba(255,255,255,.07);border:1px solid transparent;transition:all .15s;}
+.huesped-item:hover,.huesped-item.active{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.2);}
+.huesped-nombre{font-size:13px;font-weight:600;}
+.huesped-alo{font-size:11px;opacity:.6;margin-top:1px;}
+.huesped-dias{font-size:10px;margin-top:4px;padding:2px 7px;border-radius:10px;display:inline-flex;background:rgba(94,234,212,.2);color:#5eead4;font-weight:600;}
+
+/* TOPBAR */
+.topbar{padding:13px 22px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.topbar-title{font-size:15px;font-weight:600;}
+.topbar-sub{font-size:12px;color:var(--txt3);}
+.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 22px;}
+.tab{padding:10px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt2);transition:all .15s;}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+.content-area{flex:1;overflow-y:auto;padding:22px;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow);}
+.card-title{font-size:13px;font-weight:600;color:var(--teal);display:flex;align-items:center;gap:7px;margin-bottom:14px;}
+.btn{padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--txt);transition:all .15s;}
+.btn:hover{background:var(--bg);}
+.btn-primary{background:var(--teal);color:#fff;border-color:var(--teal);}
+.btn-primary:hover{background:#0f6b63;}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:12px;color:var(--txt2);margin-bottom:4px;font-weight:500;}
+.fg input,.fg select,.fg textarea{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--surface2);color:var(--txt);font-family:inherit;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--teal);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+/* PERFIL HUESPED */
+.perfil-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.perfil-avatar{width:48px;height:48px;border-radius:50%;background:var(--teal-bg);border:2px solid var(--teal-border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--teal);flex-shrink:0;}
+.perfil-nombre{font-size:16px;font-weight:700;}
+.perfil-alo{font-size:13px;color:var(--txt2);}
+.perfil-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;}
+.badge-teal{background:var(--teal-bg);color:var(--teal);}
+.badge-amber{background:var(--amber-bg);color:var(--amber);}
+.badge-purple{background:var(--purple-bg);color:var(--purple);}
+.badge-green{background:var(--green-bg);color:var(--green);}
+
+/* PREFERENCIAS */
+.pref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:14px;}
+.pref-item{padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;background:var(--surface2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px;}
+.pref-item.sel{border-color:var(--teal);background:var(--teal-bg);color:var(--teal);font-weight:600;}
+.pref-icon{font-size:18px;}
+
+/* RECOMENDACIONES */
+.rec-card{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;}
+.rec-header{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface2);}
+.rec-cat{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:10px;}
+.cat-restaurante{background:#fce7f3;color:#9d174d;}
+.cat-actividad{background:var(--green-bg);color:var(--green);}
+.cat-bodega{background:var(--amber-bg);color:var(--amber);}
+.cat-spa{background:var(--purple-bg);color:var(--purple);}
+.cat-excursion{background:var(--teal-bg);color:var(--teal);}
+.rec-nombre{font-size:13px;font-weight:600;flex:1;}
+.rec-dist{font-size:11px;color:var(--txt3);}
+.rec-body{padding:10px 14px;}
+.rec-desc{font-size:12px;color:var(--txt2);line-height:1.5;margin-bottom:8px;}
+.rec-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.rec-tag{font-size:11px;padding:3px 8px;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--txt2);}
+
+/* CHAT */
+.chat-panel{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;}
+.chat-header{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--teal);color:#fff;}
+.chat-avatar-wa{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.chat-name{font-size:14px;font-weight:600;}
+.chat-status{font-size:11px;opacity:.8;}
+.messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#e8f5e9;}
+.msg{display:flex;gap:6px;max-width:100%;}
+.msg.out{flex-direction:row-reverse;}
+.msg-bubble{padding:8px 12px;border-radius:10px;font-size:13px;line-height:1.55;max-width:90%;}
+.msg.in .msg-bubble{background:#fff;color:var(--txt);border-radius:0 10px 10px 10px;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.msg.out .msg-bubble{background:#d9fdd3;color:#111;border-radius:10px 0 10px 10px;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.msg-time{font-size:10px;color:#999;margin-top:2px;text-align:right;}
+.msg.in .msg-time{text-align:left;}
+.msg-avatar{width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px;}
+.msg.in .msg-avatar{background:#cbd5e1;color:var(--txt2);}
+.typing{display:flex;gap:4px;align-items:center;padding:10px 14px;background:#fff;border-radius:0 10px 10px 10px;width:fit-content;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.typing span{width:7px;height:7px;border-radius:50%;background:#999;animation:bounce 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.chat-input-area{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--surface2);}
+.chat-input-area input{flex:1;padding:9px 13px;border:1px solid var(--border);border-radius:20px;font-size:13px;background:var(--surface);color:var(--txt);font-family:inherit;}
+.chat-input-area input:focus{outline:none;border-color:var(--teal);}
+.btn-send{width:36px;height:36px;border-radius:50%;background:var(--teal);color:#fff;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.quick-replies{padding:8px 14px 0;display:flex;gap:5px;flex-wrap:wrap;}
+.qr{padding:5px 10px;border:1px solid var(--teal-border);border-radius:14px;font-size:11px;cursor:pointer;background:var(--teal-bg);color:var(--teal);white-space:nowrap;transition:all .15s;}
+.qr:hover{background:var(--teal);color:#fff;}
+
+/* HISTORIAL PERFIL */
+.hist-item{padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:7px;font-size:12px;}
+.hist-item-fecha{color:var(--txt3);font-size:11px;margin-bottom:3px;}
+.hist-item-txt{color:var(--txt2);line-height:1.5;}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);padding:11px 16px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transform:translateY(6px);transition:all .3s;z-index:100;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--txt3);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-title{font-size:15px;font-weight:600;color:var(--txt2);margin-bottom:6px;}
+.empty-desc{font-size:13px;line-height:1.6;max-width:280px;margin:0 auto 16px;}
+
+@media(max-width:1100px){.app{grid-template-columns:1fr}.sidebar,.chat-panel{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">Mendoza Sol y Nieve</div>
+    <div class="sb-title">Agente<br>Concierge</div>
+    <div class="sb-badge">Huéspedes activos</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-nav-title">Huéspedes en estadía</div>
+    <div class="huesped-list" id="huesped-list">
+      <div style="font-size:12px;opacity:.5;padding:10px 0;text-align:center">Sin huéspedes activos</div>
+    </div>
+    <div style="padding:10px 14px">
+      <button class="btn btn-primary" style="width:100%;font-size:12px" onclick="abrirNuevoHuesped()">+ Nuevo huésped</button>
+    </div>
+    <div class="sb-nav-title" style="margin-top:4px">Agentes MSN</div>
+    <div class="nav-item" style="opacity:.6;cursor:default;font-size:12px"><span>💵</span> Cotización</div>
+    <div class="nav-item" style="opacity:.6;cursor:default;font-size:12px"><span>📋</span> Recepción</div>
+    <div class="nav-item" style="opacity:.6;cursor:default;font-size:12px"><span>📈</span> Revenue</div>
+    <div class="nav-item active" style="font-size:12px"><span>🛎️</span> Concierge ← acá</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Concierge — Asistencia durante la estadía</div>
+      <div class="topbar-sub" id="topbar-sub">Seleccioná un huésped o creá uno nuevo</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn btn-sm" id="btn-copiar-rec" style="display:none" onclick="copiarRec()">📋 Copiar para WhatsApp</button>
+      <button class="btn btn-sm btn-primary" id="btn-guardar-perfil" style="display:none" onclick="guardarPerfil()">💾 Guardar perfil</button>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab active" id="tab-asistir" onclick="setTab('asistir')">💬 Asistir</div>
+    <div class="tab" id="tab-perfil" onclick="setTab('perfil')">👤 Perfil</div>
+    <div class="tab" id="tab-recomendaciones" onclick="setTab('recomendaciones')">🗺️ Recomendaciones</div>
+    <div class="tab" id="tab-historial" onclick="setTab('historial')">🕐 Historial</div>
+  </div>
+  <div class="content-area">
+
+    <!-- VACÍO -->
+    <div id="panel-vacio">
+      <div class="empty-state" style="padding:60px 20px">
+        <div class="empty-icon">🛎️</div>
+        <div class="empty-title">Agente Concierge</div>
+        <div class="empty-desc">Responde preguntas durante la estadía, recomienda restaurantes y actividades, y arma el perfil del huésped.</div>
+        <button class="btn btn-primary" onclick="abrirNuevoHuesped()">+ Nuevo huésped en estadía</button>
+      </div>
+    </div>
+
+    <!-- ASISTIR -->
+    <div id="panel-asistir" style="display:none">
+      <div class="card">
+        <div class="card-title">👤 Huésped activo</div>
+        <div class="perfil-header" id="perfil-mini"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">💬 Pregunta del huésped durante la estadía</div>
+        <div class="fg">
+          <textarea id="f-pregunta-con" rows="3" placeholder="Ej: ¿Dónde podemos cenar esta noche? Somos 2, algo romántico y que no sea muy caro. Preferimos algo con vista."></textarea>
+        </div>
+        <div style="display:flex;gap:8px">
+          <select id="f-canal-con" style="padding:7px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--surface2);color:var(--txt)">
+            <option>WhatsApp</option><option>En persona</option><option>Llamada</option>
+          </select>
+          <button class="btn btn-primary" style="flex:1" onclick="responderConcierge()" id="btn-responder-con">🛎️ Responder con IA →</button>
+        </div>
+      </div>
+      <!-- TEMAS RAPIDOS -->
+      <div class="card">
+        <div class="card-title">⚡ Consultas frecuentes durante la estadía</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div class="pref-item" onclick="preguntaRapidaCon('¿Dónde cenar esta noche? Somos '+huespedActual?.pax+' personas.')"><span class="pref-icon">🍽️</span>¿Dónde cenar?</div>
+          <div class="pref-item" onclick="preguntaRapidaCon('¿Qué actividades podemos hacer hoy o mañana cerca de acá?')"><span class="pref-icon">🏔️</span>Actividades</div>
+          <div class="pref-item" onclick="preguntaRapidaCon('¿Hay algún supermercado o almacén cerca?')"><span class="pref-icon">🛒</span>Supermercado</div>
+          <div class="pref-item" onclick="preguntaRapidaCon('¿Dónde puedo comprar vino de bodega? ¿Recomiendan alguna?')"><span class="pref-icon">🍷</span>Bodegas / vino</div>
+          <div class="pref-item" onclick="preguntaRapidaCon('¿Cómo funciona la parrilla? ¿Puedo hacer asado?')"><span class="pref-icon">🔥</span>Parrilla / asado</div>
+          <div class="pref-item" onclick="preguntaRapidaCon('¿Cómo es el clima para mañana? ¿Qué recomiendan para hacer?')"><span class="pref-icon">🌤️</span>Clima y plan</div>
+          <div class="pref-item" onclick="preguntaRapidaCon('¿Hay farmacia cerca?')"><span class="pref-icon">💊</span>Farmacia</div>
+          <div class="pref-item" onclick="preguntaRapidaCon('¿Cómo llego al centro desde acá?')"><span class="pref-icon">🚗</span>Cómo llegar</div>
+          <div class="pref-item" onclick="preguntaRapidaCon('¿Qué incluye la cabaña? ¿Tienen sábanas extra?')"><span class="pref-icon">🛏️</span>Servicios depto</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFIL -->
+    <div id="panel-perfil" style="display:none">
+      <div class="card">
+        <div class="card-title">👤 Datos del huésped</div>
+        <div class="row2">
+          <div class="fg"><label>Nombre completo</label><input type="text" id="p-nombre" oninput="actualizarTopbar()"></div>
+          <div class="fg"><label>WhatsApp</label><input type="text" id="p-tel" placeholder="+54 261..."></div>
+        </div>
+        <div class="row3">
+          <div class="fg"><label>Check-in</label><input type="date" id="p-ci"></div>
+          <div class="fg"><label>Check-out</label><input type="date" id="p-co"></div>
+          <div class="fg"><label>Personas</label><input type="number" id="p-pax" value="2" min="1" max="10"></div>
+        </div>
+        <div class="fg"><label>Alojamiento</label>
+          <select id="p-alo">
+            <option>Departamento Ciudad de Mendoza 2</option>
+            <option>Departamento Ciudad de Mendoza 3</option>
+            <option>Cabaña Loft — Potrerillos</option>
+            <option>Cabaña Standard — Potrerillos</option>
+            <option>Cabaña Grande — Potrerillos</option>
+            <option>Departamento Valle de Las Leñas</option>
+          </select>
+        </div>
+        <div class="fg"><label>Origen (ciudad/país)</label><input type="text" id="p-origen" placeholder="Ej: Buenos Aires, Córdoba, Chile..."></div>
+      </div>
+      <div class="card">
+        <div class="card-title">❤️ Preferencias — perfil del huésped</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">Marcá lo que aplica para personalizar las recomendaciones:</div>
+        <div class="pref-grid" id="prefs-grid"></div>
+        <div class="fg"><label>Notas adicionales sobre el huésped</label>
+          <textarea id="p-notas" rows="3" placeholder="Celebran aniversario, viajan con bebé, alérgicos a mariscos, etc..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECOMENDACIONES -->
+    <div id="panel-recomendaciones" style="display:none">
+      <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+        <select id="f-cat-rec" style="padding:7px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--surface);color:var(--txt)">
+          <option value="todas">Todas las categorías</option>
+          <option value="restaurante">🍽️ Restaurantes</option>
+          <option value="actividad">🏔️ Actividades</option>
+          <option value="bodega">🍷 Bodegas</option>
+          <option value="spa">💆 Spa / relax</option>
+          <option value="excursion">🗺️ Excursiones</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="generarRecomendaciones()" id="btn-gen-rec">✨ Generar recomendaciones</button>
+        <span style="font-size:11px;color:var(--txt3)">Personalizadas según el perfil del huésped</span>
+      </div>
+      <div id="rec-content">
+        <div class="empty-state">
+          <div class="empty-icon">🗺️</div>
+          <div class="empty-title">Sin recomendaciones</div>
+          <div class="empty-desc">Completá el perfil del huésped y hacé clic en "Generar recomendaciones".</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div id="panel-historial" style="display:none">
+      <div class="card">
+        <div class="card-title">🕐 Historial de consultas durante la estadía</div>
+        <div id="historial-con-list">
+          <div style="text-align:center;padding:20px;color:var(--txt3);font-size:13px">Sin consultas registradas aún.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CHAT PANEL -->
+<div class="chat-panel">
+  <div class="chat-header">
+    <div class="chat-avatar-wa" id="chat-av">?</div>
+    <div>
+      <div class="chat-name" id="chat-nombre-h">Sin huésped</div>
+      <div class="chat-status" id="chat-alo-h">Concierge MSN</div>
+    </div>
+  </div>
+  <div class="messages" id="messages">
+    <div style="text-align:center;padding:30px 10px">
+      <div style="background:rgba(255,255,255,.8);border-radius:8px;padding:12px 14px;font-size:12px;color:#666;display:inline-block;max-width:220px">
+        🛎️ Seleccioná un huésped para empezar la asistencia durante la estadía
+      </div>
+    </div>
+  </div>
+  <div class="quick-replies" id="qr-con" style="display:none">
+    <span class="qr" onclick="preguntaRapidaCon('¿Qué recomiendan para hacer esta tarde?')">¿Qué hacer hoy? →</span>
+    <span class="qr" onclick="preguntaRapidaCon('¿Dónde cenar esta noche?')">Cenar →</span>
+    <span class="qr" onclick="preguntaRapidaCon('¿Tienen algún descuento o promo para recomendar?')">Promos →</span>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" id="chat-input-con" placeholder="Escribí la consulta del huésped..." onkeydown="if(event.key==='Enter')enviarDesdeChat()">
+    <button class="btn-send" onclick="enviarDesdeChat()">↑</button>
+  </div>
+</div>
+
+</div>
+
+<!-- MODAL NUEVO HUESPED -->
+<div id="overlay-nuevo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center" onclick="if(event.target===this)cerrarModal()">
+  <div style="background:var(--surface);border-radius:12px;padding:24px;width:440px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <div style="font-size:16px;font-weight:700;margin-bottom:16px">Nuevo huésped en estadía</div>
+    <div class="fg"><label>Nombre</label><input type="text" id="m-nombre" placeholder="Ej: Martín García"></div>
+    <div class="row2">
+      <div class="fg"><label>Check-in</label><input type="date" id="m-ci"></div>
+      <div class="fg"><label>Check-out</label><input type="date" id="m-co"></div>
+    </div>
+    <div class="fg"><label>Alojamiento</label>
+      <select id="m-alo">
+        <option>Departamento Ciudad de Mendoza 2</option>
+        <option>Departamento Ciudad de Mendoza 3</option>
+        <option>Cabaña Loft — Potrerillos</option>
+        <option>Cabaña Standard — Potrerillos</option>
+        <option>Cabaña Grande — Potrerillos</option>
+        <option>Departamento Valle de Las Leñas</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Personas</label><input type="number" id="m-pax" value="2" min="1" max="10"></div>
+      <div class="fg"><label>WhatsApp</label><input type="text" id="m-tel" placeholder="+54..."></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">
+      <button class="btn" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearHuesped()">Iniciar estadía →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// ESTADO
+// ============================================================
+let huespedes = [];
+let huespedActual = null;
+let historialCon = [];
+let ultimaRespuesta = '';
+
+const PREFS = [
+  {id:'romantico',label:'Romántico',icon:'💑'},
+  {id:'familiar',label:'Con niños',icon:'👨‍👩‍👧'},
+  {id:'aventura',label:'Aventura',icon:'🧗'},
+  {id:'gastronomia',label:'Gastronomía',icon:'🍽️'},
+  {id:'vinos',label:'Amante del vino',icon:'🍷'},
+  {id:'relax',label:'Relax / spa',icon:'💆'},
+  {id:'naturaleza',label:'Naturaleza',icon:'🌿'},
+  {id:'ski',label:'Esquí / nieve',icon:'⛷️'},
+  {id:'cultura',label:'Cultural',icon:'🏛️'},
+  {id:'economico',label:'Económico',icon:'💰'},
+  {id:'premium',label:'Premium',icon:'⭐'},
+  {id:'mascotas',label:'Con mascotas',icon:'🐾'},
+];
+
+// ============================================================
+// TABS
+// ============================================================
+function setTab(tab) {
+  ['asistir','perfil','recomendaciones','historial'].forEach(t => {
+    document.getElementById('panel-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('tab-'+t)?.classList.toggle('active', t===tab);
+  });
+  if(tab==='perfil') renderPrefs();
+  if(tab==='historial') renderHistorialCon();
+  document.getElementById('btn-guardar-perfil').style.display = tab==='perfil'?'block':'none';
+}
+
+// ============================================================
+// HUESPEDES
+// ============================================================
+function abrirNuevoHuesped() {
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('m-ci').value = hoy;
+  document.getElementById('overlay-nuevo').style.display = 'flex';
+  setTimeout(()=>document.getElementById('m-nombre').focus(),100);
+}
+function cerrarModal() { document.getElementById('overlay-nuevo').style.display = 'none'; }
+
+function crearHuesped() {
+  const nombre = document.getElementById('m-nombre').value.trim() || 'Huésped';
+  const h = {
+    id: Date.now(),
+    nombre, tel: document.getElementById('m-tel').value,
+    ci: document.getElementById('m-ci').value,
+    co: document.getElementById('m-co').value,
+    alo: document.getElementById('m-alo').value,
+    pax: parseInt(document.getElementById('m-pax').value)||2,
+    origen:'', notas:'', prefs:[], historial:[]
+  };
+  huespedes.unshift(h);
+  cerrarModal();
+  activarHuesped(h);
+  renderHuespedes();
+}
+
+function activarHuesped(h) {
+  huespedActual = h;
+  document.getElementById('panel-vacio').style.display = 'none';
+  document.getElementById('panel-asistir').style.display = 'block';
+  document.getElementById('panel-perfil').style.display = 'none';
+  document.getElementById('panel-recomendaciones').style.display = 'none';
+  document.getElementById('panel-historial').style.display = 'none';
+  document.getElementById('tab-asistir').classList.add('active');
+  ['perfil','recomendaciones','historial'].forEach(t=>document.getElementById('tab-'+t).classList.remove('active'));
+
+  // Cargar datos en perfil
+  document.getElementById('p-nombre').value = h.nombre;
+  document.getElementById('p-tel').value = h.tel||'';
+  document.getElementById('p-ci').value = h.ci||'';
+  document.getElementById('p-co').value = h.co||'';
+  document.getElementById('p-pax').value = h.pax||2;
+  document.getElementById('p-alo').value = h.alo||'';
+  document.getElementById('p-origen').value = h.origen||'';
+  document.getElementById('p-notas').value = h.notas||'';
+
+  actualizarTopbar();
+  renderPerfilMini();
+  document.getElementById('btn-copiar-rec').style.display = 'block';
+  document.getElementById('btn-guardar-perfil').style.display = 'none';
+
+  // Chat header
+  const initials = h.nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('chat-av').textContent = initials;
+  document.getElementById('chat-nombre-h').textContent = h.nombre;
+  document.getElementById('chat-alo-h').textContent = h.alo.split('—')[0].trim();
+
+  // Limpiar chat
+  document.getElementById('messages').innerHTML = `
+    <div style="text-align:center;padding:16px 10px">
+      <div style="background:rgba(255,255,255,.8);border-radius:8px;padding:8px 12px;font-size:11px;color:#666;display:inline-block">
+        Estadía iniciada · ${h.ci||'—'} → ${h.co||'—'}
+      </div>
+    </div>`;
+  document.getElementById('qr-con').style.display = 'flex';
+}
+
+function actualizarTopbar() {
+  if(!huespedActual) return;
+  const nombre = document.getElementById('p-nombre')?.value || huespedActual.nombre;
+  document.getElementById('topbar-title').textContent = '🛎️ ' + nombre;
+  document.getElementById('topbar-sub').textContent = huespedActual.alo + ' · ' + (huespedActual.ci||'—') + ' → ' + (huespedActual.co||'—');
+}
+
+function renderHuespedes() {
+  const list = document.getElementById('huesped-list');
+  if(!huespedes.length) {
+    list.innerHTML = '<div style="font-size:12px;opacity:.5;padding:10px 0;text-align:center">Sin huéspedes activos</div>';
+    return;
+  }
+  list.innerHTML = huespedes.map(h => {
+    const diasRest = h.co ? Math.max(0,Math.round((new Date(h.co)-new Date())/(1000*60*60*24))) : '—';
+    return `<div class="huesped-item ${huespedActual?.id===h.id?'active':''}" onclick="activarHuesped(huespedes.find(x=>x.id===${h.id}))">
+      <div class="huesped-nombre">${h.nombre}</div>
+      <div class="huesped-alo">${h.alo.split('—')[0].trim()}</div>
+      <span class="huesped-dias">${diasRest === 0 ? 'Hoy sale' : diasRest+'d restantes'}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderPerfilMini() {
+  if(!huespedActual) return;
+  const h = huespedActual;
+  const initials = h.nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const diasRest = h.co ? Math.max(0,Math.round((new Date(h.co)-new Date())/(1000*60*60*24))) : '—';
+  const prefLabels = (h.prefs||[]).map(p=>PREFS.find(x=>x.id===p)).filter(Boolean).slice(0,3);
+  document.getElementById('perfil-mini').innerHTML = `
+    <div class="perfil-avatar">${initials}</div>
+    <div>
+      <div class="perfil-nombre">${h.nombre}</div>
+      <div class="perfil-alo">${h.alo} · ${h.pax} personas</div>
+      <div class="perfil-badges">
+        <span class="badge badge-teal">${diasRest === 0?'Sale hoy':diasRest+'d restantes'}</span>
+        ${h.origen?`<span class="badge badge-amber">${h.origen}</span>`:''}
+        ${prefLabels.map(p=>`<span class="badge badge-purple">${p.icon} ${p.label}</span>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderPrefs() {
+  const grid = document.getElementById('prefs-grid');
+  if(!grid) return;
+  grid.innerHTML = PREFS.map(p=>`
+    <div class="pref-item ${huespedActual?.prefs?.includes(p.id)?'sel':''}" onclick="togglePref('${p.id}',this)">
+      <span class="pref-icon">${p.icon}</span>${p.label}
+    </div>`).join('');
+}
+
+function togglePref(id, el) {
+  if(!huespedActual) return;
+  if(!huespedActual.prefs) huespedActual.prefs = [];
+  el.classList.toggle('sel');
+  if(huespedActual.prefs.includes(id)) huespedActual.prefs = huespedActual.prefs.filter(x=>x!==id);
+  else huespedActual.prefs.push(id);
+}
+
+function guardarPerfil() {
+  if(!huespedActual) return;
+  huespedActual.nombre = document.getElementById('p-nombre').value||huespedActual.nombre;
+  huespedActual.tel = document.getElementById('p-tel').value;
+  huespedActual.ci = document.getElementById('p-ci').value;
+  huespedActual.co = document.getElementById('p-co').value;
+  huespedActual.pax = parseInt(document.getElementById('p-pax').value)||2;
+  huespedActual.alo = document.getElementById('p-alo').value;
+  huespedActual.origen = document.getElementById('p-origen').value;
+  huespedActual.notas = document.getElementById('p-notas').value;
+  renderHuespedes();
+  renderPerfilMini();
+  actualizarTopbar();
+  mostrarToast('✅ Perfil guardado');
+}
+
+// ============================================================
+// CONCIERGE IA
+// ============================================================
+function getZona(alo) {
+  if(alo.includes('Potrerillos')||alo.includes('Loft')||alo.includes('Standard')||alo.includes('Grande')) return 'Potrerillos';
+  if(alo.includes('Leñas')||alo.includes('Lenas')||alo.includes('VLL')) return 'Valle de Las Leñas';
+  return 'Ciudad de Mendoza';
+}
+
+async function responderConcierge() {
+  const pregunta = document.getElementById('f-pregunta-con').value.trim();
+  if(!pregunta||!huespedActual) { mostrarToast('⚠ Escribí la pregunta del huésped', true); return; }
+  await procesarConsulta(pregunta);
+  document.getElementById('f-pregunta-con').value = '';
+}
+
+async function preguntaRapidaCon(texto) {
+  document.getElementById('f-pregunta-con').value = texto;
+  await procesarConsulta(texto);
+  document.getElementById('f-pregunta-con').value = '';
+}
+
+async function enviarDesdeChat() {
+  const input = document.getElementById('chat-input-con');
+  const texto = input.value.trim();
+  if(!texto) return;
+  input.value = '';
+  await procesarConsulta(texto);
+}
+
+async function procesarConsulta(pregunta) {
+  if(!huespedActual) return;
+  const h = huespedActual;
+  const zona = getZona(h.alo);
+  const prefLabels = (h.prefs||[]).map(p=>PREFS.find(x=>x.id===p)?.label).filter(Boolean).join(', ');
+
+  agregarMsgChat('in', pregunta, h.nombre);
+  const typId = mostrarTyping();
+
+  const btn = document.getElementById('btn-responder-con');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Respondiendo...';}
+
+  const system = `Sos el concierge personal de Mendoza Sol y Nieve (MSN). Atenés huéspedes durante su estadía con recomendaciones locales precisas y personalizadas.
+
+HUÉSPED ACTUAL:
+- Nombre: ${h.nombre}
+- Alojamiento: ${h.alo} (zona: ${zona})
+- Grupo: ${h.pax} personas
+- Origen: ${h.origen||'Argentina'}
+- Preferencias: ${prefLabels||'no especificadas'}
+- Notas especiales: ${h.notas||'ninguna'}
+
+CONTEXTO POR ZONA:
+- Ciudad de Mendoza: zona céntrica, acceso a bodegas, Parque San Martín, Peatonal Sarmiento. Restaurantes destacados: 1884 Francis Mallmann, Azafrán, Fuente y Fonda, La Sal, Siete Cocinas. Bodegas cercanas: Trapiche, Chandon, Zuccardi.
+- Potrerillos: zona cordillerana a 50km de Mendoza. Actividades: rafting río Mendoza, kayak dique Potrerillos, trekking, mountain bike, cabalgatas. Restaurantes: pocos opciones locales, recomendable ir a Luján de Cuyo o llevar provisiones. Dique Potrerillos para deportes acuáticos.
+- Valle de Las Leñas: resort de ski en Malargüe. En invierno: pistas de ski, snowboard, après-ski. En verano: trekking, mountain bike, escalada.
+
+ESTILO: Cálido, específico, como un amigo local. Máximo 4-5 líneas. Sin markdown. 1-2 emojis máximo. Si recomendás un lugar, incluí dirección o referencia de ubicación. Siempre tratá al huésped de vos.
+
+Si preguntan por cenar o actividades, incluí 2-3 opciones con precio estimado.`;
+
+  try {
+    const groqKey = localStorage.getItem('msn-groq-key')||'';
+    let respuesta = '';
+    if(groqKey && groqKey.startsWith('gsk_')) {
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+groqKey},
+        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:500,temperature:0.5,
+          messages:[{role:'system',content:system},{role:'user',content:pregunta}]})
+      });
+      const d = await r.json();
+      respuesta = d.choices?.[0]?.message?.content||'Sin respuesta.';
+    } else {
+      const r = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:500,system,messages:[{role:'user',content:pregunta}]})
+      });
+      const d = await r.json();
+      respuesta = d.content?.[0]?.text||'Sin respuesta.';
+    }
+    quitarTyping(typId);
+    agregarMsgChat('out', respuesta, 'MSN');
+    ultimaRespuesta = respuesta;
+
+    // Guardar en historial del huésped
+    if(!h.historial) h.historial = [];
+    h.historial.unshift({pregunta, respuesta, hora:horaActual(), fecha:new Date().toLocaleDateString('es-AR')});
+    historialCon.unshift({nombre:h.nombre, pregunta, respuesta, hora:horaActual()});
+
+    // Detectar preferencias automáticamente
+    autoDetectarPrefs(pregunta);
+
+    document.getElementById('btn-copiar-rec').style.display='block';
+  } catch(e) {
+    quitarTyping(typId);
+    agregarMsgChat('out','Error de conexión. Verificá la API key en el Agente de Recepción.','Sistema');
+  }
+  if(btn){btn.disabled=false;btn.textContent='🛎️ Responder con IA →';}
+}
+
+function autoDetectarPrefs(texto) {
+  if(!huespedActual) return;
+  const t = texto.toLowerCase();
+  const mapa = {romantico:['romántico','pareja','aniversario','san valentín'],
+    gastronomia:['cenar','restaurante','comer','almorzar'],
+    vinos:['vino','bodega','malbec'],aventura:['rafting','trekking','kayak','bici'],
+    relax:['spa','masaje','descansar'],ski:['esquí','ski','nieve','pista'],
+    familiar:['niño','hijo','bebé','familia'],economico:['barato','económico','precio']};
+  let cambio = false;
+  Object.entries(mapa).forEach(([pref,palabras])=>{
+    if(palabras.some(p=>t.includes(p)) && !huespedActual.prefs?.includes(pref)) {
+      if(!huespedActual.prefs) huespedActual.prefs=[];
+      huespedActual.prefs.push(pref);
+      cambio=true;
+    }
+  });
+  if(cambio) renderPerfilMini();
+}
+
+// ============================================================
+// RECOMENDACIONES
+// ============================================================
+async function generarRecomendaciones() {
+  if(!huespedActual) return;
+  const btn = document.getElementById('btn-gen-rec');
+  btn.disabled=true; btn.textContent='⏳ Generando...';
+  const h = huespedActual;
+  const zona = getZona(h.alo);
+  const cat = document.getElementById('f-cat-rec').value;
+  const prefLabels = (h.prefs||[]).map(p=>PREFS.find(x=>x.id===p)?.label).filter(Boolean).join(', ');
+
+  const prompt = `Generá recomendaciones turísticas para un huésped en ${zona}, Mendoza, Argentina.
+Perfil: ${h.pax} personas, origen: ${h.origen||'Argentina'}, preferencias: ${prefLabels||'general'}, notas: ${h.notas||'ninguna'}.
+Categoría solicitada: ${cat==='todas'?'todas las categorías':cat}.
+
+Respondé SOLO con JSON válido sin markdown:
+{"recomendaciones":[{"nombre":"nombre","categoria":"restaurante|actividad|bodega|spa|excursion","distancia":"X min / X km","descripcion":"2 líneas","precio":"$XX / gratis / consultar","tags":["tag1","tag2"],"como_llegar":"referencia breve"}]}
+
+Incluí 5-8 recomendaciones reales de Mendoza/Potrerillos/Las Leñas según la zona. Sin texto extra.`;
+
+  try {
+    const groqKey = localStorage.getItem('msn-groq-key')||'';
+    let jsonText = '';
+    if(groqKey && groqKey.startsWith('gsk_')) {
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+groqKey},
+        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1500,temperature:0.3,
+          messages:[{role:'user',content:prompt}]})
+      });
+      const d = await r.json(); jsonText=d.choices?.[0]?.message?.content||'';
+    } else {
+      const r = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})
+      });
+      const d = await r.json(); jsonText=d.content?.[0]?.text||'';
+    }
+    jsonText = jsonText.replace(/```json|```/g,'').trim();
+    const data = JSON.parse(jsonText);
+    renderRecomendaciones(data.recomendaciones||[]);
+  } catch(e) {
+    document.getElementById('rec-content').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Error</div><div class="empty-desc">Verificá la API key.</div></div>';
+  }
+  btn.disabled=false; btn.textContent='✨ Generar recomendaciones';
+}
+
+function renderRecomendaciones(recs) {
+  const catIcon={restaurante:'🍽️',actividad:'🏔️',bodega:'🍷',spa:'💆',excursion:'🗺️'};
+  const catCls={restaurante:'cat-restaurante',actividad:'cat-actividad',bodega:'cat-bodega',spa:'cat-spa',excursion:'cat-excursion'};
+  let html = '';
+  recs.forEach(r=>{
+    html+=`<div class="rec-card">
+      <div class="rec-header">
+        <span class="rec-cat ${catCls[r.categoria]||'cat-actividad'}">${catIcon[r.categoria]||'📌'} ${r.categoria}</span>
+        <span class="rec-nombre">${r.nombre}</span>
+        <span class="rec-dist">${r.distancia||''}</span>
+      </div>
+      <div class="rec-body">
+        <div class="rec-desc">${r.descripcion||''}</div>
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">💰 ${r.precio||'Consultar'} · 📍 ${r.como_llegar||''}</div>
+        <div class="rec-actions">
+          ${(r.tags||[]).map(t=>`<span class="rec-tag">${t}</span>`).join('')}
+          <button class="btn btn-sm" style="margin-left:auto" onclick="enviarRec('${r.nombre}','${r.descripcion?.replace(/'/g,'')||''}')">📤 Enviar al huésped</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('rec-content').innerHTML = html || '<div class="empty-state"><div class="empty-icon">🗺️</div><div class="empty-title">Sin resultados</div></div>';
+}
+
+async function enviarRec(nombre, desc) {
+  const msg = `Te recomiendo ${nombre} — ${desc}`;
+  agregarMsgChat('out', msg, 'MSN');
+  ultimaRespuesta = msg;
+  mostrarToast('✅ Recomendación enviada al chat');
+}
+
+// ============================================================
+// HISTORIAL
+// ============================================================
+function renderHistorialCon() {
+  const list = document.getElementById('historial-con-list');
+  const hist = huespedActual?.historial || [];
+  if(!hist.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--txt3);font-size:13px">Sin consultas registradas.</div>';
+    return;
+  }
+  list.innerHTML = hist.map(h=>`
+    <div class="hist-item">
+      <div class="hist-item-fecha">${h.fecha||''} ${h.hora}</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:4px">❓ ${h.pregunta}</div>
+      <div class="hist-item-txt">💬 ${h.respuesta?.slice(0,200)}${h.respuesta?.length>200?'...':''}</div>
+    </div>`).join('');
+}
+
+// ============================================================
+// CHAT
+// ============================================================
+function agregarMsgChat(dir, texto, quien) {
+  const msgs = document.getElementById('messages');
+  const placeholder = msgs.querySelector('[style*="padding:30px"]');
+  if(placeholder) placeholder.remove();
+  const initials = quien.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const el = document.createElement('div');
+  el.className = 'msg '+dir;
+  el.innerHTML=`<div class="msg-avatar">${initials}</div><div><div class="msg-bubble">${texto.replace(/\n/g,'<br>')}</div><div class="msg-time">${horaActual()}</div></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function mostrarTyping() {
+  const msgs = document.getElementById('messages');
+  const id = 'typ-'+Date.now();
+  const el = document.createElement('div');
+  el.id=id; el.className='msg out';
+  el.innerHTML=`<div class="msg-avatar">MS</div><div class="typing"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(el); msgs.scrollTop=msgs.scrollHeight;
+  return id;
+}
+function quitarTyping(id){document.getElementById(id)?.remove();}
+
+// ============================================================
+// ACCIONES
+// ============================================================
+function copiarRec() {
+  if(!ultimaRespuesta) return;
+  navigator.clipboard?.writeText(ultimaRespuesta)
+    .then(()=>mostrarToast('✅ Copiado — pegalo en WhatsApp'))
+    .catch(()=>mostrarToast('Copiá el texto del chat manualmente'));
+}
+
+function mostrarToast(msg, error=false) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=error?'#fee2e2':'var(--green-bg)';
+  t.style.borderColor=error?'#fca5a5':'var(--green-border)';
+  t.style.color=error?'#991b1b':'var(--green)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function horaActual(){return new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});}
+</script>
+</body>
+</html>

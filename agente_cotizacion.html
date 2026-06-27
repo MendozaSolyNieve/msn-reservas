@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agente de Cotización — Mendoza Sol y Nieve</title>
+<style>
+:root {
+  --bg: #f5f5f0;
+  --surface: #ffffff;
+  --surface2: #fafaf8;
+  --border: #e2e0d8;
+  --border2: #c8c5bb;
+  --txt: #1a1917;
+  --txt2: #5c5a54;
+  --txt3: #9c9a94;
+  --accent: #0f4c81;
+  --accent-bg: #e8f0f9;
+  --accent-light: #dbeafe;
+  --green: #15803d;
+  --green-bg: #dcfce7;
+  --green-border: #86efac;
+  --amber: #92400e;
+  --amber-bg: #fef3c7;
+  --amber-border: #fcd34d;
+  --red: #991b1b;
+  --red-bg: #fee2e2;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--txt); min-height: 100vh; }
+
+/* LAYOUT */
+.app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+.sidebar { background: var(--accent); color: #fff; padding: 0; display: flex; flex-direction: column; }
+.main { display: flex; flex-direction: column; overflow: hidden; }
+
+/* SIDEBAR */
+.sb-header { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,.15); }
+.sb-logo { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .7; margin-bottom: 6px; }
+.sb-title { font-size: 18px; font-weight: 600; line-height: 1.3; }
+.sb-badge { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 11px; background: rgba(255,255,255,.15); padding: 3px 9px; border-radius: 20px; }
+.sb-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: block; }
+
+.sb-section { padding: 16px 20px 0; }
+.sb-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .5; margin-bottom: 10px; }
+
+.sb-stat { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; background: rgba(255,255,255,.08); border-radius: var(--radius); margin-bottom: 6px; }
+.sb-stat-label { font-size: 12px; opacity: .75; }
+.sb-stat-val { font-size: 15px; font-weight: 700; }
+
+.leads-list { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.lead-item { padding: 10px 12px; background: rgba(255,255,255,.07); border-radius: var(--radius); margin-bottom: 6px; cursor: pointer; transition: background .15s; border: 1px solid transparent; }
+.lead-item:hover, .lead-item.active { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.25); }
+.lead-name { font-size: 13px; font-weight: 600; }
+.lead-meta { font-size: 11px; opacity: .65; margin-top: 2px; }
+.lead-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; margin-top: 5px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.st-nuevo { background: rgba(74,222,128,.2); color: #4ade80; }
+.st-cotizado { background: rgba(251,191,36,.2); color: #fbbf24; }
+.st-seguimiento { background: rgba(147,197,253,.2); color: #93c5fd; }
+
+/* TOP BAR */
+.topbar { padding: 14px 24px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+.topbar-title { font-size: 15px; font-weight: 600; }
+.topbar-sub { font-size: 12px; color: var(--txt3); }
+.topbar-actions { margin-left: auto; display: flex; gap: 8px; }
+.btn { padding: 7px 14px; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border2); background: var(--surface); color: var(--txt); transition: all .15s; }
+.btn:hover { background: var(--bg); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: #0c3d6a; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* CONTENT AREA */
+.content { flex: 1; display: grid; grid-template-columns: 1fr 420px; overflow: hidden; }
+
+/* FORM PANEL */
+.form-panel { padding: 24px; overflow-y: auto; background: var(--bg); }
+.panel-title { font-size: 14px; font-weight: 600; color: var(--txt2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.card-title { font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+.fg { margin-bottom: 12px; }
+.fg label { display: block; font-size: 12px; color: var(--txt2); margin-bottom: 4px; font-weight: 500; }
+.fg input, .fg select, .fg textarea { width: 100%; padding: 8px 11px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; background: var(--surface2); color: var(--txt); font-family: inherit; transition: border .15s; }
+.fg input:focus, .fg select:focus, .fg textarea:focus { outline: none; border-color: var(--accent); }
+.fg textarea { resize: vertical; min-height: 80px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+/* TARIFA RESULT */
+.tarifa-result { background: var(--accent-bg); border: 1px solid #bfdbfe; border-radius: 10px; padding: 16px; margin-top: 4px; }
+.tarifa-main { font-size: 26px; font-weight: 800; color: var(--accent); }
+.tarifa-detail { font-size: 12px; color: var(--txt2); margin-top: 4px; }
+.tarifa-breakdown { margin-top: 12px; display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.tb-item { text-align: center; padding: 8px; background: #fff; border-radius: var(--radius); border: 1px solid var(--border); }
+.tb-val { font-size: 14px; font-weight: 700; color: var(--accent); }
+.tb-lbl { font-size: 10px; color: var(--txt3); margin-top: 2px; }
+
+/* CHAT PANEL */
+.chat-panel { background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+.chat-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.chat-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.chat-name { font-size: 14px; font-weight: 600; }
+.chat-status { font-size: 11px; color: var(--green); }
+
+.messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.msg { display: flex; gap: 8px; max-width: 100%; }
+.msg.out { flex-direction: row-reverse; }
+.msg-bubble { padding: 9px 13px; border-radius: 12px; font-size: 13px; line-height: 1.5; max-width: 85%; }
+.msg.in .msg-bubble { background: var(--bg); border: 1px solid var(--border); color: var(--txt); border-radius: 2px 12px 12px 12px; }
+.msg.out .msg-bubble { background: var(--accent); color: #fff; border-radius: 12px 2px 12px 12px; }
+.msg-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.msg.out .msg-avatar { background: #cbd5e1; color: var(--txt2); }
+.msg-time { font-size: 10px; color: var(--txt3); margin-top: 3px; text-align: right; }
+.msg.in .msg-time { text-align: left; }
+.typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
+.typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--txt3); animation: bounce 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay: .2s; }
+.typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)} }
+
+.chat-input-area { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.chat-input-area input { flex: 1; padding: 9px 13px; border: 1px solid var(--border); border-radius: 20px; font-size: 13px; background: var(--bg); color: var(--txt); font-family: inherit; }
+.chat-input-area input:focus { outline: none; border-color: var(--accent); }
+.btn-send { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; border: none; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .15s; flex-shrink: 0; }
+.btn-send:hover { background: #0c3d6a; }
+
+/* QUICK REPLIES */
+.quick-replies { padding: 8px 16px 0; display: flex; gap: 6px; flex-wrap: wrap; }
+.qr { padding: 5px 11px; border: 1px solid var(--border2); border-radius: 14px; font-size: 11px; cursor: pointer; background: var(--surface2); color: var(--txt2); transition: all .15s; white-space: nowrap; }
+.qr:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+/* LEAD SAVED TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: var(--shadow); opacity: 0; transform: translateY(8px); transition: all .3s; z-index: 100; }
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* COTIZACION PREVIEW en chat */
+.cot-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-top: 6px; }
+.cot-title { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+.cot-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.cot-row:last-child { border-bottom: none; font-weight: 700; font-size: 13px; color: var(--accent); }
+
+/* STATUS BAR */
+.status-bar { padding: 8px 24px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 16px; font-size: 11px; color: var(--txt3); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; margin-right: 5px; }
+
+/* MODAL nueva consulta */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; align-items: center; justify-content: center; }
+.overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 12px; padding: 24px; width: 480px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .content { grid-template-columns: 1fr; }
+  .chat-panel { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR LEADS -->
+  <div class="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo">Mendoza Sol y Nieve</div>
+      <div class="sb-title">Agente de<br>Cotización</div>
+      <div class="sb-badge">Activo</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Hoy</div>
+      <div class="sb-stat"><span class="sb-stat-label">Consultas</span><span class="sb-stat-val" id="stat-consultas">0</span></div>
+      <div class="sb-stat"><span class="sb-stat-label">Cotizados</span><span class="sb-stat-val" id="stat-cotizados">0</span></div>
+    </div>
+    <div class="sb-section" style="margin-top:14px">
+      <div class="sb-label">Leads guardados</div>
+    </div>
+    <div class="leads-list" id="leads-list">
+      <div style="font-size:12px;opacity:.5;text-align:center;padding:20px 0">Sin leads aún.<br>Iniciá una consulta.</div>
+    </div>
+    <div style="padding:16px 20px">
+      <button class="btn btn-primary" style="width:100%;font-size:13px" onclick="abrirNuevaConsulta()">+ Nueva consulta</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-nombre">Sin consulta activa</div>
+        <div class="topbar-sub" id="topbar-sub">Seleccioná un lead o iniciá una nueva consulta</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-sm" onclick="copiarCotizacion()" id="btn-copiar" style="display:none">📋 Copiar cotización</button>
+        <button class="btn btn-sm btn-primary" onclick="guardarLead()" id="btn-guardar" style="display:none">💾 Guardar lead</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- FORM PANEL -->
+      <div class="form-panel">
+        <div id="panel-vacio" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center;color:var(--txt3)">
+          <div style="font-size:48px;margin-bottom:16px">🏔️</div>
+          <div style="font-size:16px;font-weight:600;color:var(--txt2);margin-bottom:8px">Agente de Cotización</div>
+          <div style="font-size:13px;max-width:280px;line-height:1.6">El agente cotiza, responde en el tono de MSN y guarda el lead automáticamente.</div>
+          <button class="btn btn-primary" style="margin-top:20px" onclick="abrirNuevaConsulta()">+ Nueva consulta</button>
+        </div>
+
+        <div id="panel-form" style="display:none">
+          <div class="panel-title">📋 Datos de la consulta</div>
+
+          <div class="card">
+            <div class="card-title">👤 Huésped</div>
+            <div class="row2">
+              <div class="fg"><label>Nombre</label><input type="text" id="f-nombre" placeholder="Ej: Martín García" oninput="actualizarTopbar()"></div>
+              <div class="fg"><label>Teléfono / WhatsApp</label><input type="text" id="f-tel" placeholder="+54 261..."></div>
+            </div>
+            <div class="row2">
+              <div class="fg"><label>Email</label><input type="email" id="f-email" placeholder="correo@gmail.com"></div>
+              <div class="fg"><label>Canal de origen</label>
+                <select id="f-canal">
+                  <option>WhatsApp</option>
+                  <option>Formulario web</option>
+                  <option>Email</option>
+                  <option>Booking.com</option>
+                  <option>Instagram</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🏠 Alojamiento y fechas</div>
+            <div class="fg"><label>Alojamiento</label>
+              <select id="f-alo" onchange="calcularTarifa()">
+                <option value="Departamento Ciudad de Mendoza 2">Depto Mendoza 2 — Gral. Espejo 333</option>
+                <option value="Departamento Ciudad de Mendoza 3">Depto Mendoza 3 — Gral. Espejo 333</option>
+                <option value="Cabaña Loft">Cabaña Loft — Potrerillos</option>
+                <option value="Cabaña Standard">Cabaña Standard — Potrerillos</option>
+                <option value="Cabaña grande">Cabaña Grande 15 — Potrerillos</option>
+                <option value="Departamento 4 pax VLL">Depto Valle de Las Leñas</option>
+              </select>
+            </div>
+            <div class="row3">
+              <div class="fg"><label>Check-in</label><input type="date" id="f-ci" onchange="calcularTarifa()"></div>
+              <div class="fg"><label>Check-out</label><input type="date" id="f-co" onchange="calcularTarifa()"></div>
+              <div class="fg"><label>Personas</label>
+                <select id="f-pax" onchange="calcularTarifa()">
+                  <option value="1">1</option>
+                  <option value="2" selected>2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                </select>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="fg"><label>Mascotas</label>
+                <select id="f-mascotas">
+                  <option value="no">Sin mascotas</option>
+                  <option value="si">Con mascota</option>
+                </select>
+              </div>
+              <div class="fg"><label>Cotización U$S (ARS)</label>
+                <input type="number" id="f-cotiz" placeholder="Ej: 1450" oninput="calcularTarifa()">
+              </div>
+            </div>
+          </div>
+
+          <!-- RESULTADO TARIFA -->
+          <div id="panel-tarifa" style="display:none">
+            <div class="card">
+              <div class="card-title">💵 Cotización calculada</div>
+              <div class="tarifa-result">
+                <div class="tarifa-main" id="tar-total-ars">—</div>
+                <div class="tarifa-detail" id="tar-detalle">—</div>
+                <div class="tarifa-breakdown">
+                  <div class="tb-item"><div class="tb-val" id="tar-noches">—</div><div class="tb-lbl">Noches</div></div>
+                  <div class="tb-item"><div class="tb-val" id="tar-x-noche">—</div><div class="tb-lbl">Por noche</div></div>
+                  <div class="tb-item"><div class="tb-val" id="tar-temporada">—</div><div class="tb-lbl">Temporada</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">💬 Mensaje del huésped</div>
+            <div class="fg"><label>Transcribí o pegá la consulta original</label>
+              <textarea id="f-mensaje" placeholder="Ej: Hola! Quisiera saber si tienen disponibilidad para 2 personas del 15 al 18 de agosto en una cabaña en Potrerillos. Cuánto saldría?"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="cotizarConIA()" id="btn-cotizar" style="width:100%;margin-top:4px">✨ Cotizar con IA →</button>
+          </div>
+
+          <div class="card" id="card-notas" style="display:none">
+            <div class="card-title">📝 Notas internas</div>
+            <div class="fg"><textarea id="f-notas" placeholder="Notas privadas sobre este lead..."></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAT PANEL -->
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div class="chat-avatar" id="chat-avatar">?</div>
+          <div>
+            <div class="chat-name" id="chat-nombre">Sin huésped</div>
+            <div class="chat-status" id="chat-status">Esperando consulta</div>
+          </div>
+        </div>
+
+        <div class="messages" id="messages">
+          <div style="text-align:center;padding:40px 20px;color:var(--txt3)">
+            <div style="font-size:32px;margin-bottom:10px">💬</div>
+            <div style="font-size:13px">El chat con el huésped aparece acá.<br>Iniciá una consulta para comenzar.</div>
+          </div>
+        </div>
+
+        <div class="quick-replies" id="quick-replies" style="display:none">
+          <span class="qr" onclick="enviarQuick('Necesito más información')">Más info →</span>
+          <span class="qr" onclick="enviarQuick('¿Cuál es la política de cancelación?')">Cancelación →</span>
+          <span class="qr" onclick="enviarQuick('¿Aceptan mascotas?')">Mascotas →</span>
+          <span class="qr" onclick="enviarQuick('¿Cómo reservo?')">Cómo reservo →</span>
+        </div>
+
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" placeholder="Escribí un mensaje al huésped..." onkeydown="if(event.key==='Enter')enviarMensajeManual()">
+          <button class="btn-send" onclick="enviarMensajeManual()">↑</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+      <span><span class="status-dot"></span>Agente activo</span>
+      <span id="status-dolar">Cargando cotización U$S...</span>
+      <span id="status-temporada"></span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVA CONSULTA -->
+<div class="overlay" id="overlay-nueva" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal">
+    <div class="modal-title">Nueva consulta</div>
+    <div class="fg"><label>Nombre del huésped</label><input type="text" id="m-nombre" placeholder="Ej: Martín García"></div>
+    <div class="fg"><label>Canal</label>
+      <select id="m-canal">
+        <option>WhatsApp</option><option>Formulario web</option><option>Email</option><option>Booking.com</option><option>Instagram</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearConsulta()">Iniciar →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// ESTADO
+// ============================================================
+const state = {
+  leads: [],
+  leadActual: null,
+  dolarHoy: 0,
+  estadisticas: { consultas: 0, cotizados: 0 }
+};
+
+// TARIFAS (U$S — mismo objeto que MSN_Firebase)
+const TARIFAS = [
+  {alo:'Departamento Ciudad de Mendoza 2',pax:1,baja:46,alta:53,verano:53},
+  {alo:'Departamento Ciudad de Mendoza 2',pax:2,baja:46,alta:53,verano:53},
+  {alo:'Departamento Ciudad de Mendoza 2',pax:3,baja:50,alta:55,verano:55},
+  {alo:'Departamento Ciudad de Mendoza 2',pax:4,baja:50,alta:55,verano:55},
+  {alo:'Departamento Ciudad de Mendoza 3',pax:1,baja:48,alta:56,verano:56},
+  {alo:'Departamento Ciudad de Mendoza 3',pax:2,baja:48,alta:56,verano:56},
+  {alo:'Departamento Ciudad de Mendoza 3',pax:3,baja:53,alta:58,verano:58},
+  {alo:'Departamento Ciudad de Mendoza 3',pax:4,baja:53,alta:58,verano:58},
+  {alo:'Cabaña Loft',pax:2,baja:65,alta:82,verano:82},
+  {alo:'Cabaña Loft',pax:3,baja:70,alta:90,verano:90},
+  {alo:'Cabaña Loft',pax:4,baja:70,alta:90,verano:90},
+  {alo:'Cabaña Standard',pax:2,baja:72,alta:90,verano:90},
+  {alo:'Cabaña Standard',pax:3,baja:77,alta:99,verano:99},
+  {alo:'Cabaña Standard',pax:4,baja:77,alta:99,verano:99},
+  {alo:'Cabaña grande',pax:2,baja:79,alta:99,verano:99},
+  {alo:'Cabaña grande',pax:3,baja:87,alta:109,verano:109},
+  {alo:'Cabaña grande',pax:4,baja:87,alta:109,verano:109},
+  {alo:'Cabaña grande',pax:5,baja:95,alta:120,verano:120},
+  {alo:'Cabaña grande',pax:6,baja:95,alta:120,verano:120},
+  {alo:'Cabaña grande',pax:7,baja:95,alta:120,verano:120},
+  {alo:'Departamento 4 pax VLL',pax:2,baja:0,alta:180,verano:0},
+  {alo:'Departamento 4 pax VLL',pax:3,baja:0,alta:200,verano:0},
+  {alo:'Departamento 4 pax VLL',pax:4,baja:0,alta:200,verano:0},
+];
+
+function getTemporada(fecha){
+  if(!fecha) return 'baja';
+  const m = parseInt(fecha.split('-')[1]);
+  if(m>=1&&m<=2) return 'alta';
+  if(m===12) return 'verano';
+  if(m>=7&&m<=8) return 'alta';
+  return 'baja';
+}
+
+function getTarifa(alo, pax, fecha){
+  const t = TARIFAS.find(x => x.alo===alo && x.pax===parseInt(pax));
+  if(!t) {
+    // fallback al pax más cercano
+    const all = TARIFAS.filter(x=>x.alo===alo).sort((a,b)=>a.pax-b.pax);
+    if(!all.length) return null;
+    return all[all.length-1];
+  }
+  return t;
+}
+
+function fmtARS(n){ return '$' + Math.round(n).toLocaleString('es-AR'); }
+function fmtUSD(n){ return 'U$S ' + Math.round(n); }
+function hoy(){ return new Date().toISOString().split('T')[0]; }
+function horaActual(){ return new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); }
+function diffDias(a,b){ return Math.round((new Date(b)-new Date(a))/(1000*60*60*24)); }
+
+// ============================================================
+// DÓLAR
+// ============================================================
+async function cargarDolar(){
+  try{
+    const r = await fetch('https://dolarapi.com/v1/dolares/blue');
+    const d = await r.json();
+    state.dolarHoy = d.venta || 0;
+    document.getElementById('status-dolar').textContent = 'U$S blue: ' + fmtARS(state.dolarHoy).replace('$','$') + ' (venta)';
+    calcularTarifa();
+  } catch(e){
+    document.getElementById('status-dolar').textContent = 'Cotización U$S: ingresá manualmente';
+  }
+}
+
+// ============================================================
+// CALCULAR TARIFA
+// ============================================================
+function calcularTarifa(){
+  const alo = document.getElementById('f-alo')?.value;
+  const ci = document.getElementById('f-ci')?.value;
+  const co = document.getElementById('f-co')?.value;
+  const pax = document.getElementById('f-pax')?.value;
+  const cotizInput = parseFloat(document.getElementById('f-cotiz')?.value)||0;
+  const cotiz = cotizInput || state.dolarHoy;
+
+  if(!alo||!ci||!co||!pax){ document.getElementById('panel-tarifa').style.display='none'; return; }
+  const noches = diffDias(ci,co);
+  if(noches<=0){ document.getElementById('panel-tarifa').style.display='none'; return; }
+
+  const tmp = getTemporada(ci);
+  const tar = getTarifa(alo, pax, ci);
+  if(!tar){ document.getElementById('panel-tarifa').style.display='none'; return; }
+
+  const usdNoche = tar[tmp] || tar.baja || 0;
+  if(!usdNoche){ document.getElementById('panel-tarifa').style.display='none'; return; }
+
+  const usdTotal = usdNoche * noches;
+  const arsTotal = cotiz > 0 ? usdTotal * cotiz : 0;
+
+  const tmpLabel = {baja:'🟢 Baja',alta:'🔴 Alta',verano:'🟠 Verano'};
+
+  document.getElementById('panel-tarifa').style.display='block';
+  document.getElementById('tar-total-ars').textContent = arsTotal > 0 ? fmtARS(arsTotal) : fmtUSD(usdTotal);
+  document.getElementById('tar-detalle').textContent = arsTotal > 0
+    ? `${noches} noches × ${fmtUSD(usdNoche)} × ${fmtARS(cotiz)} = ${fmtARS(arsTotal)}`
+    : `${noches} noches × ${fmtUSD(usdNoche)} (sin cotización ARS)`;
+  document.getElementById('tar-noches').textContent = noches + 'n';
+  document.getElementById('tar-x-noche').textContent = cotiz > 0 ? fmtARS(usdNoche*cotiz) : fmtUSD(usdNoche);
+  document.getElementById('tar-temporada').textContent = tmpLabel[tmp];
+  document.getElementById('status-temporada').textContent = 'Temporada: ' + tmpLabel[tmp];
+
+  // Guardar en state
+  if(state.leadActual){
+    state.leadActual.tarifa = { usdNoche, usdTotal, arsTotal, noches, cotiz, temporada: tmp };
+  }
+}
+
+// ============================================================
+// COTIZAR CON IA
+// ============================================================
+async function cotizarConIA(){
+  const nombre = document.getElementById('f-nombre').value || 'el huésped';
+  const alo = document.getElementById('f-alo').value;
+  const ci = document.getElementById('f-ci').value;
+  const co = document.getElementById('f-co').value;
+  const pax = document.getElementById('f-pax').value;
+  const mascotas = document.getElementById('f-mascotas').value;
+  const cotizInput = parseFloat(document.getElementById('f-cotiz').value)||0;
+  const cotiz = cotizInput || state.dolarHoy;
+  const mensaje = document.getElementById('f-mensaje').value;
+
+  if(!ci||!co){ mostrarToast('⚠ Ingresá las fechas de check-in y check-out primero.', true); return; }
+
+  const noches = diffDias(ci,co);
+  const tmp = getTemporada(ci);
+  const tar = getTarifa(alo, pax, ci);
+  const usdNoche = tar ? (tar[tmp]||tar.baja||0) : 0;
+  const usdTotal = usdNoche * noches;
+  const arsTotal = cotiz > 0 ? usdTotal * cotiz : 0;
+  const tmpLabel = {baja:'baja',alta:'alta',verano:'verano (diciembre)'};
+
+  const btn = document.getElementById('btn-cotizar');
+  btn.disabled = true; btn.textContent = '⏳ Generando respuesta...';
+
+  // Mensaje del huésped en el chat
+  if(mensaje.trim()){
+    agregarMensaje('in', mensaje.trim(), nombre);
+  }
+
+  // Typing indicator
+  const typingId = mostrarTyping();
+
+  const systemPrompt = `Sos el agente de atención al huésped de Mendoza Sol y Nieve (MSN), una empresa familiar de alquileres turísticos en Mendoza, Argentina. 
+
+Alojamientos:
+- Departamentos en Mendoza Capital (Gral. Espejo 333): Depto 2 (hasta 4 pax) y Depto 3 (hasta 4 pax)
+- Cabañas en Potrerillos: Loft (4 pax), Standard (6 pax), Grande 15 (7 pax) — con pileta, parrilla, vistas a la montaña
+- Departamento en Valle de Las Leñas — temporada invernal
+
+Políticas:
+- Check-in: 14 hs. Check-out: 10 hs. Late check-out consultar disponibilidad.
+- Mascotas: se aceptan en cabañas Potrerillos con cargo adicional. No en departamentos.
+- Seña del 30% para confirmar. Saldo al ingreso.
+- Mínimo 2 noches (3 en temporada alta).
+- Pagos: transferencia bancaria, Mercado Pago.
+
+Tono: cálido, profesional, mendocino. Tratá al huésped de vos. Mensajes cortos y directos, como WhatsApp. No uses asteriscos ni formato markdown. Terminá siempre con una invitación a confirmar o con una pregunta que avance la conversación.`;
+
+  const userContent = `El huésped "${nombre}" consulta por ${alo} (${pax} personas) del ${ci} al ${co} (${noches} noches).
+Temporada: ${tmpLabel[tmp]}.
+Tarifa: ${fmtUSD(usdNoche)}/noche${arsTotal>0?' = '+fmtARS(arsTotal)+' totales (cotización U$S '+Math.round(cotiz)+')':`= ${fmtUSD(usdTotal)} totales`}.
+${mascotas==='si'?'Viaja con mascota.':''}
+${mensaje ? 'Mensaje original del huésped: "'+mensaje+'"' : 'Generá una respuesta con la cotización.'}
+
+Respondé directamente al huésped con la cotización clara, en tono MSN. Sin saludos formales si ya hay conversación. Incluí la tarifa en pesos${arsTotal<=0?' y también en dólares':''}.`;
+
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system: systemPrompt,
+        messages:[{role:'user',content:userContent}]
+      })
+    });
+    const data = await resp.json();
+    const texto = data.content?.[0]?.text || 'No se pudo generar respuesta.';
+    quitarTyping(typingId);
+    agregarMensajeIA(texto, arsTotal, usdTotal, usdNoche, noches, ci, co, cotiz);
+    document.getElementById('quick-replies').style.display='flex';
+    document.getElementById('card-notas').style.display='block';
+    document.getElementById('btn-copiar').style.display='block';
+    document.getElementById('btn-guardar').style.display='block';
+    state.estadisticas.cotizados++;
+    document.getElementById('stat-cotizados').textContent = state.estadisticas.cotizados;
+    if(state.leadActual) state.leadActual.respuestaIA = texto;
+  } catch(e){
+    quitarTyping(typingId);
+    agregarMensaje('out','Error al conectar con la IA. Revisá tu conexión.','Sistema');
+  }
+  btn.disabled=false; btn.textContent='✨ Cotizar con IA →';
+}
+
+// ============================================================
+// MENSAJES
+// ============================================================
+function agregarMensaje(dir, texto, quien){
+  const msgs = document.getElementById('messages');
+  // Limpiar placeholder
+  const placeholder = msgs.querySelector('[style*="padding:40px"]');
+  if(placeholder) placeholder.remove();
+
+  const initials = quien ? quien.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : '?';
+  const el = document.createElement('div');
+  el.className = 'msg ' + dir;
+  el.innerHTML = `
+    <div class="msg-avatar">${initials}</div>
+    <div>
+      <div class="msg-bubble">${texto}</div>
+      <div class="msg-time">${horaActual()}</div>
+    </div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function agregarMensajeIA(texto, arsTotal, usdTotal, usdNoche, noches, ci, co, cotiz){
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg out';
+  
+  const cotCard = arsTotal>0 ? `
+    <div class="cot-card">
+      <div class="cot-title">Cotización</div>
+      <div class="cot-row"><span>Alojamiento</span><span>${document.getElementById('f-alo').value.split('—')[0].trim()}</span></div>
+      <div class="cot-row"><span>Período</span><span>${ci} → ${co}</span></div>
+      <div class="cot-row"><span>${noches} noches × ${fmtUSD(usdNoche)}</span><span>${fmtUSD(usdTotal)}</span></div>
+      ${cotiz>0?`<div class="cot-row"><span>Cotización U$S</span><span>${fmtARS(cotiz)}</span></div>`:''}
+      <div class="cot-row"><span>TOTAL</span><span>${fmtARS(arsTotal)}</span></div>
+    </div>` : '';
+
+  el.innerHTML = `
+    <div class="msg-avatar">MS</div>
+    <div style="max-width:90%">
+      <div class="msg-bubble" style="border-radius:12px 2px 12px 12px">${texto.replace(/\n/g,'<br>')}${cotCard}</div>
+      <div class="msg-time">${horaActual()} · Agente IA</div>
+    </div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function mostrarTyping(){
+  const msgs = document.getElementById('messages');
+  const id = 'typing-' + Date.now();
+  const el = document.createElement('div');
+  el.id = id;
+  el.className = 'msg out';
+  el.innerHTML = `<div class="msg-avatar">MS</div><div class="msg-bubble typing"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+
+function quitarTyping(id){
+  const el = document.getElementById(id);
+  if(el) el.remove();
+}
+
+// ============================================================
+// QUICK REPLIES
+// ============================================================
+async function enviarQuick(texto){
+  const nombre = document.getElementById('f-nombre').value || 'Huésped';
+  agregarMensaje('in', texto, nombre);
+  const typingId = mostrarTyping();
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:500,
+        system:`Sos el agente de atención al huésped de Mendoza Sol y Nieve. Políticas: check-in 14hs, checkout 10hs, mascotas en cabañas Potrerillos con cargo, seña 30%, mínimo 2 noches. Tono cálido, directo, como WhatsApp. Sin markdown.`,
+        messages:[{role:'user',content:`El huésped pregunta: "${texto}". Respondé brevemente en tono MSN.`}]
+      })
+    });
+    const data = await resp.json();
+    const txt = data.content?.[0]?.text||'...';
+    quitarTyping(typingId);
+    agregarMensaje('out', txt.replace(/\n/g,'<br>'), 'MSN');
+  } catch(e){
+    quitarTyping(typingId);
+    agregarMensaje('out','Error de conexión.','Sistema');
+  }
+}
+
+function enviarMensajeManual(){
+  const input = document.getElementById('chat-input');
+  const texto = input.value.trim();
+  if(!texto) return;
+  agregarMensaje('out', texto, 'MSN');
+  input.value='';
+}
+
+// ============================================================
+// LEADS
+// ============================================================
+function abrirNuevaConsulta(){
+  document.getElementById('overlay-nueva').classList.add('open');
+  document.getElementById('m-nombre').focus();
+}
+
+function cerrarModal(){
+  document.getElementById('overlay-nueva').classList.remove('open');
+}
+
+function crearConsulta(){
+  const nombre = document.getElementById('m-nombre').value.trim() || 'Huésped sin nombre';
+  const canal = document.getElementById('m-canal').value;
+  const lead = {
+    id: Date.now(),
+    nombre, canal,
+    fecha: hoy(),
+    estado: 'nuevo',
+    tarifa: null,
+    respuestaIA: null,
+    notas: ''
+  };
+  state.leads.unshift(lead);
+  state.leadActual = lead;
+  state.estadisticas.consultas++;
+  document.getElementById('stat-consultas').textContent = state.estadisticas.consultas;
+  cerrarModal();
+  activarLead(lead);
+  renderLeads();
+}
+
+function activarLead(lead){
+  state.leadActual = lead;
+  document.getElementById('panel-vacio').style.display='none';
+  document.getElementById('panel-form').style.display='block';
+  document.getElementById('f-nombre').value = lead.nombre;
+  document.getElementById('f-canal').value = lead.canal;
+  document.getElementById('f-tel').value = lead.tel||'';
+  document.getElementById('f-email').value = lead.email||'';
+  actualizarTopbar();
+  actualizarChatHeader();
+  // Limpiar chat
+  document.getElementById('messages').innerHTML = `
+    <div style="text-align:center;padding:20px;color:var(--txt3);font-size:12px">
+      Nueva consulta iniciada · ${new Date().toLocaleDateString('es-AR')}
+    </div>`;
+  document.getElementById('quick-replies').style.display='none';
+  document.getElementById('btn-copiar').style.display='none';
+  document.getElementById('btn-guardar').style.display='none';
+  document.getElementById('panel-tarifa').style.display='none';
+  document.getElementById('card-notas').style.display='none';
+  // Fecha de hoy como default
+  document.getElementById('f-ci').value='';
+  document.getElementById('f-co').value='';
+}
+
+function actualizarTopbar(){
+  const nombre = document.getElementById('f-nombre')?.value || state.leadActual?.nombre || '—';
+  document.getElementById('topbar-nombre').textContent = nombre;
+  document.getElementById('topbar-sub').textContent = 'Canal: ' + (document.getElementById('f-canal')?.value||'—');
+}
+
+function actualizarChatHeader(){
+  const nombre = state.leadActual?.nombre || 'Huésped';
+  const initials = nombre.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('chat-avatar').textContent = initials;
+  document.getElementById('chat-nombre').textContent = nombre;
+  document.getElementById('chat-status').textContent = 'Canal: ' + (state.leadActual?.canal||'—');
+}
+
+function renderLeads(){
+  const list = document.getElementById('leads-list');
+  if(!state.leads.length){
+    list.innerHTML='<div style="font-size:12px;opacity:.5;text-align:center;padding:20px 0">Sin leads aún.</div>';
+    return;
+  }
+  const stLabel = {nuevo:'Nuevo',cotizado:'Cotizado',seguimiento:'En seguimiento'};
+  list.innerHTML = state.leads.map(l=>`
+    <div class="lead-item ${state.leadActual?.id===l.id?'active':''}" onclick="activarLead(state.leads.find(x=>x.id===${l.id}))">
+      <div class="lead-name">${l.nombre}</div>
+      <div class="lead-meta">${l.canal} · ${l.fecha}</div>
+      <span class="lead-status st-${l.estado}">${stLabel[l.estado]||l.estado}</span>
+    </div>`).join('');
+}
+
+function guardarLead(){
+  if(!state.leadActual) return;
+  state.leadActual.nombre = document.getElementById('f-nombre').value || state.leadActual.nombre;
+  state.leadActual.tel = document.getElementById('f-tel').value;
+  state.leadActual.email = document.getElementById('f-email').value;
+  state.leadActual.alo = document.getElementById('f-alo').value;
+  state.leadActual.ci = document.getElementById('f-ci').value;
+  state.leadActual.co = document.getElementById('f-co').value;
+  state.leadActual.pax = document.getElementById('f-pax').value;
+  state.leadActual.notas = document.getElementById('f-notas').value;
+  state.leadActual.estado = 'cotizado';
+  renderLeads();
+  mostrarToast('✔ Lead guardado correctamente');
+}
+
+function copiarCotizacion(){
+  if(!state.leadActual?.respuestaIA) return;
+  navigator.clipboard?.writeText(state.leadActual.respuestaIA).then(()=>{
+    mostrarToast('✔ Cotización copiada al portapapeles');
+  }).catch(()=>mostrarToast('Copiá el texto del chat manualmente'));
+}
+
+function mostrarToast(msg, error=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = error ? 'var(--red-bg)' : 'var(--green-bg)';
+  t.style.borderColor = error ? '#fca5a5' : 'var(--green-border)';
+  t.style.color = error ? 'var(--red)' : 'var(--green)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+cargarDolar();
+</script>
+</body>
+</html>

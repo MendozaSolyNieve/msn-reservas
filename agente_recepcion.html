@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agente de Recepción — Mendoza Sol y Nieve</title>
+<style>
+:root {
+  --bg: #f5f5f0;
+  --surface: #ffffff;
+  --surface2: #fafaf8;
+  --border: #e2e0d8;
+  --border2: #c8c5bb;
+  --txt: #1a1917;
+  --txt2: #5c5a54;
+  --txt3: #9c9a94;
+  --accent: #0f4c81;
+  --accent-bg: #e8f0f9;
+  --green: #15803d;
+  --green-bg: #dcfce7;
+  --green-border: #86efac;
+  --amber: #92400e;
+  --amber-bg: #fef3c7;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--txt); min-height: 100vh; }
+
+.app { display: grid; grid-template-columns: 280px 1fr 380px; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar { background: #0a3560; color: #fff; display: flex; flex-direction: column; }
+.sb-header { padding: 22px 18px 18px; border-bottom: 1px solid rgba(255,255,255,.12); }
+.sb-logo { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .55; margin-bottom: 5px; }
+.sb-title { font-size: 17px; font-weight: 600; line-height: 1.3; }
+.sb-badge { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 11px; background: rgba(255,255,255,.12); padding: 3px 9px; border-radius: 20px; }
+.sb-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:#4ade80; display:block; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+.sb-nav { padding: 14px 0; flex:1; overflow-y:auto; }
+.sb-nav-title { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .4; padding: 0 18px; margin-bottom: 6px; margin-top: 10px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 18px; font-size: 13px; cursor: pointer; opacity: .75; transition: all .15s; border-left: 2px solid transparent; }
+.nav-item:hover { opacity: 1; background: rgba(255,255,255,.07); }
+.nav-item.active { opacity: 1; background: rgba(255,255,255,.12); border-left-color: #60a5fa; }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.sb-stats { padding: 14px 18px; border-top: 1px solid rgba(255,255,255,.1); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sb-stat { background: rgba(255,255,255,.08); border-radius: var(--radius); padding: 9px 10px; text-align: center; }
+.sb-stat-val { font-size: 20px; font-weight: 700; }
+.sb-stat-lbl { font-size: 10px; opacity: .6; margin-top: 2px; }
+
+/* MAIN */
+.main { display: flex; flex-direction: column; overflow: hidden; }
+.topbar { padding: 13px 22px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+.topbar-title { font-size: 15px; font-weight: 600; }
+.topbar-sub { font-size: 12px; color: var(--txt3); }
+.tab-bar { display: flex; gap: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 22px; }
+.tab { padding: 10px 16px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--txt2); transition: all .15s; }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.tab:hover:not(.active) { color: var(--txt); }
+
+.content-area { flex:1; overflow-y: auto; padding: 22px; }
+
+/* CARDS */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 7px; }
+.btn { padding: 7px 14px; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border2); background: var(--surface); color: var(--txt); transition: all .15s; }
+.btn:hover { background: var(--bg); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: #0c3d6a; }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-ghost { border-color: transparent; background: transparent; }
+.btn-ghost:hover { background: var(--bg); }
+
+/* FAQ EDITOR */
+.faq-item { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; }
+.faq-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); cursor: pointer; }
+.faq-cat { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.cat-checkin { background: #dbeafe; color: #1e40af; }
+.cat-servicios { background: #dcfce7; color: #166534; }
+.cat-mascotas { background: #fef3c7; color: #92400e; }
+.cat-pago { background: #ede9fe; color: #5b21b6; }
+.cat-turismo { background: #fce7f3; color: #9d174d; }
+.cat-llegada { background: #fff7ed; color: #9a3412; }
+.faq-pregunta { font-size: 13px; font-weight: 500; flex:1; }
+.faq-body { padding: 12px 14px; border-top: 1px solid var(--border); display: none; }
+.faq-body.open { display: block; }
+.faq-body textarea { width: 100%; padding: 8px 11px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; background: var(--surface2); color: var(--txt); font-family: inherit; resize: vertical; min-height: 80px; }
+.faq-body textarea:focus { outline: none; border-color: var(--accent); }
+.faq-actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+
+/* PROBAR AGENTE */
+.fg { margin-bottom: 12px; }
+.fg label { display: block; font-size: 12px; color: var(--txt2); margin-bottom: 4px; font-weight: 500; }
+.fg input, .fg select, .fg textarea { width: 100%; padding: 8px 11px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; background: var(--surface2); color: var(--txt); font-family: inherit; }
+.fg input:focus, .fg select:focus, .fg textarea:focus { outline: none; border-color: var(--accent); }
+
+/* HISTORIAL */
+.hist-item { padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; }
+.hist-meta { font-size: 11px; color: var(--txt3); margin-bottom: 6px; display: flex; gap: 10px; }
+.hist-q { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.hist-a { font-size: 13px; color: var(--txt2); line-height: 1.5; }
+.hist-canal { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; background: var(--accent-bg); color: var(--accent); }
+
+/* CHAT PREVIEW PANEL */
+.chat-panel { background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+.chat-header { padding: 13px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--surface2); }
+.chat-wa { width: 34px; height: 34px; border-radius: 50%; background: #25d366; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.chat-name { font-size: 14px; font-weight: 600; }
+.chat-status { font-size: 11px; color: var(--green); }
+
+.messages { flex:1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; background: #e5ddd5; }
+.msg { display: flex; gap: 6px; max-width: 100%; }
+.msg.out { flex-direction: row-reverse; }
+.msg-bubble { padding: 8px 12px; border-radius: 10px; font-size: 13px; line-height: 1.55; max-width: 88%; position: relative; }
+.msg.in .msg-bubble { background: #fff; color: var(--txt); border-radius: 0 10px 10px 10px; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+.msg.out .msg-bubble { background: #d9fdd3; color: #111; border-radius: 10px 0 10px 10px; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+.msg-time { font-size: 10px; color: #999; text-align: right; margin-top: 2px; }
+.msg-avatar { width: 26px; height: 26px; border-radius: 50%; background: #25d366; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.msg.in .msg-avatar { background: #cbd5e1; color: var(--txt2); }
+
+.typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; background: #fff; border-radius: 0 10px 10px 10px; width: fit-content; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+.typing span { width: 7px; height: 7px; border-radius: 50%; background: #999; animation: bounce 1.2s infinite; }
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+.chat-input-area { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: var(--surface2); }
+.chat-input-area input { flex:1; padding: 9px 13px; border: 1px solid var(--border); border-radius: 20px; font-size: 13px; background: var(--surface); color: var(--txt); font-family: inherit; }
+.chat-input-area input:focus { outline: none; border-color: #25d366; }
+.btn-send-wa { width: 36px; height: 36px; border-radius: 50%; background: #25d366; color: #fff; border: none; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* QUICK TOPICS */
+.topics-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-bottom: 16px; }
+.topic-btn { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface2); cursor: pointer; text-align: left; font-size: 12px; transition: all .15s; display: flex; align-items: center; gap: 8px; }
+.topic-btn:hover { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+.topic-icon { font-size: 18px; }
+
+/* CONFIGURACION */
+.config-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.config-row:last-child { border-bottom: none; }
+.config-label { font-size: 13px; font-weight: 500; }
+.config-desc { font-size: 12px; color: var(--txt3); margin-top: 2px; }
+.toggle { width: 40px; height: 22px; border-radius: 11px; background: var(--border2); cursor: pointer; position: relative; transition: background .2s; flex-shrink: 0; }
+.toggle.on { background: var(--accent); }
+.toggle::after { content:''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #fff; top: 3px; left: 3px; transition: left .2s; }
+.toggle.on::after { left: 21px; }
+
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); padding: 11px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; opacity: 0; transform: translateY(6px); transition: all .3s; z-index: 100; }
+.toast.show { opacity: 1; transform: translateY(0); }
+
+.alojamiento-select { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+.alo-btn { padding: 9px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface2); cursor: pointer; text-align: center; font-size: 11px; transition: all .15s; }
+.alo-btn:hover, .alo-btn.sel { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+
+@media(max-width:1000px){
+  .app{grid-template-columns:1fr}
+  .sidebar,.chat-panel{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">Mendoza Sol y Nieve</div>
+    <div class="sb-title">Agente de<br>Recepción</div>
+    <div class="sb-badge">En línea</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-nav-title">Módulos</div>
+    <div class="nav-item active" onclick="setTab('probar')"><span class="nav-icon">💬</span> Probar agente</div>
+    <div class="nav-item" onclick="setTab('faq')"><span class="nav-icon">📋</span> Base de conocimiento</div>
+    <div class="nav-item" onclick="setTab('historial')"><span class="nav-icon">🕐</span> Historial</div>
+    <div class="nav-item" onclick="setTab('config')"><span class="nav-icon">⚙️</span> Configuración</div>
+    <div class="sb-nav-title" style="margin-top:16px">Agentes MSN</div>
+    <div class="nav-item" onclick="mostrarToast('Abrí agente_cotizacion.html')"><span class="nav-icon">💵</span> Cotización</div>
+    <div class="nav-item" style="opacity:.4;cursor:default"><span class="nav-icon">📈</span> Revenue <span style="font-size:10px;opacity:.6;margin-left:4px">pronto</span></div>
+    <div class="nav-item" style="opacity:.4;cursor:default"><span class="nav-icon">🍽️</span> Concierge <span style="font-size:10px;opacity:.6;margin-left:4px">pronto</span></div>
+  </div>
+  <div class="sb-stats">
+    <div class="sb-stat"><div class="sb-stat-val" id="stat-preguntas">0</div><div class="sb-stat-lbl">Preguntas hoy</div></div>
+    <div class="sb-stat"><div class="sb-stat-val" id="stat-respondidas">0</div><div class="sb-stat-lbl">Respondidas</div></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Probar agente</div>
+      <div class="topbar-sub">Respuestas automáticas en el tono MSN · WhatsApp y web</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn btn-sm" onclick="copiarRespuesta()" id="btn-copiar-wa" style="display:none">📋 Copiar para WhatsApp</button>
+      <button class="btn btn-sm btn-primary" onclick="guardarEnHistorial()" id="btn-guardar-hist" style="display:none">💾 Guardar en historial</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" id="tab-probar" onclick="setTab('probar')">💬 Probar</div>
+    <div class="tab" id="tab-faq" onclick="setTab('faq')">📋 Base de conocimiento</div>
+    <div class="tab" id="tab-historial" onclick="setTab('historial')">🕐 Historial</div>
+    <div class="tab" id="tab-config" onclick="setTab('config')">⚙️ Config</div>
+  </div>
+
+  <div class="content-area">
+
+    <!-- TAB PROBAR -->
+    <div id="panel-probar">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px">📱 ¿Desde qué alojamiento consulta?</div>
+        <div class="alojamiento-select">
+          <div class="alo-btn sel" onclick="selAlo(this,'Departamento Ciudad de Mendoza 2')">🏙️ Depto<br>Mendoza 2</div>
+          <div class="alo-btn" onclick="selAlo(this,'Departamento Ciudad de Mendoza 3')">🏙️ Depto<br>Mendoza 3</div>
+          <div class="alo-btn" onclick="selAlo(this,'Cabaña Loft')">🏔️ Cabaña<br>Loft</div>
+          <div class="alo-btn" onclick="selAlo(this,'Cabaña Standard')">🏔️ Cabaña<br>Standard</div>
+          <div class="alo-btn" onclick="selAlo(this,'Cabaña grande')">🏔️ Cabaña<br>Grande</div>
+          <div class="alo-btn" onclick="selAlo(this,'Departamento 4 pax VLL')">⛷️ Valle de<br>Las Leñas</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px">🎯 Temas frecuentes — clic para responder al instante</div>
+        <div class="topics-grid">
+          <div class="topic-btn" onclick="preguntaRapida('¿A qué hora es el check-in y el check-out?')"><span class="topic-icon">🕐</span> Check-in / out</div>
+          <div class="topic-btn" onclick="preguntaRapida('¿Cómo llego al alojamiento? ¿Cuál es la dirección exacta?')"><span class="topic-icon">📍</span> Cómo llegar</div>
+          <div class="topic-btn" onclick="preguntaRapida('¿Aceptan mascotas?')"><span class="topic-icon">🐾</span> Mascotas</div>
+          <div class="topic-btn" onclick="preguntaRapida('¿Hay estacionamiento?')"><span class="topic-icon">🚗</span> Estacionamiento</div>
+          <div class="topic-btn" onclick="preguntaRapida('¿Hay WiFi? ¿Qué incluye el alojamiento?')"><span class="topic-icon">📶</span> WiFi / servicios</div>
+          <div class="topic-btn" onclick="preguntaRapida('¿Cómo pago? ¿Cómo confirmo la reserva?')"><span class="topic-icon">💳</span> Pago / reserva</div>
+          <div class="topic-btn" onclick="preguntaRapida('¿Qué podemos hacer cerca? ¿Qué recomiendan?')"><span class="topic-icon">🗺️</span> Qué hacer cerca</div>
+          <div class="topic-btn" onclick="preguntaRapida('¿Cuál es la política de cancelación?')"><span class="topic-icon">❌</span> Cancelación</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">✍️ O escribí la pregunta del huésped</div>
+        </div>
+        <div class="fg">
+          <textarea id="f-pregunta" rows="3" placeholder="Ej: Hola! tenemos pensado llegar a las 12 del mediodía, ¿está bien o hay que esperar?"></textarea>
+        </div>
+        <div style="display:flex;gap:8px">
+          <select id="f-canal-preg" style="padding:7px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--surface2);color:var(--txt)">
+            <option>WhatsApp</option>
+            <option>Formulario web</option>
+            <option>Email</option>
+          </select>
+          <button class="btn btn-primary" style="flex:1" onclick="responderPregunta()">✨ Responder con IA →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB FAQ -->
+    <div id="panel-faq" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Base de conocimiento — respuestas predefinidas</div>
+          <button class="btn btn-sm btn-primary" onclick="guardarFAQ()">💾 Guardar cambios</button>
+        </div>
+        <div style="font-size:12px;color:var(--txt3);margin-bottom:14px">La IA usa esta información como base. Editá las respuestas para que suenen como vos.</div>
+        <div id="faq-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB HISTORIAL -->
+    <div id="panel-historial" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🕐 Preguntas respondidas</div>
+          <button class="btn btn-sm" onclick="limpiarHistorial()">🗑 Limpiar</button>
+        </div>
+        <div id="historial-list">
+          <div style="text-align:center;padding:30px;color:var(--txt3);font-size:13px">Sin historial todavía.<br>Probá el agente para ver las respuestas acá.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB CONFIG -->
+    <div id="panel-config" style="display:none">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:14px">⚙️ Configuración del agente</div>
+        <div class="config-row">
+          <div><div class="config-label">Responder automáticamente</div><div class="config-desc">El agente responde sin revisión previa</div></div>
+          <div class="toggle" id="toggle-auto" onclick="toggleConfig(this)"></div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Incluir emoji en respuestas</div><div class="config-desc">Hace el mensaje más amigable en WhatsApp</div></div>
+          <div class="toggle on" id="toggle-emoji" onclick="toggleConfig(this)"></div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Siempre ofrecer cotización</div><div class="config-desc">Al final de cada respuesta, invitar a cotizar</div></div>
+          <div class="toggle on" id="toggle-cot" onclick="toggleConfig(this)"></div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Guardar en historial</div><div class="config-desc">Registrar todas las preguntas respondidas</div></div>
+          <div class="toggle on" id="toggle-hist" onclick="toggleConfig(this)"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:14px">🔑 API Key (Groq — gratuito)</div>
+        <div class="fg">
+          <label>Pegá tu key de Groq (console.groq.com)</label>
+          <input type="password" id="f-apikey" placeholder="gsk_..." oninput="guardarApiKey()">
+        </div>
+        <div style="font-size:12px;color:var(--txt3)">Sin key usa Claude (requiere créditos). Con key de Groq es gratis hasta 14.400 consultas/día.</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:14px">✏️ Personalización del tono</div>
+        <div class="fg">
+          <label>Nombre del agente</label>
+          <input type="text" id="f-agente-nombre" value="MSN Recepción" placeholder="Cómo se presenta el agente">
+        </div>
+        <div class="fg">
+          <label>Firma al final de cada mensaje</label>
+          <input type="text" id="f-firma" value="— Mendoza Sol y Nieve 🏔️" placeholder="Firma opcional">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="guardarConfig()">Guardar configuración</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CHAT PANEL (WhatsApp preview) -->
+<div class="chat-panel">
+  <div class="chat-header">
+    <div class="chat-wa">💬</div>
+    <div>
+      <div class="chat-name">Vista previa WhatsApp</div>
+      <div class="chat-status" id="chat-alo-label">Depto Mendoza 2</div>
+    </div>
+  </div>
+  <div class="messages" id="messages">
+    <div style="text-align:center;padding:20px 10px">
+      <div style="background:rgba(255,255,255,.7);border-radius:8px;padding:10px 14px;font-size:12px;color:#666;display:inline-block">
+        Seleccioná un tema o escribí una pregunta para ver la respuesta del agente
+      </div>
+    </div>
+  </div>
+  <div style="padding:8px 14px 4px;background:#f0f0f0">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px" id="chat-quick-btns"></div>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" id="chat-input" placeholder="Simulá una pregunta..." onkeydown="if(event.key==='Enter')enviarDesdeChat()">
+    <button class="btn-send-wa" onclick="enviarDesdeChat()">↑</button>
+  </div>
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// ESTADO Y FAQ BASE
+// ============================================================
+let aloActual = 'Departamento Ciudad de Mendoza 2';
+let historial = [];
+let ultimaRespuesta = '';
+const stats = { preguntas: 0, respondidas: 0 };
+
+const FAQ_BASE = [
+  {
+    id:'checkin', cat:'checkin', catLabel:'Check-in/out', pregunta:'¿A qué hora es el check-in y el check-out?',
+    respuesta:`El check-in es a partir de las 14 hs y el check-out hasta las 10 hs. Si llegás antes o necesitás salir más tarde, avisanos con anticipación y vemos si hay disponibilidad. En temporada alta el horario es más estricto por el recambio de huéspedes.`
+  },
+  {
+    id:'mascotas', cat:'mascotas', catLabel:'Mascotas', pregunta:'¿Aceptan mascotas?',
+    respuesta:`En las cabañas de Potrerillos sí aceptamos mascotas con un cargo adicional de U$S 10 por estadía. En los departamentos de Mendoza Capital no se permiten mascotas. Valle de Las Leñas tampoco acepta mascotas.`
+  },
+  {
+    id:'estacionamiento', cat:'servicios', catLabel:'Servicios', pregunta:'¿Hay estacionamiento?',
+    respuesta:`Los departamentos de Mendoza Capital (Gral. Espejo 333) tienen estacionamiento cubierto incluido en el edificio. Las cabañas en Potrerillos cuentan con estacionamiento propio en el predio, sin costo adicional. En Valle de Las Leñas hay estacionamiento en el complejo.`
+  },
+  {
+    id:'wifi', cat:'servicios', catLabel:'Servicios', pregunta:'¿Hay WiFi? ¿Qué incluye el alojamiento?',
+    respuesta:`Todos los alojamientos tienen WiFi incluido. Los departamentos de Mendoza incluyen: ropa de cama y toallas, cocina equipada, smart TV, aire acondicionado y calefacción. Las cabañas de Potrerillos incluyen además parrilla, pileta (temporada), vista a la montaña y equipamiento de cocina completo.`
+  },
+  {
+    id:'pago', cat:'pago', catLabel:'Pago / Reserva', pregunta:'¿Cómo pago? ¿Cómo confirmo la reserva?',
+    respuesta:`Para confirmar la reserva pedimos una seña del 30% del total. El saldo se abona al momento del check-in. Aceptamos transferencia bancaria (alias OSCAR.PORCARIO, Banco Supervielle) y Mercado Pago. Una vez recibida la seña te enviamos la confirmación por escrito.`
+  },
+  {
+    id:'llegada', cat:'llegada', catLabel:'Cómo llegar', pregunta:'¿Cómo llego? ¿Cuál es la dirección?',
+    respuesta:`Departamentos Mendoza: Gral. Espejo 333, Ciudad de Mendoza. Fácil acceso, a 10 min del centro. Cabañas Potrerillos: Ruta Provincial 82, Potrerillos — en el acceso al Valle te pasamos el pin de ubicación exacto por WhatsApp. Valle de Las Leñas: Ruta Provincial 222, Las Leñas, Malargüe.`
+  },
+  {
+    id:'turismo', cat:'turismo', catLabel:'Turismo', pregunta:'¿Qué podemos hacer cerca?',
+    respuesta:`Potrerillos: rafting en el río Mendoza, trekking, kayak en el dique, mountain bike y cabalgatas. Mendoza Capital: bodegas y enoturismo, Aconcagua, ciudad histórica, termas de Cacheuta a 30 min. Valle de Las Leñas: esquí y snowboard (temporada invernal), trekking en verano.`
+  },
+  {
+    id:'cancelacion', cat:'pago', catLabel:'Pago / Reserva', pregunta:'¿Cuál es la política de cancelación?',
+    respuesta:`Cancelación con más de 15 días de anticipación: reintegro del 80% de la seña. Entre 7 y 15 días: reintegro del 50%. Con menos de 7 días: sin reintegro. En casos de fuerza mayor evaluamos cada situación. Todo por escrito vía WhatsApp.`
+  },
+];
+
+let faqData = JSON.parse(localStorage.getItem('msn-faq') || 'null') || FAQ_BASE.map(f=>({...f}));
+
+// ============================================================
+// TABS
+// ============================================================
+function setTab(tab){
+  ['probar','faq','historial','config'].forEach(t=>{
+    document.getElementById('panel-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('tab-'+t)?.classList.toggle('active', t===tab);
+  });
+  document.getElementById('topbar-title').textContent = {
+    probar:'Probar agente', faq:'Base de conocimiento', historial:'Historial de respuestas', config:'Configuración'
+  }[tab];
+  document.querySelectorAll('.nav-item').forEach((el,i)=>{
+    el.classList.toggle('active', el.textContent.toLowerCase().includes(tab));
+  });
+  if(tab==='faq') renderFAQ();
+  if(tab==='historial') renderHistorial();
+}
+
+// ============================================================
+// ALOJAMIENTO
+// ============================================================
+function selAlo(el, alo){
+  document.querySelectorAll('.alo-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  aloActual = alo;
+  document.getElementById('chat-alo-label').textContent = alo.split(' ').slice(0,3).join(' ');
+}
+
+// ============================================================
+// RESPONDER CON IA
+// ============================================================
+async function responderPregunta(){
+  const pregunta = document.getElementById('f-pregunta').value.trim();
+  if(!pregunta){ mostrarToast('⚠ Escribí la pregunta del huésped', true); return; }
+  const canal = document.getElementById('f-canal-preg').value;
+  await procesarPregunta(pregunta, canal);
+}
+
+async function preguntaRapida(texto){
+  document.getElementById('f-pregunta').value = texto;
+  await procesarPregunta(texto, 'WhatsApp');
+}
+
+async function enviarDesdeChat(){
+  const input = document.getElementById('chat-input');
+  const texto = input.value.trim();
+  if(!texto) return;
+  input.value='';
+  await procesarPregunta(texto, 'WhatsApp');
+}
+
+async function procesarPregunta(pregunta, canal){
+  stats.preguntas++;
+  document.getElementById('stat-preguntas').textContent = stats.preguntas;
+
+  // Mostrar pregunta en chat
+  agregarMensaje('in', pregunta, 'Huésped');
+  const typingId = mostrarTyping();
+
+  document.getElementById('btn-copiar-wa').style.display = 'none';
+  document.getElementById('btn-guardar-hist').style.display = 'none';
+
+  // Base FAQ como contexto
+  const faqContext = faqData.map(f=>`P: ${f.pregunta}\nR: ${f.respuesta}`).join('\n\n');
+
+  const emoji = document.getElementById('toggle-emoji')?.classList.contains('on');
+  const ofrecerCot = document.getElementById('toggle-cot')?.classList.contains('on');
+  const firma = document.getElementById('f-firma')?.value || '— Mendoza Sol y Nieve 🏔️';
+
+  const system = `Sos el agente de recepción de Mendoza Sol y Nieve (MSN), empresa familiar de alquileres turísticos en Mendoza, Argentina.
+
+El huésped está consultando por: ${aloActual}
+
+BASE DE CONOCIMIENTO (usá esta info como fuente principal):
+${faqContext}
+
+TONO: Cálido, directo, como si fuera un mensaje de WhatsApp de una persona real. Tratá al huésped de vos. Mensajes cortos, máximo 4-5 líneas. ${emoji?'Podés usar 1-2 emojis relacionados.':'Sin emojis.'} Sin asteriscos ni formato markdown.
+
+${ofrecerCot?'Al final, invitá brevemente a cotizar o confirmar la reserva si tiene sentido en el contexto.':''}
+
+Terminá con: ${firma}
+
+Si la pregunta no tiene que ver con el alojamiento, redirigí amablemente al tema de la estadía.`;
+
+  const apiKey = localStorage.getItem('msn-groq-key') || '';
+  let respuesta = '';
+
+  try {
+    if(apiKey && apiKey.startsWith('gsk_')){
+      // GROQ (gratuito)
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+        body: JSON.stringify({
+          model:'llama-3.1-8b-instant',
+          max_tokens:500,
+          messages:[{role:'system',content:system},{role:'user',content:pregunta}]
+        })
+      });
+      const d = await r.json();
+      respuesta = d.choices?.[0]?.message?.content || 'No pude generar respuesta.';
+    } else {
+      // Claude (Anthropic)
+      const r = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens:500,
+          system,
+          messages:[{role:'user',content:pregunta}]
+        })
+      });
+      const d = await r.json();
+      respuesta = d.content?.[0]?.text || 'No pude generar respuesta.';
+    }
+  } catch(e){
+    respuesta = 'Error de conexión. Verificá tu API key en Configuración.';
+  }
+
+  quitarTyping(typingId);
+  agregarMensaje('out', respuesta, 'MSN');
+  ultimaRespuesta = respuesta;
+  stats.respondidas++;
+  document.getElementById('stat-respondidas').textContent = stats.respondidas;
+
+  // Guardar en historial automático
+  if(document.getElementById('toggle-hist')?.classList.contains('on')){
+    historial.unshift({ pregunta, respuesta, canal, alo: aloActual, hora: horaActual() });
+  }
+
+  document.getElementById('btn-copiar-wa').style.display = 'block';
+  document.getElementById('btn-guardar-hist').style.display = 'block';
+
+  // Sugerencias de seguimiento en chat
+  renderChatQuickBtns();
+}
+
+function renderChatQuickBtns(){
+  const btns = document.getElementById('chat-quick-btns');
+  const sugerencias = ['¿Tienen disponibilidad?','¿Cómo reservo?','Gracias, te contacto'];
+  btns.innerHTML = sugerencias.map(s=>
+    `<button onclick="procesarPregunta('${s}','WhatsApp')" style="padding:5px 8px;border:1px solid #ccc;border-radius:14px;font-size:11px;cursor:pointer;background:#fff;color:#333">${s}</button>`
+  ).join('');
+}
+
+// ============================================================
+// MENSAJES CHAT
+// ============================================================
+function agregarMensaje(dir, texto, quien){
+  const msgs = document.getElementById('messages');
+  const placeholder = msgs.querySelector('[style*="text-align:center"]');
+  if(placeholder) placeholder.remove();
+  const initials = quien.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const el = document.createElement('div');
+  el.className = 'msg ' + dir;
+  el.innerHTML = `
+    <div class="msg-avatar">${initials}</div>
+    <div>
+      <div class="msg-bubble">${texto.replace(/\n/g,'<br>')}</div>
+      <div class="msg-time">${horaActual()}</div>
+    </div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function mostrarTyping(){
+  const msgs = document.getElementById('messages');
+  const id = 'typing-'+Date.now();
+  const el = document.createElement('div');
+  el.id = id; el.className = 'msg out';
+  el.innerHTML = `<div class="msg-avatar">MS</div><div class="typing"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+
+function quitarTyping(id){
+  document.getElementById(id)?.remove();
+}
+
+// ============================================================
+// FAQ EDITOR
+// ============================================================
+function renderFAQ(){
+  const catColors = {checkin:'cat-checkin',servicios:'cat-servicios',mascotas:'cat-mascotas',pago:'cat-pago',turismo:'cat-turismo',llegada:'cat-llegada'};
+  document.getElementById('faq-list').innerHTML = faqData.map((f,i)=>`
+    <div class="faq-item">
+      <div class="faq-header" onclick="toggleFAQ(${i})">
+        <span class="faq-cat ${catColors[f.cat]||'cat-servicios'}">${f.catLabel}</span>
+        <span class="faq-pregunta">${f.pregunta}</span>
+        <span style="font-size:12px;color:var(--txt3)">▼</span>
+      </div>
+      <div class="faq-body" id="faq-body-${i}">
+        <textarea id="faq-resp-${i}" rows="4">${f.respuesta}</textarea>
+        <div class="faq-actions">
+          <button class="btn btn-sm" onclick="probarFAQ(${i})">🔊 Probar</button>
+          <button class="btn btn-sm btn-primary" onclick="guardarFAQItem(${i})">💾 Guardar</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleFAQ(i){
+  const body = document.getElementById('faq-body-'+i);
+  body.classList.toggle('open');
+}
+
+function guardarFAQItem(i){
+  faqData[i].respuesta = document.getElementById('faq-resp-'+i).value;
+  localStorage.setItem('msn-faq', JSON.stringify(faqData));
+  mostrarToast('✔ Respuesta guardada');
+}
+
+function guardarFAQ(){
+  faqData.forEach((f,i)=>{
+    const el = document.getElementById('faq-resp-'+i);
+    if(el) f.respuesta = el.value;
+  });
+  localStorage.setItem('msn-faq', JSON.stringify(faqData));
+  mostrarToast('✔ Base de conocimiento guardada');
+}
+
+function probarFAQ(i){
+  setTab('probar');
+  document.getElementById('f-pregunta').value = faqData[i].pregunta;
+  procesarPregunta(faqData[i].pregunta, 'WhatsApp');
+}
+
+// ============================================================
+// HISTORIAL
+// ============================================================
+function renderHistorial(){
+  const list = document.getElementById('historial-list');
+  if(!historial.length){
+    list.innerHTML='<div style="text-align:center;padding:30px;color:var(--txt3);font-size:13px">Sin historial todavía.</div>';
+    return;
+  }
+  list.innerHTML = historial.map(h=>`
+    <div class="hist-item">
+      <div class="hist-meta">
+        <span>${h.hora}</span>
+        <span class="hist-canal">${h.canal}</span>
+        <span>${h.alo.split(' ').slice(0,2).join(' ')}</span>
+      </div>
+      <div class="hist-q">❓ ${h.pregunta}</div>
+      <div class="hist-a">💬 ${h.respuesta.replace(/\n/g,'<br>').slice(0,200)}${h.respuesta.length>200?'...':''}</div>
+    </div>`).join('');
+}
+
+function limpiarHistorial(){
+  if(confirm('¿Limpiar todo el historial?')){ historial=[]; renderHistorial(); }
+}
+
+function guardarEnHistorial(){
+  renderHistorial();
+  mostrarToast('✔ Guardado en historial');
+}
+
+// ============================================================
+// CONFIG
+// ============================================================
+function toggleConfig(el){ el.classList.toggle('on'); }
+
+function guardarApiKey(){
+  const key = document.getElementById('f-apikey').value;
+  if(key) localStorage.setItem('msn-groq-key', key);
+}
+
+function guardarConfig(){
+  localStorage.setItem('msn-firma', document.getElementById('f-firma').value);
+  localStorage.setItem('msn-agente-nombre', document.getElementById('f-agente-nombre').value);
+  mostrarToast('✔ Configuración guardada');
+}
+
+// ============================================================
+// ACCIONES
+// ============================================================
+function copiarRespuesta(){
+  if(!ultimaRespuesta) return;
+  navigator.clipboard?.writeText(ultimaRespuesta)
+    .then(()=>mostrarToast('✔ Copiado — pegalo en WhatsApp'))
+    .catch(()=>mostrarToast('Copiá el texto del chat manualmente'));
+}
+
+function mostrarToast(msg, error=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = error?'#fee2e2':'var(--green-bg)';
+  t.style.borderColor = error?'#fca5a5':'var(--green-border)';
+  t.style.color = error?'#991b1b':'var(--green)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function horaActual(){ return new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); }
+
+// Cargar API key guardada
+const savedKey = localStorage.getItem('msn-groq-key');
+if(savedKey) document.getElementById('f-apikey').value = savedKey;
+const savedFirma = localStorage.getItem('msn-firma');
+if(savedFirma) document.getElementById('f-firma').value = savedFirma;
+</script>
+</body>
+</html>
