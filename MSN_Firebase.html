@@ -1334,17 +1334,20 @@ let _dolarCache={valor:null,fecha:null};
 async function getDolarHoy(){
   const hoyStr=hoy();
   if(_dolarCache.valor&&_dolarCache.fecha===hoyStr)return _dolarCache.valor;
+  // Fuente 1: Bluelytics (BNA venta oficial — www.bna.com.ar)
   try{
-    const r=await fetch('https://dolarapi.com/v1/dolares/blue');
-    if(!r.ok)throw new Error('sin respuesta');
-    const data=await r.json();
-    const venta=data.venta||data.compra||0;
-    if(venta>0){_dolarCache={valor:venta,fecha:hoyStr};return venta;}
-  }catch(e){console.warn('dolarapi.com no disponible:',e);}
-  // Fallback: usar cotización manual del módulo USD si está cargada
+    const r=await fetch('https://api.bluelytics.com.ar/v2/latest');
+    if(r.ok){const d=await r.json();const v=d?.oficial?.value_sell||0;if(v>0){_dolarCache={valor:v,fecha:hoyStr};return v;}}
+  }catch(e){}
+  // Fuente 2: dolarapi.com oficial
+  try{
+    const r=await fetch('https://dolarapi.com/v1/dolares/oficial');
+    if(r.ok){const d=await r.json();const v=d?.venta||0;if(v>0){_dolarCache={valor:v,fecha:hoyStr};return v;}}
+  }catch(e){console.warn('dolarapi no disponible:',e);}
+  // Fallback manual
   const cotBk=parseFloat(document.getElementById('cot-bk')?.value)||0;
   if(cotBk>0)return cotBk;
-  return 0;
+  return _dolarCache.valor||0;
 }
 
 // Convierte U$S a ARS usando la cotización del día
@@ -2603,8 +2606,19 @@ function mostrarResultado(disponibles,ocupadas,proximas,ci,co,noches,pax){
   if(disponibles.length){
     html+='<div style="font-size:12px;font-weight:600;color:var(--ok);margin-bottom:6px">Unidades disponibles:</div>';
     html+=disponibles.map(u=>{
-      const tar=window._tarifas.filter(t=>t.alojamiento===u&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
-      const precioStr=tar?'<span style="color:var(--pr);font-weight:700"> · $'+fmt(tar.valorNoche)+'/noche</span>':'';
+      // Buscar tarifa por alojamiento + PAX exacto + fecha vigente
+      const tmp=getTempByFecha(ci);
+      const tarPax=window._tarifas.filter(t=>t.alojamiento===u&&Number(t.pax)===pax&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
+      const tarAny=window._tarifas.filter(t=>t.alojamiento===u&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
+      const tar=tarPax||tarAny;
+      const cotiz=parseFloat(document.getElementById('cot-bk')?.value)||0;
+      let precioStr='';
+      if(tar){
+        const usd=tar.valorNoche||0;
+        const ars=cotiz>0?Math.round(usd*cotiz):0;
+        precioStr='<span style="color:var(--pr);font-weight:700"> · U$S'+usd+'/noche'+(ars>0?' (≈ $'+fmt(ars)+' ARS)':'')+'</span>';
+        if(!tarPax&&tarAny) precioStr+='<span style="color:#f59e0b;font-size:10px"> ⚠ tarifa base</span>';
+      }
       return'<div style="padding:5px 10px;background:#f0fdf4;border:1px solid #86efac;border-radius:5px;margin-bottom:4px;font-size:12px">🏠 '+u+precioStr+'</div>';
     }).join('');
   }
@@ -2622,13 +2636,29 @@ function mostrarResultado(disponibles,ocupadas,proximas,ci,co,noches,pax){
 function generarRespuesta(disponibles,ocupadas,proximas,ci,co,noches,pax,zona){
   const nombre=(gv('cons-nombre')||'').split(' ')[0]||'Estimado/a';
   const zonaTxt=zona==='ciudad'?'en Mendoza ciudad':zona==='potrerillos'?'en nuestras cabañas en Potrerillos':'en nuestros alojamientos';
+  const cotiz=parseFloat(document.getElementById('cot-bk')?.value)||0;
+  function getTarPax(u){
+    const exact=window._tarifas.filter(t=>t.alojamiento===u&&Number(t.pax)===pax&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
+    if(exact)return exact;
+    return window._tarifas.filter(t=>t.alojamiento===u&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
+  }
+  function fmtTarWA(tar){
+    if(!tar)return'';
+    const usd=tar.valorNoche||0;const tot=usd*noches;
+    const arsN=cotiz>0?Math.round(usd*cotiz):0;const arsT=cotiz>0?Math.round(tot*cotiz):0;
+    return' · *U$S'+usd+'/noche* (U$S'+tot+' total)'+(arsT>0?' ≈ *$'+fmt(arsT)+' ARS*':'');
+  }
+  function fmtTarEmail(tar){
+    if(!tar)return'';
+    const usd=tar.valorNoche||0;const tot=usd*noches;
+    const arsT=cotiz>0?Math.round(tot*cotiz):0;
+    return' · U$S'+usd+'/noche (U$S'+tot+' total)'+(arsT>0?' ≈ $'+fmt(arsT)+' ARS':'');
+  }
   let wa='☀ *MENDOZA SOL Y NIEVE*\n\nHola *'+nombre+'*!\n\n';
   if(disponibles.length){
     wa+='✅ Tenemos disponibilidad '+zonaTxt+':\n📅 *'+fmtF(ci)+' al '+fmtF(co)+'* ('+noches+' noches · '+pax+' personas)\n\n*Unidades disponibles:*\n';
-    disponibles.forEach(u=>{
-      const tar=window._tarifas.filter(t=>t.alojamiento===u&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
-      wa+='🏠 '+u+(tar?' · *$'+fmt(tar.valorNoche)+'/noche*':'')+'\n';
-    });
+    disponibles.forEach(u=>{const tar=getTarPax(u);wa+='🏠 '+u+fmtTarWA(tar)+'\n';});
+    if(cotiz>0)wa+='\n_Cotización U$S blue: $'+fmt(cotiz)+'_\n';
     wa+='\nPara confirmar necesitamos:\n• Nombre completo\n• DNI o pasaporte\n• Seña del 30% para reservar\n\n📲 Respondá para coordinar el pago.\n\n_Check-in 14hs · Check-out 10hs_\n+54 9 261 654 3938';
   }else{
     wa+='Lo sentimos, no tenemos disponibilidad '+zonaTxt+' para:\n📅 *'+fmtF(ci)+' al '+fmtF(co)+'*\n\n';
@@ -2638,10 +2668,8 @@ function generarRespuesta(disponibles,ocupadas,proximas,ci,co,noches,pax,zona){
   let email='Estimado/a '+nombre+':\n\nGracias por su consulta a Mendoza Sol y Nieve.\n\n';
   if(disponibles.length){
     email+='Contamos con disponibilidad para sus fechas:\n📅 '+fmtF(ci)+' al '+fmtF(co)+' ('+noches+' noches · '+pax+' personas)\n\nUnidades disponibles:\n';
-    disponibles.forEach(u=>{
-      const tar=window._tarifas.filter(t=>t.alojamiento===u&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
-      email+='  • '+u+(tar?' · $'+fmt(tar.valorNoche)+'/noche':'')+'\n';
-    });
+    disponibles.forEach(u=>{const tar=getTarPax(u);email+='  • '+u+fmtTarEmail(tar)+'\n';});
+    if(cotiz>0)email+='\nCotización U$S blue: $'+fmt(cotiz)+'\n';
     email+='\nPara confirmar la reserva le solicitamos:\n  • Nombre completo del titular\n  • DNI o Pasaporte\n  • Seña del 30% del total\n\nDatos bancarios:\nBanco Supervielle | CA ARS | CBU: 0270093920005386120016 | Alias: OSCAR.PORCARIO\n\nCheck-in: 14:00 hs | Check-out: 10:00 hs\n';
   }else{
     email+='Lamentamos informarle que no contamos con disponibilidad para:\n📅 '+fmtF(ci)+' al '+fmtF(co)+'\n\n';
@@ -3145,20 +3173,21 @@ const TARIFAS_PLANILLA=[
   {alo:'Cabaña Loft',pax:2,baja:65,alta:82,ferLargo:82,recInv:82,verano:82,platBaja:75,platAlta:94,platFerLargo:94,platRecInv:94,platVerano:94},
   {alo:'Cabaña Loft',pax:3,baja:70,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:80,platAlta:98,platFerLargo:98,platRecInv:98,platVerano:98},
   {alo:'Cabaña Loft',pax:4,baja:70,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:80,platAlta:98,platFerLargo:98,platRecInv:98,platVerano:98},
-  // POTRERILLOS — STANDARD (máx 6 pax)
+  // POTRERILLOS — STANDARD (máx 5 pax) — actualizado planilla
   {alo:'Cabaña Standard',pax:1,baja:72,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:83,platAlta:103,platFerLargo:103,platRecInv:103,platVerano:103},
   {alo:'Cabaña Standard',pax:2,baja:72,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:83,platAlta:103,platFerLargo:103,platRecInv:103,platVerano:103},
   {alo:'Cabaña Standard',pax:3,baja:77,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:88,platAlta:108,platFerLargo:108,platRecInv:108,platVerano:108},
   {alo:'Cabaña Standard',pax:4,baja:77,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:88,platAlta:108,platFerLargo:108,platRecInv:108,platVerano:108},
-  // POTRERILLOS — GRANDE 15 (máx 7 pax)
+  {alo:'Cabaña Standard',pax:5,baja:85,alta:110,ferLargo:110,recInv:110,verano:110,platBaja:105,platAlta:115,platFerLargo:115,platRecInv:115,platVerano:115},
+  // POTRERILLOS — GRANDE 15 (máx 7 pax) — actualizado planilla
   {alo:'Cabaña grande',pax:1,baja:79,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:91,platAlta:114,platFerLargo:114,platRecInv:114,platVerano:114},
   {alo:'Cabaña grande',pax:2,baja:79,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:91,platAlta:114,platFerLargo:114,platRecInv:114,platVerano:114},
   {alo:'Cabaña grande',pax:3,baja:87,alta:109,ferLargo:109,recInv:109,verano:109,platBaja:97,platAlta:119,platFerLargo:119,platRecInv:119,platVerano:119},
   {alo:'Cabaña grande',pax:4,baja:87,alta:109,ferLargo:109,recInv:109,verano:109,platBaja:97,platAlta:119,platFerLargo:119,platRecInv:119,platVerano:119},
   {alo:'Cabaña grande',pax:5,baja:95,alta:120,ferLargo:120,recInv:120,verano:120,platBaja:106,platAlta:130,platFerLargo:130,platRecInv:130,platVerano:130},
   {alo:'Cabaña grande',pax:6,baja:95,alta:120,ferLargo:120,recInv:120,verano:120,platBaja:106,platAlta:130,platFerLargo:130,platRecInv:130,platVerano:130},
-  {alo:'Cabaña grande',pax:7,baja:95,alta:120,ferLargo:120,recInv:120,verano:120,platBaja:106,platAlta:130,platFerLargo:130,platRecInv:130,platVerano:130},
-  // LAS LEÑAS — solo temporada invernal/feriados (sin tarifa de baja ni verano)
+  {alo:'Cabaña grande',pax:7,baja:100,alta:130,ferLargo:130,recInv:130,verano:130,platBaja:115,platAlta:150,platFerLargo:150,platRecInv:150,platVerano:150},
+  // LAS LEÑAS — solo temporada invernal/feriados (máx 4 pax)
   {alo:'Departamento 4 pax VLL',pax:1,baja:0,alta:180,ferLargo:180,recInv:180,verano:0,platBaja:0,platAlta:220,platFerLargo:220,platRecInv:220,platVerano:0},
   {alo:'Departamento 4 pax VLL',pax:2,baja:0,alta:180,ferLargo:180,recInv:180,verano:0,platBaja:0,platAlta:220,platFerLargo:220,platRecInv:220,platVerano:0},
   {alo:'Departamento 4 pax VLL',pax:3,baja:0,alta:200,ferLargo:200,recInv:200,verano:0,platBaja:0,platAlta:240,platFerLargo:240,platRecInv:240,platVerano:0},
