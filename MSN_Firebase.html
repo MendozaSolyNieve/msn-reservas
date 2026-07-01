@@ -165,6 +165,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
   <button onclick="goTo('sc-recepcion')" id="nb-recepcion">🏔 Recepción</button>
   <button onclick="goTo('sc-cotizacion')" id="nb-cotizacion">💵 USD</button>
   <button onclick="goTo('sc-tarifas')" id="nb-tarifas">🏷 Tarifas</button>
+  <button onclick="goTo('sc-convenios')" id="nb-convenios">🤝 Convenios</button>
   <button onclick="goTo('sc-balance')" id="nb-balance">📈 Balance</button>
 </div>
 
@@ -1075,8 +1076,10 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
                 <option value="">Sin preferencia</option>
                 <option value="ciudad">🏢 Ciudad de Mendoza</option>
                 <option value="potrerillos">🏔 Potrerillos (Cabañas)</option>
+                <option value="lenas">⛷️ Valle de Las Leñas</option>
               </select>
             </div>
+            <div class="fg"><label>Cotización U$S (BNA venta) <button class="btn xs" onclick="actualizarDolarConsulta()" style="margin-left:4px;padding:1px 7px;font-size:10px">🔄</button></label><input type="number" id="cons-cotiz-dolar" placeholder="Cargando BNA..." oninput="recalcularConsulta()"></div>
             <div class="fg"><label>Precio x noche cotizado (ARS)</label><input type="number" id="cons-precio-noche" placeholder="0 = sin cotizar"></div>
             <div class="fg"><label>Valor total cotizado (ARS)</label><input type="number" id="cons-precio-total" placeholder="0 = sin cotizar"></div>
             <div class="fg s2"><label>Consulta / mensaje</label><input type="text" id="cons-consulta" placeholder="Texto libre de la consulta"></div>
@@ -1249,6 +1252,86 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 </div></div>
 
 </div><!-- /app-main -->
+
+<!-- ===== MÓDULO CONVENIOS ===== -->
+<div id="sc-convenios" class="sc"><div class="wrap">
+  <div class="card">
+    <div class="ch">🤝 Convenios Institucionales — Administración de códigos y descuentos
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn ok sm" onclick="abrirModalConvenio()">+ Nuevo convenio</button>
+      </div>
+    </div>
+    <div class="cb">
+
+      <!-- ESTADO ACTUAL -->
+      <div id="conv-resumen" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"></div>
+
+      <!-- TABLA CONVENIOS -->
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px" id="conv-tabla">
+          <thead>
+            <tr style="background:#f3f4f6;font-size:11px;color:#6b7280">
+              <th style="padding:8px 10px;text-align:left">Organización</th>
+              <th style="padding:8px 10px">Código</th>
+              <th style="padding:8px 10px">Descuento</th>
+              <th style="padding:8px 10px">Vigencia</th>
+              <th style="padding:8px 10px">Estado</th>
+              <th style="padding:8px 10px">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="conv-tbody">
+            <tr><td colspan="6" style="text-align:center;padding:20px;color:#9ca3af">Cargando convenios...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div></div>
+
+<!-- MODAL CONVENIO -->
+<div id="modal-convenio" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;overflow:auto;align-items:center;justify-content:center">
+  <div style="background:#fff;max-width:520px;margin:30px auto;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="background:#0a3560;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">
+      <strong id="modal-conv-title">🤝 Nuevo Convenio</strong>
+      <button onclick="cerrarModalConvenio()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div style="padding:18px">
+      <input type="hidden" id="conv-edit-id">
+      <div class="fg"><label>Nombre de la organización</label><input type="text" id="conv-org" placeholder="Ej: Poder Judicial de Mendoza"></div>
+      <div class="fg"><label>Tipo</label>
+        <select id="conv-tipo">
+          <option value="Gremio">Gremio / Sindicato</option>
+          <option value="Empresa">Empresa</option>
+          <option value="Universidad">Universidad</option>
+          <option value="Colegio Profesional">Colegio Profesional</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label>Código único</label><input type="text" id="conv-code" placeholder="Ej: JUDICIAL26" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="fg"><label>% Descuento</label><input type="number" id="conv-pct" value="10" min="1" max="50" placeholder="10"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label>Válido desde</label><input type="date" id="conv-desde"></div>
+        <div class="fg"><label>Válido hasta</label><input type="date" id="conv-hasta"></div>
+      </div>
+      <div class="fg"><label>Estado</label>
+        <select id="conv-estado">
+          <option value="activo">🟢 Activo</option>
+          <option value="inactivo">🔴 Inactivo</option>
+          <option value="suspendido">🟡 Suspendido</option>
+        </select>
+      </div>
+      <div class="fg"><label>Notas internas (opcional)</label><textarea id="conv-notas" rows="2" placeholder="Ej: Renovar en diciembre, contacto: Juan Pérez"></textarea></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+        <button class="btn sm" onclick="cerrarModalConvenio()">Cancelar</button>
+        <button class="btn ok sm" onclick="guardarConvenio()">💾 Guardar convenio</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getFirestore,collection,doc,setDoc,deleteDoc,onSnapshot,query,orderBy,getDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -1299,6 +1382,8 @@ onSnapshot(q,snap=>{
 });
 onSnapshot(collection(DB,'gastos'),snap=>{window._gastos=snap.docs.map(d=>({id:d.id,...d.data()}));if(document.querySelector('#sc-gastos.on'))renderGastos();});
 onSnapshot(collection(DB,'tarifas'),snap=>{window._tarifas=snap.docs.map(d=>({id:d.id,...d.data()}));if(document.querySelector('#sc-tarifas.on'))renderHistorialTarifas();});
+onSnapshot(collection(DB,'convenios'),snap=>{window._convenios=snap.docs.map(d=>({id:d.id,...d.data()}));if(document.querySelector('#sc-convenios.on'))renderConvenios();});
+window._convenios=window._convenios||[];
 getDoc(doc(DB,'meta','contador')).then(s=>{if(s.exists()&&s.data().cnt)window._cnt=s.data().cnt;});
 window.fireGuardar=async function(r){sS('syncing');try{await setDoc(doc(DB,'reservas',String(r.id)),r);await setDoc(doc(DB,'meta','contador'),{cnt:window._cnt},{merge:true});sS('ok');return true;}catch(e){sS('offline');alert('Error Firebase: '+e.message);return false;}};
 window.fireEliminar=async function(id){sS('syncing');try{await deleteDoc(doc(DB,'reservas',String(id)));sS('ok');}catch(e){sS('offline');alert('Error: '+e.message);}};
@@ -1308,6 +1393,132 @@ window.fireGuardarTarifa=async function(t){await setDoc(doc(DB,'tarifas',String(
 window.fireEliminarTarifa=async function(id){await deleteDoc(doc(DB,'tarifas',String(id)));};
 window.addEventListener('offline',()=>sS('offline'));
 window.addEventListener('online',()=>sS('ok'));
+
+// ===== CONVENIOS =====
+function renderConvenios(){
+  const convs = window._convenios||[];
+  const tbody = document.getElementById('conv-tbody');
+  if(!tbody) return;
+
+  // Resumen cards
+  const resumen = document.getElementById('conv-resumen');
+  const activos = convs.filter(c=>c.estado==='activo').length;
+  const hoy = new Date().toISOString().split('T')[0];
+  const porVencer = convs.filter(c=>c.estado==='activo'&&c.hasta&&c.hasta<=new Date(Date.now()+30*86400000).toISOString().split('T')[0]).length;
+  resumen.innerHTML = [
+    {val:convs.length,lbl:'Total convenios',color:'#0a3560'},
+    {val:activos,lbl:'Activos',color:'#15803d'},
+    {val:porVencer,lbl:'Vencen en 30 días',color:'#d97706'},
+  ].map(s=>`<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px;text-align:center">
+    <div style="font-size:22px;font-weight:700;color:${s.color}">${s.val}</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:2px">${s.lbl}</div>
+  </div>`).join('');
+
+  if(!convs.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:#9ca3af">Sin convenios. Hacé clic en "+ Nuevo convenio" para crear el primero.</td></tr>';
+    return;
+  }
+
+  const estadoBadge={
+    activo:'<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">🟢 Activo</span>',
+    inactivo:'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">🔴 Inactivo</span>',
+    suspendido:'<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">🟡 Suspendido</span>',
+  };
+
+  tbody.innerHTML = convs.sort((a,b)=>(b.desde||'').localeCompare(a.desde||'')).map(c=>`
+    <tr style="border-bottom:1px solid #f3f4f6">
+      <td style="padding:8px 10px">
+        <div style="font-weight:600;font-size:13px">${c.nombre||'—'}</div>
+        <div style="font-size:11px;color:#9ca3af">${c.tipo||''}</div>
+      </td>
+      <td style="padding:8px 10px;text-align:center">
+        <code style="background:#f3f4f6;padding:3px 8px;border-radius:5px;font-size:12px;font-weight:700;color:#0a3560">${c.codigo||'—'}</code>
+      </td>
+      <td style="padding:8px 10px;text-align:center;font-weight:700;color:#15803d;font-size:14px">${c.descuento||0}%</td>
+      <td style="padding:8px 10px;text-align:center;font-size:11px;color:#6b7280">
+        ${fmtF(c.desde)||'—'} → ${fmtF(c.hasta)||'—'}
+      </td>
+      <td style="padding:8px 10px;text-align:center">${estadoBadge[c.estado]||estadoBadge.inactivo}</td>
+      <td style="padding:8px 10px;text-align:center;white-space:nowrap">
+        <button class="btn xs" onclick='editarConvenio(${JSON.stringify(c)})'>✏</button>
+        <button class="btn xs er" onclick="eliminarConvenio('${c.id}')">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+function abrirModalConvenio(){
+  document.getElementById('conv-edit-id').value='';
+  document.getElementById('modal-conv-title').textContent='🤝 Nuevo Convenio';
+  document.getElementById('conv-org').value='';
+  document.getElementById('conv-tipo').value='Gremio';
+  document.getElementById('conv-code').value='';
+  document.getElementById('conv-pct').value='10';
+  document.getElementById('conv-desde').value=hoy();
+  document.getElementById('conv-hasta').value='';
+  document.getElementById('conv-estado').value='activo';
+  document.getElementById('conv-notas').value='';
+  document.getElementById('modal-convenio').style.display='flex';
+}
+
+function editarConvenio(c){
+  document.getElementById('conv-edit-id').value=c.id||'';
+  document.getElementById('modal-conv-title').textContent='✏ Editar Convenio';
+  document.getElementById('conv-org').value=c.nombre||'';
+  document.getElementById('conv-tipo').value=c.tipo||'Gremio';
+  document.getElementById('conv-code').value=c.codigo||'';
+  document.getElementById('conv-pct').value=c.descuento||10;
+  document.getElementById('conv-desde').value=c.desde||'';
+  document.getElementById('conv-hasta').value=c.hasta||'';
+  document.getElementById('conv-estado').value=c.estado||'activo';
+  document.getElementById('conv-notas').value=c.notas||'';
+  document.getElementById('modal-convenio').style.display='flex';
+}
+
+function cerrarModalConvenio(){
+  document.getElementById('modal-convenio').style.display='none';
+}
+
+async function guardarConvenio(){
+  const id = document.getElementById('conv-edit-id').value||String(Date.now());
+  const codigo = document.getElementById('conv-code').value.trim().toUpperCase();
+  if(!document.getElementById('conv-org').value.trim()){alert('Ingresá el nombre de la organización.');return;}
+  if(!codigo){alert('Ingresá el código.');return;}
+
+  const conv = {
+    id,
+    nombre: document.getElementById('conv-org').value.trim(),
+    tipo: document.getElementById('conv-tipo').value,
+    codigo,
+    descuento: parseInt(document.getElementById('conv-pct').value)||10,
+    desde: document.getElementById('conv-desde').value,
+    hasta: document.getElementById('conv-hasta').value,
+    estado: document.getElementById('conv-estado').value,
+    notas: document.getElementById('conv-notas').value,
+    fechaCarga: hoy(),
+  };
+
+  try {
+    const {doc,setDoc} = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+    await setDoc(doc(DB,'convenios',id), conv);
+    cerrarModalConvenio();
+    alert('✔ Convenio guardado correctamente.');
+  } catch(e){
+    console.error('Error guardando convenio:',e);
+    alert('Error al guardar. Verificá la conexión.');
+  }
+}
+
+async function eliminarConvenio(id){
+  if(!confirm('¿Eliminar este convenio? Esta acción no se puede deshacer.')) return;
+  try {
+    const {doc,deleteDoc} = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+    await deleteDoc(doc(DB,'convenios',id));
+    alert('✔ Convenio eliminado.');
+  } catch(e){
+    alert('Error al eliminar.');
+  }
+}
+
 </script>
 <script>
 // ===== HELPERS =====
@@ -1357,6 +1568,20 @@ async function usdToArs(usd){
   return{ars:Math.round(usd*cotiz),cotiz};
 }
 
+async function actualizarDolarConsulta(){
+  const input=document.getElementById('cons-cotiz-dolar');
+  if(!input)return;
+  const v=await getDolarHoy();
+  if(v>0){input.value=v;input.placeholder='U$S='+v+' ARS (BNA venta)';}
+  else input.placeholder='Sin datos - ingresá manual';
+}
+function recalcularConsulta(){
+  const cotiz=parseFloat(document.getElementById('cons-cotiz-dolar')?.value)||0;
+  if(cotiz>0 && document.getElementById('cot-bk')){
+    document.getElementById('cot-bk').value=cotiz;
+  }
+  verificarDisponibilidad();
+}
 async function actualizarDolarTarifas(){
   const el=document.getElementById('dolar-tarifas-valor');
   const elTipo=document.getElementById('dolar-tarifas-tipo');
@@ -1426,6 +1651,8 @@ function goTo(id){
   if(id==='sc-recepcion'){document.getElementById('rec-fecha').value=hoy();generarAvisoRecepcion();}
   if(id==='sc-consultas')renderConsultasGuardadas();
   if(id==='sc-tarifas'){renderTarifasAlo();actualizarDolarTarifas();}
+  if(id==='sc-consultas'){setTimeout(actualizarDolarConsulta,500);}
+  if(id==='sc-convenios'){renderConvenios();}
   if(id==='sc-balance'){const hd=hoy();sv('bal-desde',hd.substring(0,8)+'01');sv('bal-hasta',hd);}
   if(id==='sc-gastos'){document.getElementById('g-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('g-hasta').value=hoy();renderGastos();}
   if(id==='sc-mucamas'){document.getElementById('muc-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('muc-hasta').value=hoy();}
@@ -2514,7 +2741,7 @@ function renderExpedia(){
 </script>
 <script>
 // ===== CONSULTAS =====
-const ALOJAMIENTOS_MSN={ciudad:['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'],potrerillos:['Cabaña grande','Cabaña Loft','Cabaña Standard']};
+const ALOJAMIENTOS_MSN={ciudad:['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'],potrerillos:['Cabaña grande','Cabaña Loft','Cabaña Standard'],lenas:['Departamento 4 pax VLL']};
 function toggleListaConsultas(){const p=document.getElementById('lista-consultas-panel');if(p)p.style.display=p.style.display==='none'?'block':'none';renderConsultasGuardadas();}
 function renderConsultasGuardadas(){
   const consultas=window._db.filter(r=>r.tipo==='CONSULTA').sort((a,b)=>b.fecha.localeCompare(a.fecha));
@@ -2576,7 +2803,18 @@ function verificarDisponibilidad(){
   let unidades=[];
   if(zona==='ciudad')unidades=ALOJAMIENTOS_MSN.ciudad;
   else if(zona==='potrerillos')unidades=ALOJAMIENTOS_MSN.potrerillos;
-  else unidades=[...ALOJAMIENTOS_MSN.ciudad,...ALOJAMIENTOS_MSN.potrerillos];
+  else if(zona==='lenas')unidades=ALOJAMIENTOS_MSN.lenas;
+  else unidades=[...ALOJAMIENTOS_MSN.ciudad,...ALOJAMIENTOS_MSN.potrerillos,...ALOJAMIENTOS_MSN.lenas];
+  // Validar mínimo de noches por zona
+  const minNochesZona={ciudad:1,potrerillos:2,lenas:3};
+  const minN=minNochesZona[zona]||1;
+  if(noches<minN){
+    const res=document.getElementById('cons-resultado');
+    res.innerHTML='<div style="padding:10px 14px;background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;font-size:13px;color:#92400e">⚠ La estadía mínima para '+({ciudad:'Mendoza Capital',potrerillos:'Potrerillos',lenas:'Valle de Las Leñas'}[zona]||'este destino')+' es de <strong>'+minN+' noche'+(minN>1?'s':'')+'</strong>. Esta consulta tiene '+noches+' noche'+(noches!==1?'s':'')+'.</div>';
+    res.style.display='block';
+    document.getElementById('cons-respuesta-box').style.display='none';
+    return;
+  }
   const activos=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA');
   const diasSolicitados=rango(ci,co);
   const disponibles=[],ocupadas=[],proximas=[];
@@ -2606,18 +2844,23 @@ function mostrarResultado(disponibles,ocupadas,proximas,ci,co,noches,pax){
   if(disponibles.length){
     html+='<div style="font-size:12px;font-weight:600;color:var(--ok);margin-bottom:6px">Unidades disponibles:</div>';
     html+=disponibles.map(u=>{
-      // Buscar tarifa por alojamiento + PAX exacto + fecha vigente
-      const tmp=getTempByFecha(ci);
-      const tarPax=window._tarifas.filter(t=>t.alojamiento===u&&Number(t.pax)===pax&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
-      const tarAny=window._tarifas.filter(t=>t.alojamiento===u&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
-      const tar=tarPax||tarAny;
+      // Tarifa por PAX exacto + temporada + fecha vigente
+      const tmp=getTemporadaByFecha(ci);
+      // Buscar pax exacto primero, luego pax inmediato inferior si no existe
+      let tarPax=null;
+      for(let p=pax;p>=1;p--){
+        tarPax=window._tarifas.filter(t=>t.alojamiento===u&&Number(t.pax)===p&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
+        if(tarPax)break;
+      }
       const cotiz=parseFloat(document.getElementById('cot-bk')?.value)||0;
       let precioStr='';
-      if(tar){
-        const usd=tar.valorNoche||0;
-        const ars=cotiz>0?Math.round(usd*cotiz):0;
-        precioStr='<span style="color:var(--pr);font-weight:700"> · U$S'+usd+'/noche'+(ars>0?' (≈ $'+fmt(ars)+' ARS)':'')+'</span>';
-        if(!tarPax&&tarAny) precioStr+='<span style="color:#f59e0b;font-size:10px"> ⚠ tarifa base</span>';
+      if(tarPax){
+        const usdNoche=tarPax.valorNoche||0;
+        const usdTotal=usdNoche*noches;
+        const arsNoche=cotiz>0?Math.round(usdNoche*cotiz):0;
+        const arsTotal=cotiz>0?Math.round(usdTotal*cotiz):0;
+        precioStr='<span style="color:var(--pr);font-weight:700"> · U$S'+usdNoche+'/noche — U$S'+usdTotal+' total'+(arsTotal>0?' (≈ $'+fmt(arsTotal)+' ARS)':'')+'</span>';
+        if(Number(tarPax.pax)<pax) precioStr+='<span style="color:#f59e0b;font-size:10px"> ⚠ tarifa para '+tarPax.pax+' pax</span>';
       }
       return'<div style="padding:5px 10px;background:#f0fdf4;border:1px solid #86efac;border-radius:5px;margin-bottom:4px;font-size:12px">🏠 '+u+precioStr+'</div>';
     }).join('');
