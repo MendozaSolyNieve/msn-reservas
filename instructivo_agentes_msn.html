@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instructivo de Agentes IA — Mendoza Sol y Nieve</title>
+<style>
+:root{
+  --bg:#f5f5f0;--surface:#fff;--border:#e2e0d8;
+  --txt:#1a1917;--txt2:#5c5a54;--txt3:#9c9a94;
+  --azul:#0f4c81;--azul-bg:#e8f0f9;
+  --verde:#15803d;--verde-bg:#dcfce7;
+  --amber:#92400e;--amber-bg:#fef3c7;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px;}
+
+/* PORTADA */
+.portada{background:linear-gradient(135deg,#0a3560,#1e5fa8);color:#fff;padding:52px 0 40px;}
+.portada h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:700;margin-bottom:8px;}
+.portada p{font-size:16px;opacity:.85;max-width:580px;}
+.portada .badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:5px 12px;border-radius:20px;font-size:13px;}
+
+/* ÍNDICE */
+.indice{background:var(--azul-bg);border:1px solid #bfdbfe;border-radius:var(--radius);padding:20px 24px;margin:28px 0;}
+.indice h2{font-size:14px;font-weight:700;color:var(--azul);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em;}
+.indice ol{padding-left:18px;}
+.indice li{margin-bottom:6px;}
+.indice a{color:var(--azul);text-decoration:none;font-size:14px;}
+.indice a:hover{text-decoration:underline;}
+
+/* SECCIÓN AGENTE */
+.agente{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:28px;overflow:hidden;}
+.agente-header{padding:18px 24px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);}
+.agente-ico{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.agente-titulo{font-size:18px;font-weight:700;}
+.agente-sub{font-size:13px;color:var(--txt3);margin-top:2px;}
+.agente-body{padding:24px;}
+.agente-url{display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:6px 12px;font-size:12px;font-family:monospace;color:#1e40af;margin-bottom:18px;word-break:break-all;}
+
+/* PASOS */
+.pasos{display:flex;flex-direction:column;gap:0;}
+.paso{display:grid;grid-template-columns:36px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);}
+.paso:last-child{border-bottom:none;}
+.paso-num{width:36px;height:36px;border-radius:50%;background:var(--azul);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;margin-top:2px;}
+.paso-content h4{font-size:14px;font-weight:600;margin-bottom:4px;}
+.paso-content p{font-size:13px;color:var(--txt2);line-height:1.6;}
+.paso-content .tip{background:var(--amber-bg);border-left:3px solid #f59e0b;padding:8px 12px;border-radius:0 6px 6px 0;font-size:12px;color:var(--amber);margin-top:8px;}
+.paso-content .ok{background:var(--verde-bg);border-left:3px solid #22c55e;padding:8px 12px;border-radius:0 6px 6px 0;font-size:12px;color:var(--verde);margin-top:8px;}
+.paso-content code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12px;color:#1e40af;}
+
+/* INFO BOXES */
+.info-box{border-radius:10px;padding:14px 16px;margin:14px 0;font-size:13px;line-height:1.6;}
+.info-prereq{background:#fef3c7;border:1px solid #fcd34d;color:#78350f;}
+.info-api{background:var(--verde-bg);border:1px solid #86efac;color:var(--verde);}
+.info-nota{background:var(--azul-bg);border:1px solid #bfdbfe;color:var(--azul);}
+
+/* TABLA RESUMEN */
+.tabla-resumen{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px;}
+.tabla-resumen th{background:#f8fafc;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--border);}
+.tabla-resumen td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+.tabla-resumen tr:last-child td{border-bottom:none;}
+.dot-verde{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:5px;}
+.dot-amber{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin-right:5px;}
+
+/* FOOTER DOC */
+.footer-doc{text-align:center;padding:32px 0;color:var(--txt3);font-size:13px;border-top:1px solid var(--border);margin-top:20px;}
+.footer-doc strong{color:var(--txt2);}
+
+@media(max-width:600px){
+  .portada{padding:32px 0 28px;}
+  .agente-body{padding:16px;}
+  .paso{grid-template-columns:30px 1fr;}
+  .paso-num{width:30px;height:30px;font-size:12px;}
+}
+@media print{
+  .portada{background:#0a3560 !important;-webkit-print-color-adjust:exact;}
+  body{background:#fff;}
+}
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="portada">
+  <div class="wrap">
+    <div style="font-size:12px;opacity:.6;margin-bottom:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase">Mendoza Sol y Nieve · Documentación interna</div>
+    <h1>Instructivo de Agentes IA</h1>
+    <p>Guía paso a paso para usar los 5 agentes de inteligencia artificial del sistema MSN.</p>
+    <div class="badges">
+      <span class="badge">💵 Cotización</span>
+      <span class="badge">📋 Recepción</span>
+      <span class="badge">📈 Revenue</span>
+      <span class="badge">🛎️ Concierge</span>
+      <span class="badge">💄 Marketing</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" style="padding-top:28px;padding-bottom:40px;">
+
+<!-- ÍNDICE -->
+<div class="indice">
+  <h2>📑 Contenido</h2>
+  <ol>
+    <li><a href="#requisitos">Requisitos previos (API Key de Groq)</a></li>
+    <li><a href="#agente-cotizacion">Agente de Cotización</a></li>
+    <li><a href="#agente-recepcion">Agente de Recepción</a></li>
+    <li><a href="#agente-revenue">Agente Revenue</a></li>
+    <li><a href="#agente-concierge">Agente Concierge</a></li>
+    <li><a href="#agente-marketing">Agente Marketing</a></li>
+    <li><a href="#resumen">Resumen y accesos rápidos</a></li>
+  </ol>
+</div>
+
+<!-- REQUISITOS -->
+<div class="agente" id="requisitos">
+  <div class="agente-header">
+    <div class="agente-ico" style="background:#fef3c7;">🔑</div>
+    <div>
+      <div class="agente-titulo">Requisito previo: API Key de Groq</div>
+      <div class="agente-sub">Una sola vez · gratuita · vale para los 5 agentes</div>
+    </div>
+  </div>
+  <div class="agente-body">
+    <div class="info-prereq">⚠ <strong>Importante:</strong> Todos los agentes necesitan una API Key de Groq para funcionar. Es gratuita y se configura una sola vez en cada agente.</div>
+    <div class="pasos" style="margin-top:16px;">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <h4>Crear cuenta en Groq</h4>
+          <p>Entrá a <strong>console.groq.com</strong> → "Sign Up" → registrate con tu email.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <h4>Crear la API Key</h4>
+          <p>En el menú izquierdo → <strong>API Keys</strong> → <strong>Create API Key</strong> → ponerle un nombre (ej: "MSN Agentes") → copiar la key que empieza con <code>gsk_...</code></p>
+          <div class="tip">⚠ Guardala en un lugar seguro. Solo se muestra una vez. Si la perdés, creá una nueva.</div>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <h4>Pegar la key en cada agente</h4>
+          <p>En cada agente, ir a la pestaña <strong>⚙️ Configuración</strong> → campo <strong>API Key (Groq)</strong> → pegar la key → se guarda automáticamente en el navegador.</p>
+          <div class="ok">✅ La key queda guardada en tu navegador. Solo tenés que configurarla una vez por dispositivo.</div>
+        </div>
+      </div>
+    </div>
+    <div class="info-api" style="margin-top:8px;">💚 <strong>Groq es gratuito</strong> hasta 14.400 consultas por día. Más que suficiente para el volumen de MSN.</div>
+  </div>
+</div>
+
+<!-- AGENTE COTIZACIÓN -->
+<div class="agente" id="agente-cotizacion">
+  <div class="agente-header">
+    <div class="agente-ico" style="background:#dbeafe;">💵</div>
+    <div>
+      <div class="agente-titulo">Agente de Cotización</div>
+      <div class="agente-sub">Cotiza, responde y guarda el lead del huésped</div>
+    </div>
+  </div>
+  <div class="agente-body">
+    <div class="agente-url">📁 GitHub Pages → agente_cotizacion.html</div>
+    <div class="info-nota">🎯 <strong>Para qué sirve:</strong> Cuando un huésped pregunta "¿cuánto sale X noches en tal cabaña?", este agente calcula la tarifa en U$S y ARS, genera la respuesta en el tono MSN y guarda el lead.</div>
+    <div class="pasos" style="margin-top:16px;">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <h4>Crear una nueva consulta</h4>
+          <p>Hacé clic en <strong>"+ Nueva consulta"</strong> en el sidebar izquierdo → ingresá el nombre del huésped y el canal por donde llegó (WhatsApp, formulario web, etc.).</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <h4>Completar los datos</h4>
+          <p>En el formulario central completá: <strong>alojamiento</strong>, <strong>fecha de check-in y check-out</strong>, <strong>cantidad de personas</strong> y si viajan con mascota.</p>
+          <div class="tip">⚠ El campo "Cotización U$S" se completa automáticamente desde dolarapi.com. Si no aparece, ingresalo manualmente.</div>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <h4>Pegar el mensaje del huésped</h4>
+          <p>Copiá la consulta original que llegó por WhatsApp o formulario y pegala en el campo <strong>"Mensaje del huésped"</strong>. Si no hay mensaje, dejalo vacío y la IA arma la cotización igual.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <h4>Hacer clic en "✨ Cotizar con IA"</h4>
+          <p>La IA genera en segundos una respuesta con la cotización en U$S y ARS, en el tono cálido de MSN, lista para copiar y pegar en WhatsApp.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <h4>Copiar y enviar al huésped</h4>
+          <p>Hacé clic en <strong>"📋 Copiar cotización"</strong> → pegala directo en WhatsApp. Luego hacé clic en <strong>"💾 Guardar lead"</strong> para que quede en el historial del sidebar.</p>
+          <div class="ok">✅ El lead queda guardado con estado "Cotizado" en el listado del sidebar izquierdo.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENTE RECEPCIÓN -->
+<div class="agente" id="agente-recepcion">
+  <div class="agente-header">
+    <div class="agente-ico" style="background:#dcfce7;">📋</div>
+    <div>
+      <div class="agente-titulo">Agente de Recepción</div>
+      <div class="agente-sub">FAQ automático · responde preguntas frecuentes en el tono MSN</div>
+    </div>
+  </div>
+  <div class="agente-body">
+    <div class="agente-url">📁 GitHub Pages → agente_recepcion.html</div>
+    <div class="info-nota">🎯 <strong>Para qué sirve:</strong> Cuando llegan preguntas como "¿a qué hora es el check-in?", "¿aceptan mascotas?", "¿cómo pago?", este agente responde al instante en el tono de MSN.</div>
+    <div class="pasos" style="margin-top:16px;">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <h4>Seleccionar el alojamiento</h4>
+          <p>En la parte superior elegí el alojamiento del huésped que consulta: <strong>Depto Mendoza 2, Depto Mendoza 3, Cabaña Loft, Cabaña Grande o Las Leñas</strong>. Esto personaliza la respuesta.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <h4>Opción A: Usar los botones de temas frecuentes</h4>
+          <p>Hacé clic en cualquiera de los 8 botones: <strong>Check-in/out, Cómo llegar, Mascotas, Estacionamiento, WiFi/servicios, Pago/reserva, Qué hacer cerca, Cancelación</strong>. La respuesta se genera en segundos.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <h4>Opción B: Escribir la pregunta del huésped</h4>
+          <p>Pegá o escribí la pregunta real del huésped en el campo de texto → elegí el canal (WhatsApp, Formulario, Email) → hacé clic en <strong>"✨ Responder con IA"</strong>.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <h4>Copiar la respuesta al WhatsApp</h4>
+          <p>La respuesta aparece en el panel de chat de la derecha → hacé clic en <strong>"📋 Copiar para WhatsApp"</strong> → pegala directo en la conversación del huésped.</p>
+          <div class="ok">✅ El historial de preguntas y respuestas queda guardado en la pestaña "🕐 Historial".</div>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <h4>Editar las respuestas base (opcional)</h4>
+          <p>Ir a <strong>"📋 Base de conocimiento"</strong> → editar cualquier respuesta → <strong>"💾 Guardar"</strong>. Las respuestas editadas se usan en todas las consultas futuras.</p>
+          <div class="tip">⚠ La base de conocimiento se guarda en el navegador. Si usás otro dispositivo, las respuestas vuelven a las originales.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENTE REVENUE -->
+<div class="agente" id="agente-revenue">
+  <div class="agente-header">
+    <div class="agente-ico" style="background:#fef3c7;">📈</div>
+    <div>
+      <div class="agente-titulo">Agente Revenue</div>
+      <div class="agente-sub">Detecta eventos y sugiere subir precios en las fechas clave</div>
+    </div>
+  </div>
+  <div class="agente-body">
+    <div class="agente-url">📁 GitHub Pages → agente_revenue.html</div>
+    <div class="info-nota">🎯 <strong>Para qué sirve:</strong> Busca eventos (festivales, feriados, ski, vendimia) en las 3 zonas y te avisa cuándo conviene subir las tarifas y cuánto.</div>
+    <div class="pasos" style="margin-top:16px;">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <h4>Hacer clic en "🔍 Buscar eventos ahora"</h4>
+          <p>El agente consulta la IA y devuelve en segundos los eventos de los próximos 60 días en Mendoza, Potrerillos y Las Leñas con su impacto estimado del 1 al 10.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <h4>Revisar las alertas de precio</h4>
+          <p>La pestaña <strong>"🔔 Alertas"</strong> muestra por cada evento: qué alojamientos afecta, la tarifa actual, la tarifa sugerida y el porcentaje de suba. El agente calcula respetando el piso y techo que configuraste.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <h4>Aplicar o descartar el ajuste</h4>
+          <p>Por cada alerta podés: <strong>"✅ Aplicar ajuste"</strong> (actualiza la tarifa en el sistema) o <strong>"✕ Descartar"</strong> si el evento no te parece relevante.</p>
+          <div class="tip">⚠ Cuando aplicás un ajuste, recordá reflejarlo también en Booking.com y Despegar manualmente.</div>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <h4>Ver el calendario de precios</h4>
+          <p>La pestaña <strong>"🗓 Calendario"</strong> muestra los próximos 2 meses con los días marcados según el impacto del evento (amarillo = alto, pálido = medio).</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <h4>Configurar piso y techo de tarifas (una vez)</h4>
+          <p>Ir a <strong>"⚙️ Config"</strong> → ingresar el piso (mínimo) y techo (máximo) en U$S para cada alojamiento. El agente nunca va a sugerir precios fuera de ese rango.</p>
+          <div class="ok">✅ Recomendado: buscar eventos una vez por semana, los lunes.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENTE CONCIERGE -->
+<div class="agente" id="agente-concierge">
+  <div class="agente-header">
+    <div class="agente-ico" style="background:#ccfbf1;">🛎️</div>
+    <div>
+      <div class="agente-titulo">Agente Concierge</div>
+      <div class="agente-sub">Asistencia personalizada durante la estadía del huésped</div>
+    </div>
+  </div>
+  <div class="agente-body">
+    <div class="agente-url">📁 GitHub Pages → agente_concierge.html</div>
+    <div class="info-nota">🎯 <strong>Para qué sirve:</strong> Cuando el huésped está alojado y pregunta "¿dónde cenar cerca?", "¿hay farmacia?", "¿qué hacer hoy?", este agente responde con recomendaciones reales y locales.</div>
+    <div class="pasos" style="margin-top:16px;">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <h4>Crear el huésped activo</h4>
+          <p>Hacé clic en <strong>"+ Nuevo huésped en estadía"</strong> → completar nombre, alojamiento, fechas y WhatsApp → <strong>"Iniciar estadía"</strong>.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <h4>Completar el perfil (opcional pero recomendado)</h4>
+          <p>Ir a la pestaña <strong>"👤 Perfil"</strong> → marcar las preferencias del huésped: romántico, con niños, aventura, gastronomía, vinos, relax, ski, etc. Esto personaliza todas las respuestas.</p>
+          <div class="ok">✅ El agente detecta preferencias automáticamente según las preguntas del huésped.</div>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <h4>Responder preguntas durante la estadía</h4>
+          <p>En la pestaña <strong>"💬 Asistir"</strong>, usá los 9 botones de consultas frecuentes o escribí la pregunta del huésped → la IA responde con recomendaciones específicas de la zona del alojamiento.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-content">
+          <h4>Generar recomendaciones personalizadas</h4>
+          <p>Ir a <strong>"🗺️ Recomendaciones"</strong> → elegir categoría (restaurantes, actividades, bodegas, spa, excursiones) → <strong>"✨ Generar"</strong>. Aparece una lista con distancias, precios y cómo llegar.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">5</div>
+        <div class="paso-content">
+          <h4>Copiar y enviar por WhatsApp</h4>
+          <p>El botón <strong>"📋 Copiar para WhatsApp"</strong> copia la respuesta → pegala directo en la conversación del huésped. El historial completo queda en la pestaña <strong>"🕐 Historial"</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENTE MARKETING -->
+<div class="agente" id="agente-marketing">
+  <div class="agente-header">
+    <div class="agente-ico" style="background:#fce7f3;">💄</div>
+    <div>
+      <div class="agente-titulo">Agente Marketing</div>
+      <div class="agente-sub">Reseñas, campañas, publicaciones, eventos y comparativo de tarifas</div>
+    </div>
+  </div>
+  <div class="agente-body">
+    <div class="agente-url">📁 GitHub Pages → agente_marketing.html</div>
+    <div class="info-nota">🎯 <strong>Para qué sirve:</strong> Pide reseñas en el momento justo, arma campañas para redes y WhatsApp, sugiere publicaciones según la temporada, busca eventos y compara tus tarifas con la competencia.</div>
+
+    <div style="font-size:13px;font-weight:600;color:var(--txt2);margin:16px 0 10px;text-transform:uppercase;letter-spacing:.05em;">⭐ Reseñas post check-out</div>
+    <div class="pasos">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <h4>Completar los datos del huésped</h4>
+          <p>Nombre, WhatsApp, alojamiento, fechas de check-in y check-out. En "Observaciones" escribí cómo fue la estadía (ej: "familia con niños, les gustó el dique, todo muy bien").</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <h4>Elegir el tipo de mensaje</h4>
+          <p><strong>"⭐ Generar mensaje de reseña"</strong> → mensaje para pedir la reseña en Google. <strong>"🔄 Generar mensaje de retorno"</strong> → mensaje para invitarlo a volver.</p>
+          <div class="tip">⏰ El momento ideal es entre 2 y 6 horas después del check-out. La barra de timing te lo recuerda.</div>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <h4>Enviar por WhatsApp</h4>
+          <p>El botón <strong>"📱 Abrir en WhatsApp"</strong> abre la conversación con el mensaje listo → solo hace falta tocar Enviar.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:13px;font-weight:600;color:var(--txt2);margin:20px 0 10px;text-transform:uppercase;letter-spacing:.05em;">📢 Campañas para redes y WhatsApp</div>
+    <div class="pasos">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <h4>Configurar la campaña</h4>
+          <p>Ir a la pestaña <strong>"📢 Campañas"</strong> → elegir destino, tipo de campaña (temporada, feriado, promo, evento, retorno) y fechas. Podés agregar un contexto como "vendimia" o "ski".</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <h4>Elegir el canal y generar</h4>
+          <p>Hacer clic en <strong>"📘 Facebook/Instagram"</strong>, <strong>"💬 WhatsApp Broadcast"</strong> o <strong>"✉ Email"</strong>. Cada uno genera el formato correcto para ese canal.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <h4>Copiar y publicar</h4>
+          <p>Botón <strong>"📋 Copiar"</strong> → pegalo en la red social o en el grupo de WhatsApp correspondiente.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:13px;font-weight:600;color:var(--txt2);margin:20px 0 10px;text-transform:uppercase;letter-spacing:.05em;">📸 Publicaciones · 📅 Eventos · 📊 Comparativo</div>
+    <div class="pasos">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-content">
+          <h4>Publicaciones IA</h4>
+          <p>Pestaña <strong>"📸 Publicaciones"</strong> → elegir mes y destino → <strong>"✨ Analizar"</strong>. El agente devuelve un plan de 6-8 publicaciones para el mes con día, red social, caption y hashtags.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-content">
+          <h4>Eventos cercanos</h4>
+          <p>Pestaña <strong>"📅 Eventos"</strong> → elegir zona y período → <strong>"🔍 Buscar"</strong>. Muestra festivales, feriados y eventos turísticos para usar como gancho de campañas.</p>
+        </div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-content">
+          <h4>Comparativo de tarifas</h4>
+          <p>Pestaña <strong>"📊 Comparativo"</strong> → elegir zona, tipo y temporada → <strong>"📊 Generar"</strong>. Muestra tus tarifas vs 5 competidores de la zona con análisis de posicionamiento.</p>
+          <div class="ok">✅ Usarlo una vez por temporada para verificar que tus precios sean competitivos.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESUMEN -->
+<div class="agente" id="resumen">
+  <div class="agente-header">
+    <div class="agente-ico" style="background:#ede9fe;">📋</div>
+    <div>
+      <div class="agente-titulo">Resumen y accesos rápidos</div>
+      <div class="agente-sub">Dónde está cada agente y cuándo usarlo</div>
+    </div>
+  </div>
+  <div class="agente-body">
+    <table class="tabla-resumen">
+      <thead>
+        <tr>
+          <th>Agente</th>
+          <th>Cuándo usarlo</th>
+          <th>Frecuencia</th>
+          <th>Archivo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>💵 Cotización</strong></td>
+          <td>Cuando llega una consulta de precio por WhatsApp o formulario</td>
+          <td><span class="dot-verde"></span>Cada consulta</td>
+          <td><code>agente_cotizacion.html</code></td>
+        </tr>
+        <tr>
+          <td><strong>📋 Recepción</strong></td>
+          <td>Preguntas frecuentes: check-in, mascotas, WiFi, pago, cómo llegar</td>
+          <td><span class="dot-verde"></span>Cada pregunta</td>
+          <td><code>agente_recepcion.html</code></td>
+        </tr>
+        <tr>
+          <td><strong>📈 Revenue</strong></td>
+          <td>Revisar si hay eventos próximos y ajustar precios</td>
+          <td><span class="dot-amber"></span>1 vez por semana</td>
+          <td><code>agente_revenue.html</code></td>
+        </tr>
+        <tr>
+          <td><strong>🛎️ Concierge</strong></td>
+          <td>Preguntas de huéspedes durante la estadía</td>
+          <td><span class="dot-verde"></span>Durante la estadía</td>
+          <td><code>agente_concierge.html</code></td>
+        </tr>
+        <tr>
+          <td><strong>💄 Marketing</strong></td>
+          <td>Post check-out: pedir reseña, campaña, publicaciones del mes</td>
+          <td><span class="dot-amber"></span>Semanal / mensual</td>
+          <td><code>agente_marketing.html</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="info-prereq" style="margin:0">
+        <strong>🔑 API Key Groq</strong><br>
+        Una sola key vale para los 5 agentes.<br>
+        Configurarla en ⚙️ Configuración de cada uno.
+      </div>
+      <div class="info-api" style="margin:0">
+        <strong>📁 Dónde están los archivos</strong><br>
+        GitHub Pages:<br>
+        <code style="font-size:11px">mendozasolynieve.github.io/msn-reservas/</code>
+      </div>
+    </div>
+
+    <div class="info-nota" style="margin-top:14px;">
+      💡 <strong>Consejo de uso diario:</strong> abrí los agentes de Cotización y Recepción en pestañas fijas del navegador. Así cuando llega una consulta por WhatsApp, solo tenés que ir a esa pestaña, pegar el mensaje y copiar la respuesta.
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<div class="footer-doc">
+  <div class="wrap">
+    <strong>Mendoza Sol y Nieve</strong> · Documentación interna de uso exclusivo<br>
+    <span style="margin-top:4px;display:block">Versión julio 2026 · info@mendozasolynieve.com.ar · +54 9 261 654 3938</span>
+  </div>
+</div>
+
+</body>
+</html>

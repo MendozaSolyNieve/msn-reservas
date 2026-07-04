@@ -142,9 +142,103 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .empty-desc{font-size:13px;line-height:1.6;max-width:280px;margin:0 auto 16px;}
 
 @media(max-width:1100px){.app{grid-template-columns:1fr}.sidebar,.chat-panel{display:none}}
+
+/* ===== GROQ CONFIG PANEL ===== */
+.groq-config-bar{background:linear-gradient(90deg,#1a1a2e,#16213e);border-bottom:1px solid #0f3460;padding:8px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-family:-apple-system,sans-serif}
+.groq-config-bar .gc-label{font-size:11px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.groq-config-bar .gc-status{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;white-space:nowrap}
+.gc-status.ok{background:#dcfce7;color:#166534}
+.gc-status.warn{background:#fef3c7;color:#92400e}
+.groq-config-bar input[type=password]{flex:1;min-width:200px;max-width:340px;padding:5px 10px;border-radius:6px;border:1px solid #4c1d95;background:#0f0f1a;color:#e9d5ff;font-size:12px;font-family:monospace}
+.groq-config-bar input[type=password]::placeholder{color:#6b6b8a}
+.groq-config-bar input[type=password]:focus{outline:none;border-color:#a78bfa}
+.groq-config-bar button.gc-btn{padding:5px 12px;border-radius:6px;border:none;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.groq-config-bar button.gc-btn:hover{background:#6d28d9}
+.gc-link{font-size:11px;color:#a78bfa;text-decoration:none;white-space:nowrap}
+.gc-link:hover{text-decoration:underline}
+
 </style>
 </head>
 <body>
+<!-- GROQ CONFIG BAR -->
+<div class="groq-config-bar" id="groq-bar">
+  <span class="gc-label">🤖 Groq IA</span>
+  <span class="gc-status warn" id="gc-status">⚠ Sin clave</span>
+  <input type="password" id="gc-key-input" placeholder="Pegá tu API Key de Groq (gsk_...)" oninput="gcGuardar()">
+  <button class="gc-btn" onclick="gcGuardar()">✓ Guardar</button>
+  <button class="gc-btn" style="background:#374151" onclick="gcBorrar()">✕ Borrar</button>
+  <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="gc-link">Obtener key gratuita →</a>
+</div>
+
+<script>
+// ===== GROQ KEY MANAGER =====
+(function(){
+  const KEY = localStorage.getItem('msn-groq-key')||'';
+  const input = document.getElementById('gc-key-input');
+  const status = document.getElementById('gc-status');
+  if(KEY && KEY.startsWith('gsk_')){
+    input.value = KEY;
+    status.textContent = '✅ Conectado';
+    status.className = 'gc-status ok';
+  }
+})();
+function gcGuardar(){
+  const v = document.getElementById('gc-key-input').value.trim();
+  const status = document.getElementById('gc-status');
+  if(v && v.startsWith('gsk_')){
+    localStorage.setItem('msn-groq-key',v);
+    status.textContent='✅ Conectado';
+    status.className='gc-status ok';
+  } else if(v) {
+    status.textContent='⚠ Clave inválida';
+    status.className='gc-status warn';
+  }
+}
+function gcBorrar(){
+  localStorage.removeItem('msn-groq-key');
+  document.getElementById('gc-key-input').value='';
+  const status = document.getElementById('gc-status');
+  status.textContent='⚠ Sin clave';
+  status.className='gc-status warn';
+}
+
+// ===== LLAMADA A GROQ (primario) / Claude (fallback) =====
+async function llamarIA(system, user, maxTokens){
+  maxTokens = maxTokens || 800;
+  const groqKey = localStorage.getItem('msn-groq-key')||'';
+  if(groqKey && groqKey.startsWith('gsk_')){
+    try{
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+groqKey},
+        body:JSON.stringify({
+          model:'llama-3.3-70b-versatile',
+          max_tokens:maxTokens,
+          temperature:0.6,
+          messages:[{role:'system',content:system},{role:'user',content:user}]
+        })
+      });
+      if(!r.ok) throw new Error('Groq error '+r.status);
+      const d = await r.json();
+      return d.choices?.[0]?.message?.content||'Sin respuesta.';
+    }catch(e){console.warn('Groq error, usando Claude:',e);}
+  }
+  // Fallback: Claude (requiere créditos en Anthropic)
+  try{
+    const r = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,system,messages:[{role:'user',content:user}]})
+    });
+    const d = await r.json();
+    return d.content?.[0]?.text||'Sin respuesta.';
+  }catch(e){
+    return 'Error de conexión. Verificá tu API Key de Groq en la barra superior.';
+  }
+}
+
+</script>
+
 <div class="app">
 
 <!-- SIDEBAR -->
