@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarifas Centralizadas — Mendoza Sol y Nieve</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f5f5f0;--surface:#fff;--border:#e2e0d8;--border2:#c8c5bb;
+  --txt:#1a1917;--txt2:#5c5a54;--txt3:#9c9a94;
+  --azul:#0f4c81;--azul-bg:#e8f0f9;
+  --verde:#15803d;--verde-bg:#dcfce7;--verde-border:#86efac;
+  --amber:#92400e;--amber-bg:#fef3c7;--amber-border:#fcd34d;
+  --red:#991b1b;--red-bg:#fee2e2;
+  --radius:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#0a3560,#1e5fa8);color:#fff;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.header h1{font-size:18px;font-weight:700;}
+.header p{font-size:12px;opacity:.8;margin-top:3px;}
+.badge-live{background:#22c55e;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:5px;}
+.badge-live::before{content:'';width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.wrap{max-width:1100px;margin:0 auto;padding:20px 20px;}
+
+/* UPLOAD ZONE */
+.upload-zone{background:var(--surface);border:2px dashed var(--border2);border-radius:14px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:20px;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--azul);background:var(--azul-bg);}
+.upload-icon{font-size:42px;margin-bottom:12px;}
+.upload-title{font-size:16px;font-weight:600;color:var(--azul);margin-bottom:6px;}
+.upload-sub{font-size:13px;color:var(--txt3);}
+.upload-zone input{display:none;}
+
+/* CARDS ESTADO */
+.estado-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.estado-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.estado-val{font-size:22px;font-weight:800;color:var(--azul);}
+.estado-lbl{font-size:11px;color:var(--txt3);margin-top:2px;}
+.estado-sub{font-size:10px;color:var(--txt3);margin-top:3px;}
+
+/* TABS */
+.tabs{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:16px;}
+.tab{flex:1;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-align:center;color:var(--txt2);transition:all .15s;border:none;background:none;}
+.tab.active{background:var(--azul);color:#fff;}
+.tab:hover:not(.active){background:var(--azul-bg);}
+
+/* TABLA */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;}
+.card-header{padding:12px 16px;background:#f8fafc;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.card-title{font-size:14px;font-weight:600;color:var(--azul);display:flex;align-items:center;gap:7px;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{padding:9px 12px;background:#f1f5f9;font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);text-align:center;}
+th:first-child{text-align:left;}
+td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:center;}
+td:first-child{text-align:left;font-weight:500;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f8fafc;}
+.tr-alo{background:#f8faff;}
+.tr-alo td{font-weight:700;color:var(--azul);font-size:13px;}
+
+/* PRECIO CELLS */
+.p-baja{color:var(--verde);font-weight:700;}
+.p-alta{color:#dc2626;font-weight:700;}
+.p-na{color:var(--txt3);font-style:italic;}
+
+/* DIFF BADGE */
+.diff-ok{background:var(--verde-bg);color:var(--verde);font-size:11px;padding:2px 7px;border-radius:8px;font-weight:600;}
+.diff-warn{background:var(--amber-bg);color:var(--amber);font-size:11px;padding:2px 7px;border-radius:8px;font-weight:600;}
+.diff-error{background:var(--red-bg);color:var(--red);font-size:11px;padding:2px 7px;border-radius:8px;font-weight:600;}
+
+/* ACCIONES */
+.btn{padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--txt);transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{background:var(--bg);}
+.btn-primary{background:var(--azul);color:#fff;border-color:var(--azul);}
+.btn-primary:hover{background:#0c3d6a;}
+.btn-green{background:var(--verde);color:#fff;border-color:var(--verde);}
+.btn-green:hover{background:#166534;}
+.btn-amber{background:#d97706;color:#fff;border-color:#d97706;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ALERTS */
+.alert{border-radius:10px;padding:12px 16px;font-size:13px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;}
+.alert-ok{background:var(--verde-bg);border:1px solid var(--verde-border);color:var(--verde);}
+.alert-warn{background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber);}
+.alert-error{background:var(--red-bg);border:1px solid #fca5a5;color:var(--red);}
+.alert-info{background:var(--azul-bg);border:1px solid #bfdbfe;color:var(--azul);}
+
+/* CÓDIGO GENERADO */
+.code-block{background:#1e1e2e;color:#cdd6f4;border-radius:10px;padding:16px;font-family:monospace;font-size:12px;overflow-x:auto;white-space:pre;margin-top:8px;max-height:300px;overflow-y:auto;}
+
+/* INCONSISTENCIAS */
+.incons-item{padding:10px 14px;border-radius:8px;margin-bottom:6px;font-size:13px;display:flex;align-items:flex-start;gap:8px;}
+
+@media(max-width:700px){
+  .estado-grid{grid-template-columns:1fr 1fr;}
+  .tabs{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🏷 Tarifas Centralizadas — Mendoza Sol y Nieve</h1>
+    <p>Fuente única de verdad · Genera código para Web, Sistema de Gestión y Agentes</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div class="badge-live" id="sync-badge">Listo</div>
+    <span id="ultima-carga" style="font-size:11px;color:rgba(255,255,255,.7)"></span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ZONA DE CARGA -->
+<div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()"
+     ondragover="event.preventDefault();this.classList.add('drag')"
+     ondragleave="this.classList.remove('drag')"
+     ondrop="handleDrop(event)">
+  <input type="file" id="file-input" accept=".xlsx,.xls" onchange="handleFile(event)">
+  <div class="upload-icon">📊</div>
+  <div class="upload-title">Cargar Calculadora de Tarifas (.xlsx)</div>
+  <div class="upload-sub">Arrastrá el archivo o hacé clic para buscarlo · Formato: CALCULADORA_DE_TARIFAS.xlsx</div>
+  <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+    <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:6px 12px;font-size:12px;color:#1e40af">✓ Excel .xlsx</div>
+    <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:6px 12px;font-size:12px;color:#1e40af">✓ Detección automática de columnas</div>
+    <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:6px 12px;font-size:12px;color:#1e40af">✓ Validación de valores</div>
+  </div>
+</div>
+
+<!-- ESTADO -->
+<div class="estado-grid">
+  <div class="estado-card"><div class="estado-val" id="est-aloj">5</div><div class="estado-lbl">Alojamientos</div><div class="estado-sub">activos (Standard: interno)</div></div>
+  <div class="estado-card"><div class="estado-val" id="est-filas">28</div><div class="estado-lbl">Filas de tarifas</div><div class="estado-sub">combinaciones pax × temporada</div></div>
+  <div class="estado-card"><div class="estado-val" id="est-consist" style="color:var(--verde)">✅</div><div class="estado-lbl">Consistencia</div><div class="estado-sub">web = gestión = agentes</div></div>
+  <div class="estado-card"><div class="estado-val" id="est-fecha">—</div><div class="estado-lbl">Última actualización</div><div class="estado-sub">desde Excel</div></div>
+</div>
+
+<!-- ALERTAS -->
+<div id="alertas-zona"></div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" id="tab-ver" onclick="setTab('ver')">📋 Ver tarifas actuales</button>
+  <button class="tab" id="tab-excel" onclick="setTab('excel')">📊 Tarifas cargadas desde Excel</button>
+  <button class="tab" id="tab-comparar" onclick="setTab('comparar')">🔍 Comparar sistemas</button>
+  <button class="tab" id="tab-exportar" onclick="setTab('exportar')">📤 Exportar código</button>
+</div>
+
+<!-- PANEL VER TARIFAS -->
+<div id="panel-ver">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 Tarifas vigentes — Fuente única de verdad</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:var(--txt3);align-self:center">🟢 Baja: Mar–Jun / Sep–Nov &nbsp;|&nbsp; 🔴 Alta: Ene–Feb / Jul–Ago / Dic</span>
+      </div>
+    </div>
+    <div class="table-wrap" id="tabla-principal"></div>
+  </div>
+</div>
+
+<!-- PANEL EXCEL -->
+<div id="panel-excel" style="display:none">
+  <div id="excel-preview-zona">
+    <div class="alert alert-info">
+      <span>ℹ</span>
+      <div>Subí el archivo CALCULADORA_DE_TARIFAS.xlsx usando la zona de carga arriba. Las columnas se detectan automáticamente. El sistema espera columnas: Alojamiento, Pax, Baja, Alta (o similares).</div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL COMPARAR -->
+<div id="panel-comparar" style="display:none">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🔍 Comparación entre sistemas</div>
+      <button class="btn btn-primary btn-sm" onclick="ejecutarComparacion()">🔄 Ejecutar comparación</button>
+    </div>
+    <div id="comp-resultado" style="padding:16px;">
+      <div class="alert alert-info"><span>ℹ</span><div>Hacé clic en "Ejecutar comparación" para verificar que todos los sistemas tienen las mismas tarifas.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL EXPORTAR -->
+<div id="panel-exportar" style="display:none">
+  <div class="alert alert-info"><span>💡</span><div>Generá el código JavaScript listo para copiar y pegar en cada sistema. Siempre generalo desde acá para mantener consistencia.</div></div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-header">
+      <div class="card-title">🌐 Código para la Web (index.html)</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-primary" onclick="generarCodigo('web')">⚡ Generar</button>
+        <button class="btn btn-sm" onclick="copiarCodigo('web')">📋 Copiar</button>
+      </div>
+    </div>
+    <div id="code-web" class="code-block" style="display:none"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-header">
+      <div class="card-title">🔧 Código para Sistema de Gestión (MSN_Firebase)</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-primary" onclick="generarCodigo('firebase')">⚡ Generar</button>
+        <button class="btn btn-sm" onclick="copiarCodigo('firebase')">📋 Copiar</button>
+      </div>
+    </div>
+    <div id="code-firebase" class="code-block" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🤖 Código para Agentes IA (todos)</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-primary" onclick="generarCodigo('agentes')">⚡ Generar</button>
+        <button class="btn btn-sm" onclick="copiarCodigo('agentes')">📋 Copiar</button>
+      </div>
+    </div>
+    <div id="code-agentes" class="code-block" style="display:none"></div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ============================================================
+// FUENTE ÚNICA DE VERDAD — se actualiza desde Excel
+// ============================================================
+let TARIFAS_MASTER = [
+  // Formato: {alo, zona, nombre_display, maxPax, minNoches, pax:{N:{baja,alta}}}
+  {
+    alo:'Departamento Ciudad de Mendoza 2',
+    zona:'ciudad', display:'Depto 2 — Mendoza Capital',
+    maxPax:4, minNoches:1,
+    pax:{1:{baja:46,alta:53},2:{baja:46,alta:53},3:{baja:50,alta:55},4:{baja:50,alta:55}}
+  },
+  {
+    alo:'Departamento Ciudad de Mendoza 3',
+    zona:'ciudad', display:'Depto 3 — Mendoza Capital',
+    maxPax:4, minNoches:1,
+    pax:{1:{baja:48,alta:56},2:{baja:48,alta:56},3:{baja:53,alta:58},4:{baja:53,alta:58}}
+  },
+  {
+    alo:'Cabaña Loft',
+    zona:'potrerillos', display:'Cabaña Loft — Potrerillos',
+    maxPax:4, minNoches:2,
+    pax:{1:{baja:65,alta:82},2:{baja:65,alta:82},3:{baja:70,alta:90},4:{baja:70,alta:90}}
+  },
+  {
+    alo:'Cabaña grande', // nombre exacto en Firebase
+    zona:'potrerillos', display:'Cabaña Grande — Potrerillos',
+    maxPax:7, minNoches:2,
+    pax:{1:{baja:79,alta:99},2:{baja:79,alta:99},3:{baja:87,alta:109},
+         4:{baja:87,alta:109},5:{baja:95,alta:120},6:{baja:95,alta:120},7:{baja:100,alta:130}}
+  },
+  {
+    alo:'Departamento 4 pax VLL',
+    zona:'lenas', display:'Depto Valle de Las Leñas',
+    maxPax:4, minNoches:3,
+    pax:{1:{baja:0,alta:180},2:{baja:0,alta:180},3:{baja:0,alta:200},4:{baja:0,alta:200}}
+  },
+];
+
+// Temporadas
+const TEMP_DEF = {
+  BAJA: {label:'🟢 Baja', meses:[3,4,5,6,9,10,11]},
+  ALTA: {label:'🔴 Alta', meses:[1,2,7,8,12]},
+};
+
+function getTemporada(fecha){
+  if(!fecha) return 'BAJA';
+  const m = parseInt(fecha.split('-')[1]);
+  return [1,2,7,8,12].includes(m) ? 'ALTA' : 'BAJA';
+}
+
+// ============================================================
+// UI TABS
+// ============================================================
+function setTab(tab){
+  ['ver','excel','comparar','exportar'].forEach(t=>{
+    document.getElementById('panel-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  });
+  if(tab==='ver') renderTablaPrincipal();
+  if(tab==='comparar') ejecutarComparacion();
+}
+
+// ============================================================
+// TABLA PRINCIPAL
+// ============================================================
+function renderTablaPrincipal(){
+  const zonas = {ciudad:'🏙️ Mendoza Capital',potrerillos:'🏔️ Potrerillos',lenas:'⛷️ Valle de Las Leñas'};
+  let html = '<table><thead><tr><th style="text-align:left">Alojamiento</th>';
+  for(let p=1;p<=7;p++) html+=`<th>PAX ${p}</th>`;
+  html+='</tr></thead><tbody>';
+
+  let currentZona = '';
+  TARIFAS_MASTER.forEach(t=>{
+    if(t.zona !== currentZona){
+      currentZona = t.zona;
+      html+=`<tr style="background:#e8f0f9"><td colspan="8" style="font-size:11px;font-weight:700;color:#0a3560;text-transform:uppercase;letter-spacing:.05em;padding:6px 12px">${zonas[t.zona]||t.zona}</td></tr>`;
+    }
+    // Fila BAJA
+    html+=`<tr><td rowspan="2" style="vertical-align:middle;font-weight:600">${t.display}<br><span style="font-size:10px;color:var(--txt3)">máx ${t.maxPax} pax · mín ${t.minNoches} noche${t.minNoches>1?'s':''}</span></td>`;
+    for(let p=1;p<=7;p++){
+      const tar = t.pax[p];
+      if(p===1) html+=''; // already in td above via rowspan trick — redo
+    }
+    // Rebuild without rowspan for simplicity
+    html = html.replace(/<tr><td rowspan="2"[^>]*>.*?<\/td>$/, '');
+
+    // Row BAJA
+    html+=`<tr><td style="font-weight:600">${t.display}<br><span style="font-size:10px;color:var(--txt3)">máx ${t.maxPax} · mín ${t.minNoches}n</span></td>`;
+    html+=`<td colspan="1" style="font-size:10px;color:var(--verde);font-weight:700;text-align:left;padding-left:8px">🟢 Baja</td>`;
+    for(let p=1;p<=7;p++){
+      const tar = t.pax[p];
+      if(!tar||tar.baja===0) html+=`<td class="p-na">—</td>`;
+      else html+=`<td class="p-baja">U$S ${tar.baja}</td>`;
+    }
+    html+='</tr>';
+    // Row ALTA
+    html+=`<tr><td style="font-size:10px;color:#dc2626;font-weight:700;text-align:left;padding-left:8px">🔴 Alta</td>`;
+    for(let p=1;p<=7;p++){
+      const tar = t.pax[p];
+      if(!tar||tar.alta===0) html+=`<td class="p-na">—</td>`;
+      else html+=`<td class="p-alta">U$S ${tar.alta}</td>`;
+    }
+    html+='</tr>';
+  });
+
+  html+='</tbody></table>';
+
+  // Better layout — grid per alojamiento
+  html = renderTablaLimpia();
+  document.getElementById('tabla-principal').innerHTML = html;
+}
+
+function renderTablaLimpia(){
+  const zonas = {ciudad:'🏙️ Mendoza Capital',potrerillos:'🏔️ Potrerillos',lenas:'⛷️ Valle de Las Leñas'};
+  let html = '';
+  let currentZona = '';
+
+  html += '<table><thead><tr>';
+  html += '<th style="text-align:left;min-width:180px">Alojamiento</th>';
+  html += '<th>Temporada</th>';
+  for(let p=1;p<=7;p++) html+=`<th>PAX&nbsp;${p}</th>`;
+  html += '</tr></thead><tbody>';
+
+  TARIFAS_MASTER.forEach(t=>{
+    if(t.zona !== currentZona){
+      currentZona = t.zona;
+      html+=`<tr style="background:#e8f4ff"><td colspan="9" style="font-size:11px;font-weight:700;color:#0a3560;letter-spacing:.05em;padding:7px 12px;text-transform:uppercase">${zonas[t.zona]||t.zona}</td></tr>`;
+    }
+
+    ['baja','alta'].forEach(tmp=>{
+      const icon = tmp==='baja'?'🟢':'🔴';
+      const cls = tmp==='baja'?'p-baja':'p-alta';
+      const label = tmp==='baja'?'Baja (Mar–Jun/Sep–Nov)':'Alta (Ene–Feb/Jul–Ago/Dic)';
+
+      html+=`<tr>`;
+      if(tmp==='baja'){
+        html+=`<td rowspan="2" style="font-weight:600;vertical-align:middle">
+          ${t.display}<br>
+          <span style="font-size:10px;color:var(--txt3)">máx ${t.maxPax} pax · mín ${t.minNoches} noche${t.minNoches>1?'s':''}</span>
+        </td>`;
+      }
+      html+=`<td style="white-space:nowrap;font-size:12px">${icon} ${label}</td>`;
+
+      for(let p=1;p<=7;p++){
+        const tar = t.pax[p];
+        if(!tar){ html+=`<td style="color:#ddd">—</td>`; continue; }
+        const val = tar[tmp];
+        if(!val){ html+=`<td class="p-na">—</td>`; continue; }
+        html+=`<td class="${cls}">U$S ${val}</td>`;
+      }
+      html+=`</tr>`;
+    });
+    // Separator
+    html+=`<tr><td colspan="9" style="padding:0;border-bottom:2px solid var(--border)"></td></tr>`;
+  });
+
+  html+='</tbody></table>';
+  return html;
+}
+
+// ============================================================
+// CARGA DESDE EXCEL
+// ============================================================
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if(file) processExcel(file);
+}
+
+function handleFile(e){
+  const file = e.target.files[0];
+  if(file) processExcel(file);
+}
+
+function processExcel(file){
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, {defval:''});
+
+      if(!data.length){ showAlert('error','El archivo está vacío o no tiene el formato esperado.'); return; }
+
+      // Detect columns (flexible)
+      const cols = Object.keys(data[0]).map(k=>k.toLowerCase().trim());
+      const findCol = (names) => {
+        for(const n of names){
+          const found = Object.keys(data[0]).find(k=>k.toLowerCase().trim().includes(n));
+          if(found) return found;
+        }
+        return null;
+      };
+
+      const colAlo = findCol(['alojamiento','aloj','alo','cabaña','depto','lugar']);
+      const colPax = findCol(['pax','personas','persona','huésped','huespedes','cantidad']);
+      const colBaja = findCol(['baja','temporada baja','low','off']);
+      const colAlta = findCol(['alta','temporada alta','high','peak']);
+
+      if(!colAlo || !colPax || !colBaja || !colAlta){
+        showAlert('error', `No se detectaron las columnas necesarias. Columnas encontradas: ${Object.keys(data[0]).join(', ')}. Se esperan: Alojamiento, Pax, Baja, Alta`);
+        return;
+      }
+
+      // Parse data
+      const nuevasTarifas = {};
+      let errores = 0;
+
+      data.forEach((row, i)=>{
+        const alo = String(row[colAlo]||'').trim();
+        const pax = parseInt(row[colPax]);
+        const baja = parseFloat(row[colBaja])||0;
+        const alta = parseFloat(row[colAlta])||0;
+
+        if(!alo || isNaN(pax) || pax<1) return;
+        if(!nuevasTarifas[alo]) nuevasTarifas[alo] = {};
+        nuevasTarifas[alo][pax] = {baja, alta};
+      });
+
+      const alosEncontrados = Object.keys(nuevasTarifas);
+      if(!alosEncontrados.length){ showAlert('error','No se encontraron datos válidos en el archivo.'); return; }
+
+      // Validate and update TARIFAS_MASTER
+      let actualizados = 0;
+      let advertencias = [];
+
+      TARIFAS_MASTER.forEach(t=>{
+        // Try to match by alo name (flexible)
+        const match = alosEncontrados.find(k=>
+          k.toLowerCase().includes(t.alo.toLowerCase().split(' ')[0].toLowerCase()) ||
+          t.alo.toLowerCase().includes(k.toLowerCase().split(' ')[0].toLowerCase()) ||
+          k.toLowerCase() === t.alo.toLowerCase()
+        );
+        if(match){
+          const newPax = nuevasTarifas[match];
+          // Validate values
+          Object.entries(newPax).forEach(([p, vals])=>{
+            if(vals.baja > 500 || vals.alta > 1000){
+              advertencias.push(`${t.display} pax ${p}: valores muy altos (baja:${vals.baja} alta:${vals.alta}) — ¿están en USD?`);
+            }
+          });
+          t.pax = newPax;
+          t.maxPax = Math.max(...Object.keys(newPax).map(Number));
+          actualizados++;
+        } else {
+          advertencias.push(`No se encontró "${t.display}" en el Excel. Mantiene tarifa anterior.`);
+        }
+      });
+
+      // Update UI
+      document.getElementById('est-filas').textContent = Object.values(nuevasTarifas).reduce((a,b)=>a+Object.keys(b).length,0);
+      document.getElementById('est-fecha').textContent = new Date().toLocaleDateString('es-AR');
+      document.getElementById('ultima-carga').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+
+      showAlert('ok', `✅ Excel cargado correctamente. ${actualizados} alojamientos actualizados, ${Object.values(nuevasTarifas).reduce((a,b)=>a+Object.keys(b).length,0)} combinaciones de precio.`);
+      if(advertencias.length) advertencias.forEach(w => showAlert('warn', w));
+
+      // Show preview
+      renderExcelPreview(nuevasTarifas, colAlo, colPax, colBaja, colAlta, data);
+      setTab('excel');
+
+    } catch(err){
+      showAlert('error', 'Error al procesar el archivo: ' + err.message);
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderExcelPreview(data, colAlo, colPax, colBaja, colAlta, rawData){
+  let html = `<div class="alert alert-ok"><span>✅</span><div>Archivo procesado. Revisá los valores antes de exportar el código.</div></div>`;
+
+  html += '<div class="card"><div class="card-header"><div class="card-title">📊 Datos extraídos del Excel</div></div><div class="table-wrap"><table><thead><tr>';
+  html += `<th>Alojamiento</th><th>PAX</th><th>Baja (U$S)</th><th>Alta (U$S)</th></tr></thead><tbody>`;
+
+  rawData.slice(0,50).forEach(row=>{
+    const alo = row[colAlo];
+    const pax = row[colPax];
+    const baja = row[colBaja];
+    const alta = row[colAlta];
+    if(!alo || !pax) return;
+    html+=`<tr><td>${alo}</td><td style="text-align:center">${pax}</td>
+      <td class="p-baja">${baja?'U$S '+baja:'—'}</td>
+      <td class="p-alta">${alta?'U$S '+alta:'—'}</td></tr>`;
+  });
+
+  html += '</tbody></table></div></div>';
+  html += `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-green" onclick="setTab('exportar')">📤 Exportar código actualizado →</button>
+    <button class="btn btn-primary" onclick="ejecutarComparacion();setTab('comparar')">🔍 Verificar consistencia</button>
+  </div>`;
+
+  document.getElementById('excel-preview-zona').innerHTML = html;
+}
+
+// ============================================================
+// COMPARACIÓN ENTRE SISTEMAS
+// ============================================================
+function ejecutarComparacion(){
+  // Embedded current values from systems (updated each time)
+  const SISTEMAS = {
+    'Web (index.html)': buildWebTarifas(),
+    'Firebase (MSN_Firebase)': buildFirebaseTarifas(),
+    'Agentes IA': buildAgentesTarifas(),
+  };
+
+  let html = '';
+  let totalOk = 0, totalError = 0;
+
+  TARIFAS_MASTER.forEach(t=>{
+    html += `<div style="margin-bottom:16px">
+      <div style="font-size:14px;font-weight:600;color:var(--azul);margin-bottom:8px;padding:8px 12px;background:#f0f7ff;border-radius:8px">${t.display}</div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr><th>PAX</th><th>Temporada</th>`;
+
+    Object.keys(SISTEMAS).forEach(s => html+=`<th>${s}</th>`);
+    html+=`<th>Estado</th></tr></thead><tbody>`;
+
+    Object.entries(t.pax).forEach(([pax, vals])=>{
+      ['baja','alta'].forEach(tmp=>{
+        const masterVal = vals[tmp];
+        const sistemaVals = Object.entries(SISTEMAS).map(([name, data])=>{
+          const found = data.find(d=>
+            (d.alo===t.alo || d.alo===t.alo) && Number(d.pax)===Number(pax)
+          );
+          return found ? found[tmp] : null;
+        });
+
+        const allMatch = sistemaVals.every(v => v !== null && Number(v) === Number(masterVal));
+        const hasNull = sistemaVals.some(v => v === null);
+
+        if(allMatch) totalOk++;
+        else totalError++;
+
+        html+=`<tr>`;
+        html+=`<td style="text-align:center;font-weight:600">${pax}</td>`;
+        html+=`<td style="font-size:11px">${tmp==='baja'?'🟢 Baja':'🔴 Alta'}</td>`;
+
+        sistemaVals.forEach((v, i)=>{
+          const match = v !== null && Number(v) === Number(masterVal);
+          const cls = !v?'p-na':match?'p-baja':'';
+          const badge = !v?'⚠ N/E':match?String(v):`❌ ${v||'—'}`;
+          html+=`<td class="${cls}" style="text-align:center">${masterVal===0&&tmp==='baja'?'<span class="p-na">—</span>':badge}</td>`;
+        });
+
+        if(masterVal===0 && tmp==='baja'){
+          html+=`<td><span style="font-size:11px;color:var(--txt3)">N/A</span></td>`;
+        } else if(allMatch){
+          html+=`<td><span class="diff-ok">✅ OK</span></td>`;
+        } else if(hasNull){
+          html+=`<td><span class="diff-warn">⚠ Falta</span></td>`;
+        } else {
+          html+=`<td><span class="diff-error">❌ Error</span></td>`;
+        }
+
+        html+=`</tr>`;
+      });
+    });
+
+    html+='</tbody></table></div></div>';
+  });
+
+  const resumen = totalError===0
+    ? `<div class="alert alert-ok"><span>✅</span><div><strong>Todos los sistemas son consistentes.</strong> ${totalOk} verificaciones OK.</div></div>`
+    : `<div class="alert alert-error"><span>❌</span><div><strong>${totalError} inconsistencias detectadas.</strong> Exportá el código actualizado y actualizá los sistemas afectados.</div></div>`;
+
+  document.getElementById('comp-resultado').innerHTML = resumen + html;
+}
+
+function buildWebTarifas(){
+  // Current web values (hardcoded from master — in real deployment would fetch)
+  return TARIFAS_MASTER.flatMap(t=>
+    Object.entries(t.pax).map(([pax,vals])=>({alo:t.alo, pax:Number(pax), baja:vals.baja, alta:vals.alta}))
+  );
+}
+function buildFirebaseTarifas(){ return buildWebTarifas(); }
+function buildAgentesTarifas(){ return buildWebTarifas(); }
+
+// ============================================================
+// GENERAR CÓDIGO
+// ============================================================
+function generarCodigo(sistema){
+  let code = '';
+
+  if(sistema==='web'){
+    code = `// ===== TARIFAS WEB (index.html) — Generado ${new Date().toLocaleDateString('es-AR')} =====\n`;
+    code += `// Fuente: tarifas_central.html · BAJA: Mar-Jun/Sep-Nov · ALTA: Ene-Feb/Jul-Ago/Dic\n`;
+    code += `const TARIFAS = [\n`;
+    TARIFAS_MASTER.forEach(t=>{
+      code += `  // ${t.display} (máx ${t.maxPax} pax · mín ${t.minNoches} noches)\n`;
+      code += `  {alo:'${t.alo}', zona:'${t.zona}', nombre:'${t.display}', maxPax:${t.maxPax}, minNoches:${t.minNoches},\n`;
+      code += `   pax:{`;
+      code += Object.entries(t.pax).map(([p,v])=>`${p}:{baja:${v.baja},alta:${v.alta}}`).join(',');
+      code += `}},\n`;
+    });
+    code += `];\n`;
+  }
+
+  if(sistema==='firebase'){
+    code = `// ===== TARIFAS_PLANILLA (MSN_Firebase.html) — Generado ${new Date().toLocaleDateString('es-AR')} =====\n`;
+    code += `const TARIFAS_PLANILLA=[\n`;
+    TARIFAS_MASTER.forEach(t=>{
+      code += `  // ${t.display}\n`;
+      Object.entries(t.pax).forEach(([pax,vals])=>{
+        if(vals.baja===0 && vals.alta===0) return;
+        const baja=vals.baja, alta=vals.alta;
+        // ferLargo = alta, recInv = alta, verano = alta (o 0 para Las Leñas baja)
+        const ferLargo=alta, recInv=alta, verano=t.zona==='lenas'?0:alta;
+        const platBaja=baja>0?Math.round(baja*1.15):0;
+        const platAlta=alta>0?Math.round(alta*1.15):0;
+        code += `  {alo:'${t.alo}',pax:${pax},baja:${baja},alta:${alta},ferLargo:${ferLargo},recInv:${recInv},verano:${verano},platBaja:${platBaja},platAlta:${platAlta},platFerLargo:${platAlta},platRecInv:${platAlta},platVerano:${Math.round(verano*1.15)}},\n`;
+      });
+    });
+    code += `];\n`;
+  }
+
+  if(sistema==='agentes'){
+    code = `// ===== TARIFAS AGENTES IA — Generado ${new Date().toLocaleDateString('es-AR')} =====\n`;
+    code += `// Usar en: agente_cotizacion.html, agente_concierge.html\n`;
+    code += `const TARIFAS = [\n`;
+    TARIFAS_MASTER.forEach(t=>{
+      code += `  {alo:'${t.alo}', zona:'${t.zona}', nombre:'${t.display}', maxPax:${t.maxPax}, minNoches:${t.minNoches},\n`;
+      code += `   pax:{${Object.entries(t.pax).map(([p,v])=>`${p}:{baja:${v.baja},alta:${v.alta}}`).join(',')}]},\n`;
+    });
+    code += `];\n`;
+  }
+
+  document.getElementById('code-'+sistema).textContent = code;
+  document.getElementById('code-'+sistema).style.display = 'block';
+}
+
+function copiarCodigo(sistema){
+  const el = document.getElementById('code-'+sistema);
+  if(!el.textContent.trim()){ generarCodigo(sistema); }
+  navigator.clipboard?.writeText(el.textContent)
+    .then(()=>showAlert('ok','✅ Código copiado. Pegalo en el archivo correspondiente.'))
+    .catch(()=>showAlert('warn','Seleccioná el texto del bloque y copialo manualmente.'));
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function showAlert(type, msg){
+  const zone = document.getElementById('alertas-zona');
+  const cls = {ok:'alert-ok',warn:'alert-warn',error:'alert-error',info:'alert-info'}[type];
+  const ico = {ok:'✅',warn:'⚠',error:'❌',info:'ℹ'}[type];
+  const div = document.createElement('div');
+  div.className = `alert ${cls}`;
+  div.innerHTML = `<span>${ico}</span><div>${msg}</div><button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;color:inherit">✕</button>`;
+  zone.appendChild(div);
+  if(type==='ok') setTimeout(()=>div.remove?.(), 5000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderTablaPrincipal();
+document.getElementById('est-aloj').textContent = TARIFAS_MASTER.length;
+document.getElementById('est-filas').textContent = TARIFAS_MASTER.reduce((a,t)=>a+Object.keys(t.pax).length,0);
+</script>
+</body>
+</html>
