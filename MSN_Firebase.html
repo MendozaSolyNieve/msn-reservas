@@ -1531,12 +1531,14 @@ function hoy(){return new Date().toISOString().split('T')[0];}
 // Determina la temporada según la fecha de check-in
 function getTemporadaByFecha(fecha){
   if(!fecha)return'BAJA';
-  const [y,m,d]=fecha.split('-').map(Number);
-  // ALTA: Ene–Feb y Jul–Ago
-  if((m>=1&&m<=2)||(m>=7&&m<=8))return'ALTA';
-  // VERANO: Dic (ALTA incluye Ene-Feb, así que Dic solo)
-  if(m===12)return'VERANO';
-  // BAJA: Mar–Jun y Sep–Nov
+  const[y,m,d]=fecha.split('-').map(Number);
+  // RECESO INVERNAL: 6 al 31 de julio (vacaciones de invierno)
+  if(m===7&&d>=6)return'RECESO_INV';
+  // ALTA: Enero, Febrero, Agosto, Diciembre
+  if(m===1||m===2||m===8||m===12)return'ALTA';
+  // ALTA: 1-5 de julio
+  if(m===7&&d<=5)return'ALTA';
+  // BAJA: Marzo-Junio, Septiembre-Noviembre
   return'BAJA';
 }
 
@@ -1794,7 +1796,7 @@ async function autoCompletarTarifa(){
   const prioridad=[temporada,'FERIADO_LARGO','ALTA','BAJA'];
   let tar=null;
   for(const tp of prioridad){
-    const found=window._tarifas.filter(t=>t.alojamiento===alo&&t.pax==pax&&t.temporada===tp&&t.desde<=ci&&(!t.hasta||t.hasta>=ci));
+    const found=window._tarifas.filter(t=>t.alojamiento===alo&&t.pax==pax&&(t.temporada===tp||t.temporada==='RECESO_INV'&&tp==='ALTA')&&t.desde<=ci&&(!t.hasta||t.hasta>=ci));
     if(found.length){tar=found.sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];break;}
   }
   if(tar&&tar.valorNoche>0&&!gv('f-p1')){
@@ -3283,7 +3285,8 @@ function renderTarifasAlo(){
   const grid=document.getElementById('tar-tipos-grid');if(!grid)return;
   const tipos=[
     {key:'BAJA',label:'🟢 Temp. Baja (Mar–Jun / Sep–Nov)',color:'#16a34a'},
-    {key:'ALTA',label:'🔴 Temp. Alta (Ene–Feb / Jul–Ago)',color:'#dc2626'},
+    {key:'ALTA',label:'🔴 Temp. Alta (Ene–Feb / Ago / Dic)',color:'#dc2626'},
+    {key:'RECESO_INV',label:'🔵 Receso Invernal (6-31 Jul)',color:'#0891b2'},
     {key:'FERIADO_LARGO',label:'🟣 Feriado Largo = Alta temporada',color:'#7c3aed'},
     {key:'RECESO_INVERNAL',label:'🔵 Receso Invernal (Jul)',color:'#0891b2'},
     {key:'VERANO',label:'🟠 Verano (Dic–Feb)',color:'#f97316'},
@@ -3376,7 +3379,7 @@ function renderHistorialTarifas(){
   let tarifas=[...(window._tarifas||[])].filter(t=>!filtAlo||t.alojamiento===filtAlo).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga));
   const tb=document.getElementById('tbl-historial-tarifas');if(!tb)return;
   if(!tarifas.length){tb.innerHTML='<tr><td colspan="14" class="empty">Sin tarifas registradas. Complete los valores y presione "Guardar tarifas".</td></tr>';return;}
-  const tempN={BAJA:'🟢 Baja',ALTA:'🔴 Alta',FERIADO_LARGO:'🟣 Fer.Largo',RECESO_INVERNAL:'🔵 Rec.Inv.',VERANO:'🟠 Verano'};
+  const tempN={BAJA:'🟢 Baja',ALTA:'🔴 Alta',RECESO_INV:'🔵 Rec.Inv.',FERIADO_LARGO:'🟣 Fer.Largo',VERANO:'🟠 Verano'};
   tb.innerHTML=tarifas.map(t=>'<tr>'+
     '<td style="font-size:10px">'+fmtF(t.fechaCarga)+'</td>'+
     '<td style="font-size:11px">'+t.alojamiento+'</td>'+
@@ -3401,24 +3404,28 @@ async function eliminarTarifa(id){if(!confirm('¿Eliminar esta tarifa?'))return;
 // La tarifa de FERIADOS LARGOS es igual a la de ALTA temporada
 // platBaja/platFerLargo = tarifas con comisión de plataforma incluida
 const TARIFAS_PLANILLA=[
-  // MENDOZA CIUDAD — DEPARTAMENTO 2 (máx 4 pax)
+  // MENDOZA CIUDAD — DEPARTAMENTO 2 (máx 4 pax · mín 1 noche)
   {alo:'Departamento Ciudad de Mendoza 2',pax:1,baja:46,alta:53,ferLargo:53,recInv:53,verano:53,platBaja:53,platAlta:60,platFerLargo:60,platRecInv:60,platVerano:60},
   {alo:'Departamento Ciudad de Mendoza 2',pax:2,baja:46,alta:53,ferLargo:53,recInv:53,verano:53,platBaja:53,platAlta:60,platFerLargo:60,platRecInv:60,platVerano:60},
   {alo:'Departamento Ciudad de Mendoza 2',pax:3,baja:50,alta:55,ferLargo:55,recInv:55,verano:55,platBaja:60,platAlta:65,platFerLargo:65,platRecInv:65,platVerano:65},
   {alo:'Departamento Ciudad de Mendoza 2',pax:4,baja:50,alta:55,ferLargo:55,recInv:55,verano:55,platBaja:60,platAlta:65,platFerLargo:65,platRecInv:65,platVerano:65},
-  // MENDOZA CIUDAD — DEPARTAMENTO 3 (máx 4 pax)
+  // MENDOZA CIUDAD — DEPARTAMENTO 3 (máx 4 pax · mín 1 noche)
   {alo:'Departamento Ciudad de Mendoza 3',pax:1,baja:48,alta:56,ferLargo:56,recInv:56,verano:56,platBaja:56,platAlta:63,platFerLargo:63,platRecInv:63,platVerano:63},
   {alo:'Departamento Ciudad de Mendoza 3',pax:2,baja:48,alta:56,ferLargo:56,recInv:56,verano:56,platBaja:56,platAlta:63,platFerLargo:63,platRecInv:63,platVerano:63},
   {alo:'Departamento Ciudad de Mendoza 3',pax:3,baja:53,alta:58,ferLargo:58,recInv:58,verano:58,platBaja:63,platAlta:68,platFerLargo:68,platRecInv:68,platVerano:68},
   {alo:'Departamento Ciudad de Mendoza 3',pax:4,baja:53,alta:58,ferLargo:58,recInv:58,verano:58,platBaja:63,platAlta:68,platFerLargo:68,platRecInv:68,platVerano:68},
-  // POTRERILLOS — LOFT (máx 4 pax)
+  // POTRERILLOS — LOFT (máx 4 pax · mín 2 noches)
   {alo:'Cabaña Loft',pax:1,baja:65,alta:82,ferLargo:82,recInv:82,verano:82,platBaja:75,platAlta:94,platFerLargo:94,platRecInv:94,platVerano:94},
   {alo:'Cabaña Loft',pax:2,baja:65,alta:82,ferLargo:82,recInv:82,verano:82,platBaja:75,platAlta:94,platFerLargo:94,platRecInv:94,platVerano:94},
   {alo:'Cabaña Loft',pax:3,baja:70,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:80,platAlta:98,platFerLargo:98,platRecInv:98,platVerano:98},
   {alo:'Cabaña Loft',pax:4,baja:70,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:80,platAlta:98,platFerLargo:98,platRecInv:98,platVerano:98},
-  // POTRERILLOS — STANDARD (USO INTERNO — no disponible públicamente)
-  // {alo:'Cabaña Standard', DESHABILITADA — uso interno únicamente}
-  // POTRERILLOS — GRANDE (máx 7 pax)
+  // POTRERILLOS — STANDARD (USO INTERNO — no publicada)
+  {alo:'Cabaña Standard',pax:1,baja:72,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:83,platAlta:103,platFerLargo:103,platRecInv:103,platVerano:103},
+  {alo:'Cabaña Standard',pax:2,baja:72,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:83,platAlta:103,platFerLargo:103,platRecInv:103,platVerano:103},
+  {alo:'Cabaña Standard',pax:3,baja:77,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:88,platAlta:108,platFerLargo:108,platRecInv:108,platVerano:108},
+  {alo:'Cabaña Standard',pax:4,baja:77,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:88,platAlta:108,platFerLargo:108,platRecInv:108,platVerano:108},
+  {alo:'Cabaña Standard',pax:5,baja:85,alta:110,ferLargo:110,recInv:110,verano:110,platBaja:105,platAlta:115,platFerLargo:115,platRecInv:115,platVerano:115},
+  // POTRERILLOS — GRANDE (máx 7 pax · mín 2 noches)
   {alo:'Cabaña grande',pax:1,baja:79,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:91,platAlta:114,platFerLargo:114,platRecInv:114,platVerano:114},
   {alo:'Cabaña grande',pax:2,baja:79,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:91,platAlta:114,platFerLargo:114,platRecInv:114,platVerano:114},
   {alo:'Cabaña grande',pax:3,baja:87,alta:109,ferLargo:109,recInv:109,verano:109,platBaja:97,platAlta:119,platFerLargo:119,platRecInv:119,platVerano:119},
@@ -3426,7 +3433,7 @@ const TARIFAS_PLANILLA=[
   {alo:'Cabaña grande',pax:5,baja:95,alta:120,ferLargo:120,recInv:120,verano:120,platBaja:106,platAlta:130,platFerLargo:130,platRecInv:130,platVerano:130},
   {alo:'Cabaña grande',pax:6,baja:95,alta:120,ferLargo:120,recInv:120,verano:120,platBaja:106,platAlta:130,platFerLargo:130,platRecInv:130,platVerano:130},
   {alo:'Cabaña grande',pax:7,baja:100,alta:130,ferLargo:130,recInv:130,verano:130,platBaja:115,platAlta:150,platFerLargo:150,platRecInv:150,platVerano:150},
-  // LAS LEÑAS — solo temporada alta/invernal (máx 4 pax)
+  // LAS LEÑAS — solo alta/receso invernal (máx 4 pax · mín 3 noches)
   {alo:'Departamento 4 pax VLL',pax:1,baja:0,alta:180,ferLargo:180,recInv:180,verano:0,platBaja:0,platAlta:220,platFerLargo:220,platRecInv:220,platVerano:0},
   {alo:'Departamento 4 pax VLL',pax:2,baja:0,alta:180,ferLargo:180,recInv:180,verano:0,platBaja:0,platAlta:220,platFerLargo:220,platRecInv:220,platVerano:0},
   {alo:'Departamento 4 pax VLL',pax:3,baja:0,alta:200,ferLargo:200,recInv:200,verano:0,platBaja:0,platAlta:240,platFerLargo:240,platRecInv:240,platVerano:0},
@@ -3485,11 +3492,11 @@ async function confirmarImportarPlanilla(){
   // RECESO_INVERNAL: julio
   // VERANO: 1 Dic – 28 Feb
   const TEMP_MAP=[
-    {key:'BAJA',   campo:'baja',    desde:'2026-03-01',hasta:'2026-06-30'},
-    {key:'ALTA',   campo:'alta',    desde:'2026-07-01',hasta:'2026-08-31'},
+    {key:'BAJA',       campo:'baja',   desde:'2026-03-01',hasta:'2026-06-30'},
+    {key:'ALTA',       campo:'alta',   desde:'2026-08-01',hasta:'2026-08-31'},
+    {key:'RECESO_INV', campo:'recInv', desde:'2026-07-06',hasta:'2026-07-31'},
     {key:'FERIADO_LARGO',campo:'ferLargo',desde:'2026-01-01',hasta:'2026-12-31'},
-    {key:'RECESO_INVERNAL',campo:'recInv', desde:'2026-07-01',hasta:'2026-07-31'},
-    {key:'VERANO', campo:'verano',  desde:'2026-12-01',hasta:'2027-02-28'},
+    {key:'VERANO',     campo:'verano', desde:'2026-12-01',hasta:'2027-02-28'},
   ];
   let total=0,errores=0;
   for(const t of TARIFAS_PLANILLA){

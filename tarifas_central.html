@@ -417,30 +417,82 @@ function processExcel(file){
       if(!data.length){ showAlert('error','El archivo está vacío o no tiene el formato esperado.'); return; }
 
       // Detect columns (flexible)
-      const cols = Object.keys(data[0]).map(k=>k.toLowerCase().trim());
-      const findCol = (names) => {
-        for(const n of names){
-          const found = Object.keys(data[0]).find(k=>k.toLowerCase().trim().includes(n));
-          if(found) return found;
+      // Scan ALL rows for header row (Excel may have title rows at top)
+      let colAlo=null,colPax=null,colBaja=null,colAlta=null,colRecInv=null,colVerano=null;
+      let headerRowIdx = -1;
+
+      // Try raw sheet to find header row
+      const wsRaw = wb.Sheets[wb.SheetNames[0]];
+      const rawData = XLSX.utils.sheet_to_json(wsRaw, {header:1, defval:''});
+      
+      for(let ri=0; ri<Math.min(rawData.length,20); ri++){
+        const row = rawData[ri].map(v=>String(v||'').toLowerCase().trim());
+        const hasAlo = row.some(v=>v.includes('alojamiento')||v.includes('cabaña')||v.includes('depto'));
+        const hasPax = row.some(v=>v.includes('pax')||v.includes('persona'));
+        const hasBaja = row.some(v=>v.includes('baja'));
+        const hasAlta = row.some(v=>v.includes('alta')||v.includes('feriado'));
+        if(hasAlo && hasPax && hasBaja && hasAlta){
+          headerRowIdx = ri;
+          colAlo = rawData[ri].findIndex(v=>String(v||'').toLowerCase().includes('alojamiento')||String(v||'').toLowerCase().includes('cabaña'));
+          colPax = rawData[ri].findIndex(v=>String(v||'').toLowerCase().includes('pax')||String(v||'').toLowerCase().includes('persona'));
+          colBaja = rawData[ri].findIndex(v=>String(v||'').toLowerCase().includes('baja'));
+          colAlta = rawData[ri].findIndex(v=>String(v||'').toLowerCase().includes('alta')||String(v||'').toLowerCase().includes('feriado'));
+          colRecInv = rawData[ri].findIndex(v=>String(v||'').toLowerCase().includes('invierno')||String(v||'').toLowerCase().includes('vacac'));
+          colVerano = rawData[ri].findIndex(v=>String(v||'').toLowerCase().includes('verano'));
+          break;
         }
-        return null;
-      };
-
-      const colAlo = findCol(['alojamiento','aloj','alo','cabaña','depto','lugar']);
-      const colPax = findCol(['pax','personas','persona','huésped','huespedes','cantidad']);
-      const colBaja = findCol(['baja','temporada baja','low','off']);
-      const colAlta = findCol(['alta','temporada alta','high','peak']);
-
-      if(!colAlo || !colPax || !colBaja || !colAlta){
-        showAlert('error', `No se detectaron las columnas necesarias. Columnas encontradas: ${Object.keys(data[0]).join(', ')}. Se esperan: Alojamiento, Pax, Baja, Alta`);
-        return;
       }
+
+      if(headerRowIdx<0 || colAlo<0 || colPax<0 || colBaja<0 || colAlta<0){
+        // Fallback: try numeric columns — Excel with coeficientes
+        // Look for rows with alojamiento names + numbers
+        const ALO_NAMES = ['departamento','cabaña','loft','grande','standard','lenas','vll'];
+        let dataRows = [];
+        for(let ri=0; ri<rawData.length; ri++){
+          const row = rawData[ri];
+          const firstCell = String(row[0]||'').toLowerCase();
+          if(ALO_NAMES.some(n=>firstCell.includes(n))){
+            // Check if row has numeric values in cols 1-8
+            const nums = row.slice(1,9).map(v=>parseFloat(v)||0);
+            if(nums.some(n=>n>0&&n<2000)){
+              dataRows.push({alo:String(row[0]||'').trim(), pax:1, vals:nums});
+            }
+          }
+        }
+        if(!dataRows.length){
+          showAlert('error','No se detectaron las columnas necesarias. El Excel debe tener columnas: Alojamiento, Pax (o personas), Baja, Alta. Verificá que el archivo sea CALCULADORA_DE_TARIFAS.xlsx');
+          return;
+        }
+      }
+
+      // Parse from headerRowIdx+1 onward
+      const dataFromHeader = rawData.slice(headerRowIdx+1);
+      const nuevasTarifas = {};
+      let errores = 0;
+
+      dataFromHeader.forEach(row=>{
+        const alo = String(row[colAlo]||'').trim();
+        const pax = parseInt(row[colPax]);
+        const baja = parseFloat(row[colBaja])||0;
+        const alta = parseFloat(row[colAlta])||0;
+        if(!alo || isNaN(pax) || pax<1 || (!baja && !alta)) return;
+        if(!nuevasTarifas[alo]) nuevasTarifas[alo] = {};
+        nuevasTarifas[alo][pax] = {
+          baja, alta,
+          recInv: colRecInv>=0 ? parseFloat(row[colRecInv])||alta : alta,
+          verano: colVerano>=0 ? parseFloat(row[colVerano])||alta : alta,
+        };
+      });
+
+      const alosEncontrados = Object.keys(nuevasTarifas);
+      if(!alosEncontrados.length){ showAlert('error','No se encontraron datos válidos en el archivo.'); return; }
 
       // Parse data
       const nuevasTarifas = {};
       let errores = 0;
 
-      data.forEach((row, i)=>{
+      // data loop replaced above — nuevasTarifas already populated
+      if(false) (function(row,i){
         const alo = String(row[colAlo]||'').trim();
         const pax = parseInt(row[colPax]);
         const baja = parseFloat(row[colBaja])||0;
