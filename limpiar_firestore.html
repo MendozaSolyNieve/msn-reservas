@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧹 Limpieza Firestore — MSN</title>
+<style>
+body{font-family:-apple-system,sans-serif;max-width:700px;margin:40px auto;padding:20px;background:#f5f5f0}
+h1{color:#0f4c81;font-size:20px}
+.card{background:#fff;border-radius:12px;padding:20px;margin:16px 0;border:1px solid #e2e0d8}
+.btn{padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;margin:6px;display:inline-flex;align-items:center;gap:8px}
+.btn-red{background:#dc2626;color:#fff}
+.btn-green{background:#16a34a;color:#fff}
+.btn-blue{background:#0f4c81;color:#fff}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.log{background:#1e1e2e;color:#cdd6f4;border-radius:8px;padding:14px;font-family:monospace;font-size:12px;min-height:120px;margin-top:12px;white-space:pre-wrap;overflow-y:auto;max-height:300px}
+.warn{background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:12px;font-size:13px;color:#92400e;margin-bottom:12px}
+.ok{background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:12px;font-size:13px;color:#15803d}
+.step{counter-increment:step;display:flex;gap:12px;margin-bottom:16px;align-items:flex-start}
+.step-num{width:28px;height:28px;border-radius:50%;background:#0f4c81;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+</style>
+</head>
+<body>
+<h1>🧹 Limpieza y Reset de Tarifas — Mendoza Sol y Nieve</h1>
+<p style="color:#5c5a54;font-size:13px">Esta herramienta limpia Firestore y recarga las tarifas correctas en U$S.</p>
+
+<div class="warn">⚠ <strong>Uso único:</strong> Esta herramienta elimina TODAS las tarifas guardadas en Firestore y las recarga desde la planilla oficial en U$S. Los valores en ARS (68000, 75000, etc.) serán reemplazados por los valores correctos en U$S.</div>
+
+<div class="card">
+  <div class="step"><div class="step-num">1</div><div><strong>Conectar a Firebase</strong><br><span style="font-size:12px;color:#9c9a94">Verifica la conexión con mendoza-sol-nieve-15fba</span><br><button class="btn btn-blue" onclick="conectar()">🔌 Conectar</button><span id="conn-status" style="font-size:12px;margin-left:10px"></span></div></div>
+  <div class="step"><div class="step-num">2</div><div><strong>Ver tarifas actuales en Firestore</strong><br><span style="font-size:12px;color:#9c9a94">Muestra qué hay guardado actualmente</span><br><button class="btn btn-blue" onclick="verTarifas()" id="btn-ver" disabled>📋 Ver tarifas actuales</button></div></div>
+  <div class="step"><div class="step-num">3</div><div><strong>Eliminar TODAS las tarifas viejas</strong><br><span style="font-size:12px;color:#9c9a94">Borra todo de la colección 'tarifas' en Firestore</span><br><button class="btn btn-red" onclick="eliminarTodo()" id="btn-eliminar" disabled>🗑 Eliminar todo</button></div></div>
+  <div class="step"><div class="step-num">4</div><div><strong>Cargar tarifas correctas en U$S</strong><br><span style="font-size:12px;color:#9c9a94">Importa desde TARIFAS_PLANILLA oficial</span><br><button class="btn btn-green" onclick="cargarTarifas()" id="btn-cargar" disabled>✅ Cargar tarifas en U$S</button></div></div>
+</div>
+
+<div class="card">
+  <strong>📋 Log de operaciones:</strong>
+  <div class="log" id="log">Esperando conexión...</div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import { getFirestore, collection, getDocs, deleteDoc, setDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAbw0jymmgmlAN6cQv0WC424OnpNzJdfT4",
+  authDomain: "mendoza-sol-nieve-15fba.firebaseapp.com",
+  projectId: "mendoza-sol-nieve-15fba",
+  storageBucket: "mendoza-sol-nieve-15fba.firebasestorage.app",
+  messagingSenderId: "49107135646",
+  appId: "1:49107135646:web:cb03570bd1c2d4bda2df8f"
+};
+
+let DB = null;
+const log = (msg, color='#cdd6f4') => {
+  const el = document.getElementById('log');
+  const time = new Date().toLocaleTimeString('es-AR');
+  el.innerHTML += `<span style="color:#6b7280">[${time}]</span> <span style="color:${color}">${msg}</span>\n`;
+  el.scrollTop = el.scrollHeight;
+};
+
+// TARIFAS CORRECTAS EN U$S
+const TARIFAS_USD = [
+  {alo:'Departamento Ciudad de Mendoza 2',pax:1,baja:46,alta:53,ferLargo:53,recInv:53,verano:53,platBaja:53,platAlta:60,platRecInv:60},
+  {alo:'Departamento Ciudad de Mendoza 2',pax:2,baja:46,alta:53,ferLargo:53,recInv:53,verano:53,platBaja:53,platAlta:60,platRecInv:60},
+  {alo:'Departamento Ciudad de Mendoza 2',pax:3,baja:50,alta:55,ferLargo:55,recInv:55,verano:55,platBaja:60,platAlta:65,platRecInv:65},
+  {alo:'Departamento Ciudad de Mendoza 2',pax:4,baja:50,alta:55,ferLargo:55,recInv:55,verano:55,platBaja:60,platAlta:65,platRecInv:65},
+  {alo:'Departamento Ciudad de Mendoza 3',pax:1,baja:48,alta:56,ferLargo:56,recInv:56,verano:56,platBaja:56,platAlta:63,platRecInv:63},
+  {alo:'Departamento Ciudad de Mendoza 3',pax:2,baja:48,alta:56,ferLargo:56,recInv:56,verano:56,platBaja:56,platAlta:63,platRecInv:63},
+  {alo:'Departamento Ciudad de Mendoza 3',pax:3,baja:53,alta:58,ferLargo:58,recInv:58,verano:58,platBaja:63,platAlta:68,platRecInv:68},
+  {alo:'Departamento Ciudad de Mendoza 3',pax:4,baja:53,alta:58,ferLargo:58,recInv:58,verano:58,platBaja:63,platAlta:68,platRecInv:68},
+  {alo:'Cabaña Loft',pax:1,baja:65,alta:82,ferLargo:82,recInv:82,verano:82,platBaja:75,platAlta:94,platRecInv:94},
+  {alo:'Cabaña Loft',pax:2,baja:65,alta:82,ferLargo:82,recInv:82,verano:82,platBaja:75,platAlta:94,platRecInv:94},
+  {alo:'Cabaña Loft',pax:3,baja:70,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:80,platAlta:98,platRecInv:98},
+  {alo:'Cabaña Loft',pax:4,baja:70,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:80,platAlta:98,platRecInv:98},
+  {alo:'Cabaña grande',pax:1,baja:79,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:91,platAlta:114,platRecInv:114},
+  {alo:'Cabaña grande',pax:2,baja:79,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:91,platAlta:114,platRecInv:114},
+  {alo:'Cabaña grande',pax:3,baja:87,alta:109,ferLargo:109,recInv:109,verano:109,platBaja:97,platAlta:119,platRecInv:119},
+  {alo:'Cabaña grande',pax:4,baja:87,alta:109,ferLargo:109,recInv:109,verano:109,platBaja:97,platAlta:119,platRecInv:119},
+  {alo:'Cabaña grande',pax:5,baja:95,alta:120,ferLargo:120,recInv:120,verano:120,platBaja:106,platAlta:130,platRecInv:130},
+  {alo:'Cabaña grande',pax:6,baja:95,alta:120,ferLargo:120,recInv:120,verano:120,platBaja:106,platAlta:130,platRecInv:130},
+  {alo:'Cabaña grande',pax:7,baja:100,alta:130,ferLargo:130,recInv:130,verano:130,platBaja:115,platAlta:150,platRecInv:150},
+  {alo:'Departamento 4 pax VLL',pax:1,baja:0,alta:180,ferLargo:180,recInv:180,verano:0,platBaja:0,platAlta:220,platRecInv:220},
+  {alo:'Departamento 4 pax VLL',pax:2,baja:0,alta:180,ferLargo:180,recInv:180,verano:0,platBaja:0,platAlta:220,platRecInv:220},
+  {alo:'Departamento 4 pax VLL',pax:3,baja:0,alta:200,ferLargo:200,recInv:200,verano:0,platBaja:0,platAlta:240,platRecInv:240},
+  {alo:'Departamento 4 pax VLL',pax:4,baja:0,alta:200,ferLargo:200,recInv:200,verano:0,platBaja:0,platAlta:240,platRecInv:240},
+];
+
+const TEMP_MAP = [
+  {key:'BAJA',        campo:'baja',    desde:'2026-03-01',hasta:'2026-06-30'},
+  {key:'BAJA',        campo:'baja',    desde:'2026-09-01',hasta:'2026-11-30'},
+  {key:'ALTA',        campo:'alta',    desde:'2026-01-01',hasta:'2026-02-28'},
+  {key:'ALTA',        campo:'alta',    desde:'2026-07-01',hasta:'2026-07-05'},
+  {key:'ALTA',        campo:'alta',    desde:'2026-08-01',hasta:'2026-08-31'},
+  {key:'RECESO_INV',  campo:'recInv',  desde:'2026-07-06',hasta:'2026-07-31'},
+  {key:'FERIADO_LARGO',campo:'ferLargo',desde:'2026-01-01',hasta:'2026-12-31'},
+  {key:'VERANO',      campo:'verano',  desde:'2026-12-01',hasta:'2027-02-28'},
+];
+
+function hoy(){ return new Date().toISOString().split('T')[0]; }
+
+window.conectar = async function() {
+  try {
+    const app = initializeApp(firebaseConfig);
+    DB = getFirestore(app);
+    document.getElementById('conn-status').textContent = '✅ Conectado';
+    document.getElementById('conn-status').style.color = '#16a34a';
+    document.getElementById('btn-ver').disabled = false;
+    document.getElementById('btn-eliminar').disabled = false;
+    document.getElementById('btn-cargar').disabled = false;
+    log('✅ Conectado a Firebase: mendoza-sol-nieve-15fba', '#86efac');
+  } catch(e) {
+    log('❌ Error de conexión: ' + e.message, '#fca5a5');
+  }
+};
+
+window.verTarifas = async function() {
+  if(!DB){ log('⚠ Conectá primero'); return; }
+  const snap = await getDocs(collection(DB,'tarifas'));
+  log(`📋 Total tarifas en Firestore: ${snap.size}`, '#93c5fd');
+  const porTemp = {};
+  snap.docs.forEach(d => {
+    const tmp = d.data().temporada || 'SIN_TEMP';
+    porTemp[tmp] = (porTemp[tmp]||0) + 1;
+  });
+  Object.entries(porTemp).forEach(([tmp, cnt]) => {
+    const esObsoleta = ['MEDIA','RECESO_INVERNAL','TEMPORADA_MEDIA'].includes(tmp);
+    log(`  ${esObsoleta?'❌':'✅'} ${tmp}: ${cnt} registros${esObsoleta?' ← OBSOLETA':''}`,'${esObsoleta?"#fca5a5":"#86efac"}');
+  });
+  // Show first few values
+  const primeras = snap.docs.slice(0,3);
+  primeras.forEach(d => {
+    const t = d.data();
+    log(`  → ${t.alojamiento} pax:${t.pax} tmp:${t.temporada} U$S:${t.valorNoche}`, '#e9d5ff');
+  });
+};
+
+window.eliminarTodo = async function() {
+  if(!DB){ log('⚠ Conectá primero'); return; }
+  if(!confirm('¿Eliminar TODAS las tarifas de Firestore? Luego deberás cargar las nuevas.')) return;
+  log('🗑 Eliminando todas las tarifas...', '#fcd34d');
+  const snap = await getDocs(collection(DB,'tarifas'));
+  let n = 0;
+  for(const d of snap.docs){
+    await deleteDoc(doc(DB,'tarifas',d.id));
+    n++;
+  }
+  log(`✅ ${n} tarifas eliminadas. Firestore limpio.`, '#86efac');
+};
+
+window.cargarTarifas = async function() {
+  if(!DB){ log('⚠ Conectá primero'); return; }
+  log('⏳ Cargando tarifas en U$S...', '#fcd34d');
+  let total = 0, errores = 0;
+
+  for(const t of TARIFAS_USD){
+    for(const temp of TEMP_MAP){
+      const noche = t[temp.campo];
+      if(!noche) continue;
+
+      const id = 'TAR_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+      const tar = {
+        id, alojamiento: t.alo, pax: t.pax,
+        temporada: temp.key, desde: temp.desde, hasta: temp.hasta,
+        valorNoche: noche,
+        valorFinde: noche,
+        minNoches: temp.key==='RECESO_INV'?3:temp.key==='VERANO'?2:1,
+        valorFerLargo: t.ferLargo||noche,
+        valorLate: Math.round(noche*0.5),
+        valorSemanal: 0, minSemanal: 7,
+        valorMensual: 0, minMensual: 28,
+        fechaCarga: hoy(),
+      };
+      try {
+        await setDoc(doc(DB,'tarifas',id), tar);
+        total++;
+        await new Promise(r=>setTimeout(r,30)); // pequeña pausa
+      } catch(e) {
+        errores++;
+        log(`❌ Error: ${t.alo} pax:${t.pax} ${temp.key}: ${e.message}`, '#fca5a5');
+      }
+    }
+  }
+  log(`✅ LISTO: ${total} tarifas en U$S cargadas correctamente. Errores: ${errores}`, '#86efac');
+  log('🔄 Cerrá esta página y abrí MSN_Firebase. Las tarifas ahora están en U$S.', '#93c5fd');
+};
+</script>
+</body>
+</html>
