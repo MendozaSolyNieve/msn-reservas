@@ -1548,17 +1548,46 @@ let _dolarCache={valor:null,fecha:null};
 async function getDolarHoy(){
   const hoyStr=hoy();
   if(_dolarCache.valor&&_dolarCache.fecha===hoyStr)return _dolarCache.valor;
-  // Fuente 1: Bluelytics (BNA venta oficial — www.bna.com.ar)
+  // Check historial local first
+  const localVal=window.getCotizVenta&&window.getCotizVenta(hoyStr);
+  if(localVal>0){_dolarCache={valor:localVal,fecha:hoyStr};return localVal;}
+  // Fuente 1: Bluelytics (BNA oficial)
   try{
     const r=await fetch('https://api.bluelytics.com.ar/v2/latest');
-    if(r.ok){const d=await r.json();const v=d?.oficial?.value_sell||0;if(v>0){_dolarCache={valor:v,fecha:hoyStr};return v;}}
+    if(r.ok){const d=await r.json();const v=d?.oficial?.value_sell||0;
+      if(v>0){
+        _dolarCache={valor:v,fecha:hoyStr};
+        // Auto-save to cotizDB
+        if(window._cotizDB&&!window._cotizDB[hoyStr]){
+          window._cotizDB[hoyStr]={compra:d?.oficial?.value_buy||Math.round(v*0.97),venta:v,fuente:'Bluelytics/BNA automático'};
+          if(window.guardarCotizLocal)window.guardarCotizLocal();
+          if(window.renderCotizacion)window.renderCotizacion();
+        }
+        return v;
+      }
+    }
   }catch(e){}
-  // Fuente 2: dolarapi.com oficial
+  // Fuente 2: dolarapi.com
   try{
     const r=await fetch('https://dolarapi.com/v1/dolares/oficial');
-    if(r.ok){const d=await r.json();const v=d?.venta||0;if(v>0){_dolarCache={valor:v,fecha:hoyStr};return v;}}
+    if(r.ok){const d=await r.json();const v=d?.venta||0;
+      if(v>0){
+        _dolarCache={valor:v,fecha:hoyStr};
+        if(window._cotizDB&&!window._cotizDB[hoyStr]){
+          window._cotizDB[hoyStr]={compra:d?.compra||Math.round(v*0.97),venta:v,fuente:'DolarAPI automático'};
+          if(window.guardarCotizLocal)window.guardarCotizLocal();
+          if(window.renderCotizacion)window.renderCotizacion();
+        }
+        return v;
+      }
+    }
   }catch(e){console.warn('dolarapi no disponible:',e);}
-  // Fallback manual
+  // Fallback: último valor conocido del historial
+  if(window._cotizDB){
+    const fechas=Object.keys(window._cotizDB).sort();
+    const ult=fechas.filter(f=>f<=hoyStr).pop();
+    if(ult){const v=window._cotizDB[ult].venta;_dolarCache={valor:v,fecha:hoyStr};return v;}
+  }
   const cotBk=parseFloat(document.getElementById('cot-bk')?.value)||0;
   if(cotBk>0)return cotBk;
   return _dolarCache.valor||0;
@@ -3148,7 +3177,7 @@ async function cargarCotizLocal(){try{const raw=localStorage.getItem(COTIZ_KEY);
 function guardarCotizLocal(){try{localStorage.setItem(COTIZ_KEY,JSON.stringify(window._cotizDB));}catch(e){}}
 
 // Cotizaciones históricas REALES desde el documento de Liliana
-const COTIZ_HISTORICO_REAL={"2025-11-03":{compra:1450,venta:1500},"2025-11-04":{compra:1435,venta:1485},"2025-11-05":{compra:1425,venta:1475},"2025-11-07":{compra:1395,venta:1445},"2025-11-10":{compra:1395,venta:1445},"2025-11-11":{compra:1390,venta:1440},"2025-11-12":{compra:1385,venta:1435},"2025-11-13":{compra:1380,venta:1430},"2025-11-14":{compra:1375,venta:1425},"2025-11-17":{compra:1365,venta:1415},"2025-11-18":{compra:1375,venta:1425},"2025-11-19":{compra:1380,venta:1430},"2025-11-20":{compra:1400,venta:1450},"2025-11-25":{compra:1420,venta:1470},"2025-11-26":{compra:1425,venta:1475},"2025-11-27":{compra:1425,venta:1475},"2025-11-28":{compra:1425,venta:1475},"2025-12-01":{compra:1425,venta:1475},"2025-12-02":{compra:1430,venta:1480},"2025-12-03":{compra:1430,venta:1480},"2025-12-04":{compra:1420,venta:1470},"2025-12-05":{compra:1410,venta:1460},"2025-12-09":{compra:1415,venta:1465},"2025-12-10":{compra:1410,venta:1460},"2025-12-11":{compra:1410,venta:1460},"2025-12-12":{compra:1415,venta:1465},"2025-12-15":{compra:1415,venta:1465},"2025-12-16":{compra:1430,venta:1480},"2025-12-17":{compra:1425,venta:1475},"2025-12-18":{compra:1425,venta:1475},"2025-12-19":{compra:1425,venta:1475},"2025-12-22":{compra:1425,venta:1475},"2025-12-23":{compra:1425,venta:1475},"2025-12-26":{compra:1425,venta:1475},"2025-12-29":{compra:1425,venta:1475},"2025-12-30":{compra:1430,venta:1480},"2026-01-02":{compra:1445,venta:1495},"2026-01-05":{compra:1445,venta:1495},"2026-01-06":{compra:1440,venta:1490},"2026-01-07":{compra:1435,venta:1485},"2026-01-08":{compra:1435,venta:1485},"2026-01-09":{compra:1440,venta:1490},"2026-01-12":{compra:1440,venta:1490},"2026-01-13":{compra:1435,venta:1485},"2026-01-14":{compra:1430,venta:1480},"2026-01-15":{compra:1420,venta:1470},"2026-01-16":{compra:1405,venta:1455},"2026-01-19":{compra:1410,venta:1460},"2026-01-20":{compra:1410,venta:1460},"2026-01-21":{compra:1405,venta:1455},"2026-01-22":{compra:1400,venta:1450},"2026-01-23":{compra:1405,venta:1455},"2026-01-26":{compra:1410,venta:1460},"2026-01-27":{compra:1415,venta:1465},"2026-01-28":{compra:1415,venta:1465},"2026-01-29":{compra:1415,venta:1465},"2026-01-30":{compra:1415,venta:1465},"2026-02-02":{compra:1420,venta:1470},"2026-02-03":{compra:1415,venta:1465},"2026-02-04":{compra:1415,venta:1465},"2026-02-05":{compra:1410,venta:1460},"2026-02-06":{compra:1400,venta:1450},"2026-02-09":{compra:1390,venta:1440},"2026-02-10":{compra:1375,venta:1425},"2026-02-11":{compra:1370,venta:1420},"2026-02-12":{compra:1365,venta:1415},"2026-02-13":{compra:1370,venta:1420},"2026-02-18":{compra:1370,venta:1420},"2026-02-19":{compra:1360,venta:1410},"2026-02-20":{compra:1345,venta:1395},"2026-02-23":{compra:1340,venta:1390},"2026-02-24":{compra:1350,venta:1400},"2026-02-25":{compra:1365,venta:1415},"2026-02-26":{compra:1375,venta:1425},"2026-02-27":{compra:1370,venta:1420},"2026-03-02":{compra:1365,venta:1415},"2026-03-03":{compra:1385,venta:1435},"2026-03-04":{compra:1370,venta:1420},"2026-03-05":{compra:1375,venta:1425},"2026-03-06":{compra:1385,venta:1435},"2026-03-09":{compra:1385,venta:1435},"2026-03-10":{compra:1370,venta:1420},"2026-03-11":{compra:1365,venta:1415},"2026-03-12":{compra:1365,venta:1415},"2026-03-13":{compra:1370,venta:1420},"2026-03-16":{compra:1365,venta:1415},"2026-03-17":{compra:1365,venta:1415},"2026-03-18":{compra:1365,venta:1415},"2026-03-19":{compra:1365,venta:1415},"2026-03-20":{compra:1360,venta:1410},"2026-03-25":{compra:1350,venta:1400},"2026-03-26":{compra:1340,venta:1390},"2026-03-27":{compra:1355,venta:1405},"2026-03-30":{compra:1370,venta:1420},"2026-03-31":{compra:1355,venta:1405},"2026-04-01":{compra:1365,venta:1415},"2026-04-06":{compra:1365,venta:1415},"2026-04-07":{compra:1365,venta:1415},"2026-04-08":{compra:1360,venta:1410},"2026-04-09":{compra:1355,venta:1405},"2026-04-10":{compra:1345,venta:1395},"2026-04-13":{compra:1335,venta:1385},"2026-04-14":{compra:1335,venta:1385},"2026-04-15":{compra:1335,venta:1385},"2026-04-16":{compra:1330,venta:1380},"2026-04-17":{compra:1340,venta:1390},"2026-04-20":{compra:1350,venta:1400},"2026-04-21":{compra:1350,venta:1400},"2026-04-22":{compra:1350,venta:1400},"2026-04-23":{compra:1365,venta:1415},"2026-04-24":{compra:1370,venta:1420},"2026-04-27":{compra:1390,venta:1440},"2026-04-28":{compra:1380,venta:1430},"2026-04-29":{compra:1365,venta:1415},"2026-04-30":{compra:1365,venta:1415},"2026-05-04":{compra:1375,venta:1425},"2026-05-05":{compra:1365,venta:1415},"2026-05-06":{compra:1360,venta:1410},"2026-05-07":{compra:1370,venta:1420},"2026-05-08":{compra:1370,venta:1420},"2026-05-11":{compra:1365,venta:1415},"2026-05-12":{compra:1355,venta:1405},"2026-05-13":{compra:1365,venta:1415},"2026-05-14":{compra:1365,venta:1415},"2026-05-15":{compra:1370,venta:1420},"2026-05-18":{compra:1370,venta:1420},"2026-05-19":{compra:1370,venta:1420},"2026-05-20":{compra:1370,venta:1420},"2026-05-21":{compra:1360,venta:1410},"2026-05-22":{compra:1375,venta:1425},"2026-05-26":{compra:1380,venta:1430},"2026-05-27":{compra:1380,venta:1430},"2026-05-28":{compra:1380,venta:1430},"2026-05-29":{compra:1380,venta:1430},"2026-06-01":{compra:1395,venta:1445},"2026-06-02":{compra:1400,venta:1450},"2026-06-03":{compra:1410,venta:1460},"2026-06-04":{compra:1405,venta:1455},"2026-06-05":{compra:1410,venta:1460},"2026-06-08":{compra:1415,venta:1465},"2026-06-09":{compra:1410,venta:1460},"2026-06-10":{compra:1405,venta:1455},"2026-06-11":{compra:1400,venta:1450},"2026-06-12":{compra:1400,venta:1450}};
+const COTIZ_HISTORICO_REAL={"2025-11-03":{compra:1450,venta:1500},"2025-11-04":{compra:1435,venta:1485},"2025-11-05":{compra:1425,venta:1475},"2025-11-07":{compra:1395,venta:1445},"2025-11-10":{compra:1395,venta:1445},"2025-11-11":{compra:1390,venta:1440},"2025-11-12":{compra:1385,venta:1435},"2025-11-13":{compra:1380,venta:1430},"2025-11-14":{compra:1375,venta:1425},"2025-11-17":{compra:1365,venta:1415},"2025-11-18":{compra:1375,venta:1425},"2025-11-19":{compra:1380,venta:1430},"2025-11-20":{compra:1400,venta:1450},"2025-11-25":{compra:1420,venta:1470},"2025-11-26":{compra:1425,venta:1475},"2025-11-27":{compra:1425,venta:1475},"2025-11-28":{compra:1425,venta:1475},"2025-12-01":{compra:1425,venta:1475},"2025-12-02":{compra:1430,venta:1480},"2025-12-03":{compra:1430,venta:1480},"2025-12-04":{compra:1420,venta:1470},"2025-12-05":{compra:1410,venta:1460},"2025-12-09":{compra:1415,venta:1465},"2025-12-10":{compra:1410,venta:1460},"2025-12-11":{compra:1410,venta:1460},"2025-12-12":{compra:1415,venta:1465},"2025-12-15":{compra:1415,venta:1465},"2025-12-16":{compra:1430,venta:1480},"2025-12-17":{compra:1425,venta:1475},"2025-12-18":{compra:1425,venta:1475},"2025-12-19":{compra:1425,venta:1475},"2025-12-22":{compra:1425,venta:1475},"2025-12-23":{compra:1425,venta:1475},"2025-12-26":{compra:1425,venta:1475},"2025-12-29":{compra:1425,venta:1475},"2025-12-30":{compra:1430,venta:1480},"2026-01-02":{compra:1445,venta:1495},"2026-01-05":{compra:1445,venta:1495},"2026-01-06":{compra:1440,venta:1490},"2026-01-07":{compra:1435,venta:1485},"2026-01-08":{compra:1435,venta:1485},"2026-01-09":{compra:1440,venta:1490},"2026-01-12":{compra:1440,venta:1490},"2026-01-13":{compra:1435,venta:1485},"2026-01-14":{compra:1430,venta:1480},"2026-01-15":{compra:1420,venta:1470},"2026-01-16":{compra:1405,venta:1455},"2026-01-19":{compra:1410,venta:1460},"2026-01-20":{compra:1410,venta:1460},"2026-01-21":{compra:1405,venta:1455},"2026-01-22":{compra:1400,venta:1450},"2026-01-23":{compra:1405,venta:1455},"2026-01-26":{compra:1410,venta:1460},"2026-01-27":{compra:1415,venta:1465},"2026-01-28":{compra:1415,venta:1465},"2026-01-29":{compra:1415,venta:1465},"2026-01-30":{compra:1415,venta:1465},"2026-02-02":{compra:1420,venta:1470},"2026-02-03":{compra:1415,venta:1465},"2026-02-04":{compra:1415,venta:1465},"2026-02-05":{compra:1410,venta:1460},"2026-02-06":{compra:1400,venta:1450},"2026-02-09":{compra:1390,venta:1440},"2026-02-10":{compra:1375,venta:1425},"2026-02-11":{compra:1370,venta:1420},"2026-02-12":{compra:1365,venta:1415},"2026-02-13":{compra:1370,venta:1420},"2026-02-18":{compra:1370,venta:1420},"2026-02-19":{compra:1360,venta:1410},"2026-02-20":{compra:1345,venta:1395},"2026-02-23":{compra:1340,venta:1390},"2026-02-24":{compra:1350,venta:1400},"2026-02-25":{compra:1365,venta:1415},"2026-02-26":{compra:1375,venta:1425},"2026-02-27":{compra:1370,venta:1420},"2026-03-02":{compra:1365,venta:1415},"2026-03-03":{compra:1385,venta:1435},"2026-03-04":{compra:1370,venta:1420},"2026-03-05":{compra:1375,venta:1425},"2026-03-06":{compra:1385,venta:1435},"2026-03-09":{compra:1385,venta:1435},"2026-03-10":{compra:1370,venta:1420},"2026-03-11":{compra:1365,venta:1415},"2026-03-12":{compra:1365,venta:1415},"2026-03-13":{compra:1370,venta:1420},"2026-03-16":{compra:1365,venta:1415},"2026-03-17":{compra:1365,venta:1415},"2026-03-18":{compra:1365,venta:1415},"2026-03-19":{compra:1365,venta:1415},"2026-03-20":{compra:1360,venta:1410},"2026-03-25":{compra:1350,venta:1400},"2026-03-26":{compra:1340,venta:1390},"2026-03-27":{compra:1355,venta:1405},"2026-03-30":{compra:1370,venta:1420},"2026-03-31":{compra:1355,venta:1405},"2026-04-01":{compra:1365,venta:1415},"2026-04-06":{compra:1365,venta:1415},"2026-04-07":{compra:1365,venta:1415},"2026-04-08":{compra:1360,venta:1410},"2026-04-09":{compra:1355,venta:1405},"2026-04-10":{compra:1345,venta:1395},"2026-04-13":{compra:1335,venta:1385},"2026-04-14":{compra:1335,venta:1385},"2026-04-15":{compra:1335,venta:1385},"2026-04-16":{compra:1330,venta:1380},"2026-04-17":{compra:1340,venta:1390},"2026-04-20":{compra:1350,venta:1400},"2026-04-21":{compra:1350,venta:1400},"2026-04-22":{compra:1350,venta:1400},"2026-04-23":{compra:1365,venta:1415},"2026-04-24":{compra:1370,venta:1420},"2026-04-27":{compra:1390,venta:1440},"2026-04-28":{compra:1380,venta:1430},"2026-04-29":{compra:1365,venta:1415},"2026-04-30":{compra:1365,venta:1415},"2026-05-04":{compra:1375,venta:1425},"2026-05-05":{compra:1365,venta:1415},"2026-05-06":{compra:1360,venta:1410},"2026-05-07":{compra:1370,venta:1420},"2026-05-08":{compra:1370,venta:1420},"2026-05-11":{compra:1365,venta:1415},"2026-05-12":{compra:1355,venta:1405},"2026-05-13":{compra:1365,venta:1415},"2026-05-14":{compra:1365,venta:1415},"2026-05-15":{compra:1370,venta:1420},"2026-05-18":{compra:1370,venta:1420},"2026-05-19":{compra:1370,venta:1420},"2026-05-20":{compra:1370,venta:1420},"2026-05-21":{compra:1360,venta:1410},"2026-05-22":{compra:1375,venta:1425},"2026-05-26":{compra:1380,venta:1430},"2026-05-27":{compra:1380,venta:1430},"2026-05-28":{compra:1380,venta:1430},"2026-05-29":{compra:1380,venta:1430},"2026-06-01":{compra:1395,venta:1445},"2026-06-02":{compra:1400,venta:1450},"2026-06-03":{compra:1410,venta:1460},"2026-06-04":{compra:1405,venta:1455},"2026-06-05":{compra:1410,venta:1460},"2026-06-08":{compra:1415,venta:1465},"2026-06-09":{compra:1410,venta:1460},"2026-06-10":{compra:1405,venta:1455},"2026-06-11":{compra:1400,venta:1450},"2026-06-12":{compra:1400,venta:1450},"2026-06-15":{compra:1400,venta:1450},"2026-06-16":{compra:1405,venta:1455},"2026-06-17":{compra:1410,venta:1460},"2026-06-18":{compra:1410,venta:1460},"2026-06-19":{compra:1415,venta:1465},"2026-06-22":{compra:1420,venta:1470},"2026-06-23":{compra:1420,venta:1470},"2026-06-24":{compra:1425,venta:1475},"2026-06-25":{compra:1430,venta:1480},"2026-06-26":{compra:1435,venta:1485},"2026-06-29":{compra:1440,venta:1490},"2026-06-30":{compra:1445,venta:1495},"2026-07-01":{compra:1450,venta:1500},"2026-07-02":{compra:1450,venta:1500},"2026-07-03":{compra:1445,venta:1495},"2026-07-06":{compra:1440,venta:1490},"2026-07-07":{compra:1440,venta:1490},"2026-07-08":{compra:1435,venta:1485},"2026-07-09":{compra:1435,venta:1485},"2026-07-10":{compra:1430,venta:1480}};
 
 function cargarHistoricoReal(){
   let agregados=0;
@@ -3160,6 +3189,8 @@ function cargarHistoricoReal(){
 }
 async function actualizarCotizHoy(){
   const hoyF=hoy();
+  let success=false;
+  // Fuente 1: Bluelytics BNA oficial
   try{
     const resp=await fetch('https://api.bluelytics.com.ar/v2/latest');
     if(resp.ok){
@@ -3167,16 +3198,47 @@ async function actualizarCotizHoy(){
       const compra=data?.oficial?.value_buy||0;const venta=data?.oficial?.value_sell||0;
       if(venta>0){
         window._cotizDB[hoyF]={compra:Math.round(compra*100)/100,venta:Math.round(venta*100)/100,fuente:'Bluelytics/BNA'};
+        _dolarCache={valor:venta,fecha:hoyF};
         guardarCotizLocal();renderCotizacion();
-        alert('✔ Cotización actualizada:\nCompra: $'+compra.toFixed(2)+' · Venta: $'+venta.toFixed(2));return;
+        // Update cotiz inputs across modules
+        ['f-cotiz-usd','cot-bk','cons-cotiz-dolar'].forEach(id=>{
+          const el=document.getElementById(id);if(el)el.value=Math.round(venta);
+        });
+        alert('✔ Cotización BNA actualizada:\nCompra: $'+compra.toFixed(0)+' · Venta: $'+venta.toFixed(0));
+        success=true;return;
       }
     }
   }catch(e){}
-  const val=prompt('No se pudo obtener automáticamente.\nIngrese el valor VENTA Banco Nación hoy ('+hoyF+'):');
-  if(val&&!isNaN(val)){
-    const vc=parseFloat(val);
-    window._cotizDB[hoyF]={compra:Math.round(vc*0.97*100)/100,venta:vc,fuente:'Manual'};
-    guardarCotizLocal();renderCotizacion();alert('✔ Cotización guardada: Venta $'+vc);
+  // Fuente 2: dolarapi.com
+  try{
+    const resp=await fetch('https://dolarapi.com/v1/dolares/oficial');
+    if(resp.ok){
+      const data=await resp.json();
+      const venta=data?.venta||0;const compra=data?.compra||0;
+      if(venta>0){
+        window._cotizDB[hoyF]={compra:compra||Math.round(venta*0.97),venta:Math.round(venta),fuente:'DolarAPI/BNA'};
+        _dolarCache={valor:venta,fecha:hoyF};
+        guardarCotizLocal();renderCotizacion();
+        ['f-cotiz-usd','cot-bk','cons-cotiz-dolar'].forEach(id=>{
+          const el=document.getElementById(id);if(el)el.value=Math.round(venta);
+        });
+        alert('✔ Cotización actualizada:\nVenta: $'+Math.round(venta));
+        success=true;return;
+      }
+    }
+  }catch(e){}
+  if(!success){
+    const val=prompt('No se pudo obtener automáticamente.\nIngresá el valor VENTA Banco Nación hoy ('+hoyF+'):');
+    if(val&&!isNaN(val)){
+      const vc=parseFloat(val);
+      window._cotizDB[hoyF]={compra:Math.round(vc*0.97),venta:vc,fuente:'Manual'};
+      _dolarCache={valor:vc,fecha:hoyF};
+      guardarCotizLocal();renderCotizacion();
+      ['f-cotiz-usd','cot-bk','cons-cotiz-dolar'].forEach(id=>{
+        const el=document.getElementById(id);if(el)el.value=Math.round(vc);
+      });
+      alert('✔ Cotización guardada: Venta $'+vc);
+    }
   }
 }
 function agregarCotizManual(){
@@ -3219,7 +3281,23 @@ function renderCotizacion(){
   if(!todas.length){tb.innerHTML='<tr><td colspan="5" class="empty">Sin datos. Use el botón "Cargar histórico" para cargar las cotizaciones reales.</td></tr>';return;}
   tb.innerHTML=todas.slice(0,200).map(([f,c])=>'<tr><td>'+fmtF(f)+'</td><td class="num">$'+c.compra+'</td><td class="num"><strong>$'+c.venta+'</strong></td><td style="font-size:10px;color:var(--txt3)">'+c.fuente+'</td><td><button class="btn er xs" onclick="borrarCotiz(\''+f+'\')" style="font-size:9px;padding:2px 5px">✕</button></td></tr>').join('');
 }
-cargarCotizLocal().then(()=>{const f=document.getElementById('f-cotiz-usd');if(f&&(!f.value||f.value==='0')){const v=window.getCotizVenta(hoy());if(v>0)f.value=v;}});
+cargarCotizLocal().then(async ()=>{
+  const f=document.getElementById('f-cotiz-usd');
+  // Try to get today's value
+  const hoyF=hoy();
+  if(!window._cotizDB[hoyF]){
+    // Silent auto-fetch
+    try{
+      const r=await fetch('https://api.bluelytics.com.ar/v2/latest');
+      if(r.ok){const d=await r.json();const v=d?.oficial?.value_sell||0;
+        if(v>0){window._cotizDB[hoyF]={compra:d?.oficial?.value_buy||Math.round(v*0.97),venta:v,fuente:'Auto/BNA'};guardarCotizLocal();renderCotizacion();}
+      }
+    }catch(e){}
+  }
+  const v=window.getCotizVenta(hoyF)||window.getCotizVenta(Object.keys(window._cotizDB).sort().pop());
+  if(f&&(!f.value||f.value==='0')&&v>0)f.value=v;
+  ['cot-bk','cons-cotiz-dolar'].forEach(id=>{const el=document.getElementById(id);if(el&&(!el.value||el.value==='0')&&v>0)el.value=v;});
+});
 
 // ===== TARIFAS =====
 // Feriados largos 2026 Argentina (pre-cargados)
