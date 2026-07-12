@@ -6,833 +6,1031 @@
 <title>Agente Marketing — Mendoza Sol y Nieve</title>
 <style>
 :root{
-  --bg:#f5f5f0;--surface:#fff;--surface2:#fafaf8;--border:#e2e0d8;--border2:#c8c5bb;
+  --bg:#f5f5f0;--surface:#fff;--border:#e2e0d8;--border2:#c8c5bb;
   --txt:#1a1917;--txt2:#5c5a54;--txt3:#9c9a94;
-  --accent:#0f4c81;--accent-bg:#e8f0f9;
-  --green:#15803d;--green-bg:#dcfce7;--green-border:#86efac;
-  --amber:#92400e;--amber-bg:#fef3c7;--amber-border:#fcd34d;
-  --purple:#5b21b6;--purple-bg:#ede9fe;
+  --azul:#0f4c81;--azul-bg:#e8f0f9;
+  --verde:#15803d;--verde-bg:#dcfce7;--verde-border:#86efac;
+  --amber:#92400e;--amber-bg:#fef3c7;
   --pink:#9d174d;--pink-bg:#fce7f3;
+  --purple:#5b21b6;--purple-bg:#ede9fe;
   --red:#991b1b;--red-bg:#fee2e2;
-  --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.08);
+  --radius:8px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
-.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);}
 
-/* SIDEBAR */
+/* GROQ BAR */
+.groq-config-bar{background:linear-gradient(90deg,#1a1a2e,#16213e);border-bottom:1px solid #0f3460;padding:7px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.gc-label{font-size:11px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+.gc-status{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;white-space:nowrap;}
+.gc-status.ok{background:#dcfce7;color:#166534;}
+.gc-status.warn{background:#fef3c7;color:#92400e;}
+.groq-config-bar input[type=password]{flex:1;min-width:180px;max-width:320px;padding:5px 10px;border-radius:6px;border:1px solid #4c1d95;background:#0f0f1a;color:#e9d5ff;font-size:12px;font-family:monospace;}
+.groq-config-bar input:focus{outline:none;border-color:#a78bfa;}
+.gc-btn{padding:5px 12px;border-radius:6px;border:none;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;cursor:pointer;}
+.gc-link{font-size:11px;color:#a78bfa;text-decoration:none;}
+.gc-link:hover{text-decoration:underline;}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 40px);}
 .sidebar{background:#0a3560;color:#fff;display:flex;flex-direction:column;}
-.sb-header{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,.12);}
-.sb-logo{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.55;margin-bottom:5px;}
-.sb-title{font-size:17px;font-weight:600;line-height:1.3;}
-.sb-badge{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:11px;background:rgba(255,255,255,.12);padding:3px 9px;border-radius:20px;}
-.sb-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:#f9a8d4;display:block;}
-.sb-nav{padding:14px 0;flex:1;}
-.sb-nav-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.4;padding:0 18px;margin-bottom:6px;margin-top:10px;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;cursor:pointer;opacity:.75;transition:all .15s;border-left:2px solid transparent;}
+.sb-header{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.1);}
+.sb-logo{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.5;margin-bottom:4px;}
+.sb-title{font-size:15px;font-weight:700;line-height:1.3;}
+.sb-nav{padding:10px 0;flex:1;overflow-y:auto;}
+.sb-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.4;padding:10px 16px 4px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;cursor:pointer;opacity:.75;transition:all .15s;border-left:2px solid transparent;border:none;background:none;color:#fff;width:100%;text-align:left;}
 .nav-item:hover{opacity:1;background:rgba(255,255,255,.07);}
-.nav-item.active{opacity:1;background:rgba(255,255,255,.12);border-left-color:#f9a8d4;}
-.sb-stats{padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.sb-stat{background:rgba(255,255,255,.08);border-radius:var(--radius);padding:9px 10px;text-align:center;}
-.sb-stat-val{font-size:20px;font-weight:700;}
-.sb-stat-lbl{font-size:10px;opacity:.6;margin-top:2px;}
+.nav-item.active{opacity:1;background:rgba(255,255,255,.12);border-left:2px solid #f9a8d4;}
+.nav-item .badge{margin-left:auto;background:rgba(255,255,255,.15);font-size:10px;padding:1px 6px;border-radius:8px;}
 
-/* MAIN */
-.main{display:flex;flex-direction:column;overflow:hidden;flex:1;}
-.topbar{padding:13px 22px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
-.topbar-title{font-size:15px;font-weight:600;}
-.topbar-sub{font-size:12px;color:var(--txt3);}
-.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 22px;}
-.tab{padding:10px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt2);transition:all .15s;}
-.tab.active{color:var(--pink);border-bottom-color:var(--pink);font-weight:600;}
-.content-area{flex:1;overflow-y:auto;padding:22px;}
+.main{display:flex;flex-direction:column;overflow:hidden;}
+.topbar{padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.topbar-title{font-size:14px;font-weight:600;flex:1;}
+.content{flex:1;overflow-y:auto;padding:20px;}
 
 /* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow);}
-.card-title{font-size:13px;font-weight:600;color:var(--pink);display:flex;align-items:center;gap:7px;margin-bottom:14px;}
-.btn{padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--txt);transition:all .15s;}
-.btn:hover{background:var(--bg);}
-.btn-primary{background:var(--pink);color:#fff;border-color:var(--pink);}
-.btn-primary:hover{background:#831843;}
-.btn-green{background:var(--green);color:#fff;border-color:var(--green);}
-.btn-green:hover{background:#166534;}
-.btn-amber{background:#d97706;color:#fff;border-color:#d97706;}
-.btn-amber:hover{background:#b45309;}
-.btn-sm{padding:5px 11px;font-size:12px;}
-.btn:disabled{opacity:.5;cursor:not-allowed;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;}
+.card-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.card-title{font-size:13px;font-weight:600;color:var(--pink);display:flex;align-items:center;gap:6px;}
+.card-body{padding:16px;}
+
+/* FORMS */
 .fg{margin-bottom:12px;}
-.fg label{display:block;font-size:12px;color:var(--txt2);margin-bottom:4px;font-weight:500;}
-.fg input,.fg select,.fg textarea{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--surface2);color:var(--txt);font-family:inherit;}
-.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--pink);}
-.fg textarea{resize:vertical;min-height:90px;}
+.fg label{display:block;font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:4px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:#fafaf8;color:var(--txt);font-family:inherit;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--azul);}
+.fg textarea{resize:vertical;min-height:70px;}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 
-/* POST CHECKOUT FLOW */
-.guest-card{padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;}
-.guest-card:hover{border-color:var(--pink);background:var(--pink-bg);}
-.guest-card.sel{border-color:var(--pink);background:var(--pink-bg);}
-.guest-avatar{width:38px;height:38px;border-radius:50%;background:var(--pink-bg);border:1px solid var(--pink);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--pink);flex-shrink:0;}
-.guest-nombre{font-size:13px;font-weight:600;}
-.guest-meta{font-size:11px;color:var(--txt3);margin-top:2px;}
-.guest-badge{margin-left:auto;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;}
-.badge-pendiente{background:var(--amber-bg);color:var(--amber);}
-.badge-enviado{background:var(--green-bg);color:var(--green);}
-.badge-reseña{background:var(--accent-bg);color:var(--accent);}
+/* BUTTONS */
+.btn{padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--txt);transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{background:var(--bg);}
+.btn-primary{background:var(--azul);color:#fff;border-color:var(--azul);}
+.btn-primary:hover{background:#0c3d6a;}
+.btn-pink{background:var(--pink);color:#fff;border-color:var(--pink);}
+.btn-pink:hover{background:#831843;}
+.btn-green{background:var(--verde);color:#fff;border-color:var(--verde);}
+.btn-wa{background:#25D366;color:#fff;border-color:#25D366;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-full{width:100%;justify-content:center;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
 
-/* RESULTADO IA */
-.ia-result{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:12px;font-size:13px;line-height:1.7;color:var(--txt);white-space:pre-wrap;max-height:340px;overflow-y:auto;}
+/* IA RESULT */
+.ia-result{background:#fafaf8;border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;max-height:400px;overflow-y:auto;margin-top:10px;}
+.ia-loading{display:flex;gap:5px;align-items:center;padding:10px 0;font-size:13px;color:var(--txt3);}
+.ia-loading::before{content:'';width:16px;height:16px;border:2px solid var(--pink);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
 .ia-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
 
-/* ESTADÍSTICAS */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;}
-.stat-val{font-size:24px;font-weight:700;color:var(--pink);}
-.stat-lbl{font-size:12px;color:var(--txt3);margin-top:3px;}
-.stat-delta{font-size:11px;margin-top:4px;font-weight:600;}
-.delta-pos{color:var(--green);}
+/* ADS METRICS */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.metric-val{font-size:22px;font-weight:800;}
+.metric-lbl{font-size:11px;color:var(--txt3);margin-top:2px;}
+.metric-delta{font-size:11px;margin-top:4px;font-weight:600;}
+.delta-pos{color:var(--verde);}
 .delta-neg{color:var(--red);}
 
-/* CALENDARIO PUBLICACIONES */
-.pub-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;}
-.pub-day{aspect-ratio:1;border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .15s;padding:2px;}
-.pub-day:hover{border-color:var(--pink);}
-.pub-day.programado{background:var(--pink-bg);border-color:var(--pink);}
-.pub-day.publicado{background:var(--green-bg);border-color:var(--green-border);}
-.pub-day.hoy{border-width:2px;border-color:var(--accent);}
-.pub-day-num{font-size:12px;font-weight:600;}
-.pub-day-dot{width:5px;height:5px;border-radius:50%;margin-top:2px;}
+/* PLATFORM TOGGLE */
+.platform-tabs{display:flex;gap:0;background:#f1f5f9;border-radius:8px;padding:3px;margin-bottom:14px;}
+.ptab{flex:1;padding:7px;border:none;background:none;font-size:12px;font-weight:500;cursor:pointer;border-radius:6px;color:var(--txt2);transition:all .15s;}
+.ptab.active{background:#fff;color:var(--azul);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.1);}
 
-/* COMPARATIVO COMPETIDORES */
-.comp-table{width:100%;border-collapse:collapse;font-size:13px;}
-.comp-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
-.comp-table td{padding:9px 12px;border-bottom:1px solid var(--border);}
-.comp-table tr:last-child td{border-bottom:none;}
-.comp-table tr.msn{background:var(--accent-bg);}
-.comp-table tr.msn td{font-weight:600;color:var(--accent);}
-.precio-alto{color:var(--red);font-weight:600;}
-.precio-bajo{color:var(--green);font-weight:600;}
-.precio-medio{color:var(--amber);}
+/* STATUS BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:600;}
+.badge-warn{background:var(--amber-bg);color:var(--amber);}
+.badge-ok{background:var(--verde-bg);color:var(--verde);}
+.badge-info{background:var(--azul-bg);color:var(--azul);}
 
-/* EVENTOS */
-.evento-item{padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:7px;display:flex;align-items:center;gap:12px;}
-.evento-fecha{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-bg);padding:4px 9px;border-radius:6px;white-space:nowrap;}
-.evento-nombre{font-size:13px;font-weight:500;flex:1;}
-.evento-zona{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;}
-.zona-mendoza{background:#dbeafe;color:#1e40af;}
-.zona-potrerillos{background:var(--green-bg);color:var(--green);}
-.zona-lenas{background:var(--purple-bg);color:var(--purple);}
+/* ESTRATEGIA CARDS */
+.estrategia-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.estrategia-card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--surface);}
+.est-platform{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.est-title{font-size:14px;font-weight:600;margin-bottom:6px;}
+.est-bullets{font-size:12px;color:var(--txt2);line-height:1.8;}
 
-/* RESEÑA TIMING */
-.timing-bar{display:flex;gap:3px;margin:12px 0;}
-.timing-step{flex:1;height:6px;border-radius:3px;background:var(--border);}
-.timing-step.done{background:var(--green);}
-.timing-step.now{background:var(--pink);}
-
-.empty-state{text-align:center;padding:40px 20px;color:var(--txt3);}
-.empty-icon{font-size:40px;margin-bottom:12px;}
-.toast{position:fixed;bottom:20px;right:20px;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);padding:11px 16px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transform:translateY(6px);transition:all .3s;z-index:100;}
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--verde-bg);border:1px solid var(--verde-border);color:var(--verde);padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transform:translateY(6px);transition:all .3s;z-index:999;}
 .toast.show{opacity:1;transform:translateY(0);}
 
-/* LOADING */
-.loading{display:inline-flex;gap:4px;align-items:center;padding:6px 0;}
-.loading span{width:6px;height:6px;border-radius:50%;background:var(--pink);animation:bounce 1.2s infinite;}
-.loading span:nth-child(2){animation-delay:.2s}.loading span:nth-child(3){animation-delay:.4s}
-@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
-
-@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}}
-
-/* ===== GROQ CONFIG PANEL ===== */
-.groq-config-bar{background:linear-gradient(90deg,#1a1a2e,#16213e);border-bottom:1px solid #0f3460;padding:8px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-family:-apple-system,sans-serif}
-.groq-config-bar .gc-label{font-size:11px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
-.groq-config-bar .gc-status{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;white-space:nowrap}
-.gc-status.ok{background:#dcfce7;color:#166534}
-.gc-status.warn{background:#fef3c7;color:#92400e}
-.groq-config-bar input[type=password]{flex:1;min-width:200px;max-width:340px;padding:5px 10px;border-radius:6px;border:1px solid #4c1d95;background:#0f0f1a;color:#e9d5ff;font-size:12px;font-family:monospace}
-.groq-config-bar input[type=password]::placeholder{color:#6b6b8a}
-.groq-config-bar input[type=password]:focus{outline:none;border-color:#a78bfa}
-.groq-config-bar button.gc-btn{padding:5px 12px;border-radius:6px;border:none;background:#7c3aed;color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
-.groq-config-bar button.gc-btn:hover{background:#6d28d9}
-.gc-link{font-size:11px;color:#a78bfa;text-decoration:none;white-space:nowrap}
-.gc-link:hover{text-decoration:underline}
-
+@media(max-width:800px){
+  .app{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .metrics-grid{grid-template-columns:1fr 1fr;}
+  .estrategia-grid{grid-template-columns:1fr;}
+  .row3{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
+
 <!-- GROQ CONFIG BAR -->
 <div class="groq-config-bar" id="groq-bar">
   <span class="gc-label">🤖 Groq IA</span>
   <span class="gc-status warn" id="gc-status">⚠ Sin clave</span>
   <input type="password" id="gc-key-input" placeholder="Pegá tu API Key de Groq (gsk_...)" oninput="gcGuardar()">
   <button class="gc-btn" onclick="gcGuardar()">✓ Guardar</button>
-  <button class="gc-btn" style="background:#374151" onclick="gcBorrar()">✕ Borrar</button>
-  <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="gc-link">Obtener key gratuita →</a>
+  <button class="gc-btn" style="background:#374151" onclick="gcBorrar()">✕</button>
+  <a href="https://console.groq.com/keys" target="_blank" class="gc-link">Obtener key gratuita →</a>
 </div>
 
+<div class="app">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">Mendoza Sol y Nieve</div>
+    <div class="sb-title">Agente<br>Marketing</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Campañas</div>
+    <button class="nav-item active" id="nav-estrategia" onclick="setTab('estrategia')"><span>🎯</span> Estrategia IA</button>
+    <button class="nav-item" id="nav-google" onclick="setTab('google')"><span>📊</span> Google Ads <span class="badge">Suspendida</span></button>
+    <button class="nav-item" id="nav-meta" onclick="setTab('meta')"><span>📘</span> Meta Ads <span class="badge">Sin camp.</span></button>
+    <button class="nav-item" id="nav-campana" onclick="setTab('campana')"><span>📢</span> Crear campaña</button>
+    <div class="sb-section">Posventa</div>
+    <button class="nav-item" id="nav-resenas" onclick="setTab('resenas')"><span>⭐</span> Reseñas</button>
+    <button class="nav-item" id="nav-publicaciones" onclick="setTab('publicaciones')"><span>📸</span> Publicaciones</button>
+    <div class="sb-section">Análisis</div>
+    <button class="nav-item" id="nav-competidores" onclick="setTab('competidores')"><span>📊</span> Competidores</button>
+    <button class="nav-item" id="nav-eventos" onclick="setTab('eventos')"><span>📅</span> Eventos</button>
+    <div class="sb-section">Sistema</div>
+    <button class="nav-item" onclick="window.open('MSN_Firebase.html','_blank')"><span>🔧</span> Sistema Gestión</button>
+    <button class="nav-item" onclick="window.open('agente_cotizacion.html','_blank')"><span>💵</span> Cotización</button>
+    <button class="nav-item" onclick="window.open('agente_recepcion.html','_blank')"><span>📋</span> Recepción</button>
+    <button class="nav-item" onclick="window.open('agente_revenue.html','_blank')"><span>📈</span> Revenue</button>
+    <button class="nav-item" onclick="window.open('agente_concierge.html','_blank')"><span>🛎️</span> Concierge</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+<div class="topbar">
+  <div class="topbar-title" id="topbar-title">🎯 Estrategia de Marketing IA</div>
+  <button class="btn btn-sm" id="btn-copiar" style="display:none" onclick="copiarUltimo()">📋 Copiar</button>
+</div>
+<div class="content">
+
+<!-- ===== ESTRATEGIA IA ===== -->
+<div id="panel-estrategia">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🎯 Generar estrategia de marketing con IA</div>
+      <span class="badge badge-info">Powered by Groq / Llama 3.3</span>
+    </div>
+    <div class="card-body">
+      <div class="row2">
+        <div class="fg"><label>Destino foco</label>
+          <select id="est-destino">
+            <option value="todos">Todos los destinos</option>
+            <option value="potrerillos">Potrerillos — Cabañas</option>
+            <option value="mendoza">Mendoza Capital — Deptos</option>
+            <option value="lenas">Valle de Las Leñas — Ski</option>
+          </select>
+        </div>
+        <div class="fg"><label>Período objetivo</label>
+          <select id="est-periodo">
+            <option>Julio 2026 — Receso invernal</option>
+            <option>Agosto 2026 — Alta temporada</option>
+            <option>Septiembre-Noviembre 2026 — Temporada baja</option>
+            <option>Diciembre 2026 — Verano / Vendimia</option>
+            <option>Enero-Febrero 2027 — Temporada alta</option>
+          </select>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="fg"><label>Presupuesto disponible (ARS/mes)</label>
+          <input type="number" id="est-presupuesto" placeholder="Ej: 50000" step="1000">
+        </div>
+        <div class="fg"><label>Objetivo principal</label>
+          <select id="est-objetivo">
+            <option>Aumentar reservas directas</option>
+            <option>Captar nuevos huéspedes</option>
+            <option>Fidelizar huéspedes anteriores</option>
+            <option>Llenar fechas de baja ocupación</option>
+            <option>Promover convenio institucional</option>
+          </select>
+        </div>
+        <div class="fg"><label>Público objetivo</label>
+          <select id="est-publico">
+            <option>Familias con niños</option>
+            <option>Parejas</option>
+            <option>Grupos de amigos</option>
+            <option>Esquiadores / deportistas</option>
+            <option>Turistas de Buenos Aires</option>
+            <option>Turistas del interior</option>
+            <option>Afiliados gremiales (Judicial)</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Contexto adicional (ocupación actual, eventos, promociones, etc.)</label>
+        <textarea id="est-contexto" rows="3" placeholder="Ej: Las cabañas Loft y Grande en Potrerillos tienen disponibilidad para agosto. Queremos llenar los fines de semana del 7, 14 y 21. Tenemos convenio con el Poder Judicial activo..."></textarea>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-pink btn-full" onclick="generarEstrategia()">✨ Generar estrategia completa con IA →</button>
+      </div>
+      <div id="est-resultado"></div>
+    </div>
+  </div>
+
+  <!-- ESTADO DE CUENTAS -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">📡 Estado de cuentas publicitarias</div></div>
+    <div class="card-body">
+      <div class="row2">
+        <div style="border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:20px;">📊</span>
+            <div><div style="font-size:13px;font-weight:600;">Google Ads</div><span class="badge badge-warn">⚠ Suspendida</span></div>
+          </div>
+          <div style="font-size:12px;color:var(--txt2);line-height:1.7;">
+            La cuenta anterior fue suspendida por políticas de Google. Para reactivar necesitás crear una cuenta nueva limpia bajo el email <strong>info@mendozasolynieve.com.ar</strong>.
+          </div>
+          <button class="btn btn-sm btn-primary" style="margin-top:10px;" onclick="generarPlanReactivacion('google')">🤖 Plan de reactivación con IA</button>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:20px;">📘</span>
+            <div><div style="font-size:13px;font-weight:600;">Meta Ads (Facebook/Instagram)</div><span class="badge badge-warn">⚠ Sin campañas activas</span></div>
+          </div>
+          <div style="font-size:12px;color:var(--txt2);line-height:1.7;">
+            Cuenta disponible pero sin campañas activas. Es el canal más recomendado para empezar porque tiene menos restricciones que Google Ads.
+          </div>
+          <button class="btn btn-sm btn-primary" style="margin-top:10px;" onclick="generarPlanReactivacion('meta')">🤖 Plan de primera campaña con IA</button>
+        </div>
+      </div>
+      <div id="plan-reactivacion" style="display:none;margin-top:14px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GOOGLE ADS ===== -->
+<div id="panel-google" style="display:none;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📊 Google Ads — Ingreso manual de datos</div>
+      <span class="badge badge-warn">Cuenta suspendida — datos manuales</span>
+    </div>
+    <div class="card-body">
+      <div style="background:var(--amber-bg);border:1px solid #fcd34d;border-radius:8px;padding:12px;font-size:13px;color:var(--amber);margin-bottom:14px;">
+        ⚠ La cuenta de Google Ads está suspendida. Podés ingresar datos históricos o de otras fuentes para que la IA genere recomendaciones basadas en esos números.
+      </div>
+      <div class="row3">
+        <div class="fg"><label>Impresiones (último mes)</label><input type="number" id="ga-impresiones" placeholder="Ej: 12500"></div>
+        <div class="fg"><label>Clics</label><input type="number" id="ga-clics" placeholder="Ej: 340"></div>
+        <div class="fg"><label>CTR %</label><input type="number" id="ga-ctr" placeholder="Ej: 2.7" step="0.1"></div>
+      </div>
+      <div class="row3">
+        <div class="fg"><label>Costo total (ARS)</label><input type="number" id="ga-costo" placeholder="Ej: 45000"></div>
+        <div class="fg"><label>Conversiones (consultas)</label><input type="number" id="ga-conv" placeholder="Ej: 18"></div>
+        <div class="fg"><label>Costo por conversión (ARS)</label><input type="number" id="ga-cpa" placeholder="Calculado automático"></div>
+      </div>
+      <div class="fg"><label>Palabras clave que mejor funcionaron</label>
+        <textarea id="ga-keywords" rows="2" placeholder="Ej: 'cabañas potrerillos mendoza', 'alquiler cabaña potrerillos', 'hotel mendoza centro plaza independencia'"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="analizarGoogleAds()">🤖 Analizar con IA y generar recomendaciones</button>
+      <div id="ga-resultado"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">🔄 Plan de reactivación Google Ads</div></div>
+    <div class="card-body">
+      <div style="font-size:13px;color:var(--txt2);margin-bottom:12px;">Para reactivar Google Ads necesitás una cuenta nueva limpia. La IA te ayuda a armar el plan completo.</div>
+      <div class="row2">
+        <div class="fg"><label>Email de la cuenta nueva</label><input type="text" id="ga-email-nuevo" placeholder="info@mendozasolynieve.com.ar" value="info@mendozasolynieve.com.ar"></div>
+        <div class="fg"><label>Presupuesto diario inicial (ARS)</label><input type="number" id="ga-presup-diario" placeholder="Ej: 2000"></div>
+      </div>
+      <button class="btn btn-primary" onclick="planReactivacionGoogle()">🤖 Generar plan de reactivación</button>
+      <div id="ga-reactiv-resultado"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== META ADS ===== -->
+<div id="panel-meta" style="display:none;">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📘 Meta Ads — Primera campaña</div>
+      <span class="badge badge-info">Recomendado para empezar</span>
+    </div>
+    <div class="card-body">
+      <div style="background:var(--azul-bg);border:1px solid #bfdbfe;border-radius:8px;padding:12px;font-size:13px;color:var(--azul);margin-bottom:14px;">
+        💡 Meta Ads es el canal más efectivo para MSN ahora mismo. Instagram y Facebook llegan a familias y parejas que planifican escapadas de fin de semana — exactamente tu público objetivo.
+      </div>
+      <div class="row2">
+        <div class="fg"><label>Destino a promocionar</label>
+          <select id="meta-destino">
+            <option value="potrerillos">Potrerillos — Cabañas</option>
+            <option value="mendoza">Mendoza Capital — Deptos</option>
+            <option value="lenas">Valle de Las Leñas</option>
+          </select>
+        </div>
+        <div class="fg"><label>Tipo de campaña</label>
+          <select id="meta-tipo">
+            <option>Tráfico al sitio web</option>
+            <option>Generación de leads (WhatsApp)</option>
+            <option>Reconocimiento de marca</option>
+            <option>Conversiones (reservas)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="fg"><label>Presupuesto diario (ARS)</label><input type="number" id="meta-presup" placeholder="Ej: 1500"></div>
+        <div class="fg"><label>Duración (días)</label><input type="number" id="meta-duracion" value="14"></div>
+        <div class="fg"><label>Fechas clave a promover</label><input type="text" id="meta-fechas" placeholder="Ej: 15-31 agosto"></div>
+      </div>
+      <div class="fg"><label>Audiencia objetivo</label>
+        <select id="meta-audiencia">
+          <option>Familias con niños · Argentina · 30-50 años</option>
+          <option>Parejas · Buenos Aires y AMBA · 25-45 años</option>
+          <option>Aficionados al ski · Argentina · 25-45 años</option>
+          <option>Amantes del enoturismo · Argentina · 30-55 años</option>
+          <option>Turistas de Chile planificando Argentina</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="generarCampanaMeta()">🤖 Generar campaña completa con IA →</button>
+      <div id="meta-resultado"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">📸 Contenido orgánico para Facebook/Instagram</div></div>
+    <div class="card-body">
+      <div class="row2">
+        <div class="fg"><label>Mes</label>
+          <select id="org-mes">
+            <option>Julio 2026</option><option>Agosto 2026</option>
+            <option>Septiembre 2026</option><option>Octubre 2026</option>
+            <option>Noviembre 2026</option><option>Diciembre 2026</option>
+          </select>
+        </div>
+        <div class="fg"><label>Destino</label>
+          <select id="org-destino">
+            <option value="todos">Todos</option>
+            <option value="potrerillos">Potrerillos</option>
+            <option value="mendoza">Mendoza Capital</option>
+            <option value="lenas">Las Leñas</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="generarContenidoOrganico()">📸 Generar plan de contenido del mes</button>
+      <div id="org-resultado"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CREAR CAMPAÑA ===== -->
+<div id="panel-campana" style="display:none;">
+  <div class="card">
+    <div class="card-header"><div class="card-title">📢 Crear campaña en todos los canales</div></div>
+    <div class="card-body">
+      <div class="row2">
+        <div class="fg"><label>Alojamiento</label>
+          <select id="camp-alo">
+            <option>Potrerillos — Todas las cabañas</option>
+            <option>Cabaña Loft — Potrerillos</option>
+            <option>Cabaña Grande — Potrerillos</option>
+            <option>Departamento 2 — Mendoza</option>
+            <option>Departamento 3 — Mendoza</option>
+            <option>Valle de Las Leñas</option>
+          </select>
+        </div>
+        <div class="fg"><label>Tipo</label>
+          <select id="camp-tipo">
+            <option>Temporada alta — ocupación</option>
+            <option>Feriado largo — urgencia</option>
+            <option>Promoción / descuento</option>
+            <option>Convenio institucional</option>
+            <option>Campaña de retorno (huéspedes previos)</option>
+            <option>Lanzamiento nueva temporada</option>
+          </select>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="fg"><label>Desde</label><input type="date" id="camp-desde"></div>
+        <div class="fg"><label>Hasta</label><input type="date" id="camp-hasta"></div>
+        <div class="fg"><label>Descuento % (opcional)</label><input type="number" id="camp-desc" placeholder="0" min="0" max="50"></div>
+      </div>
+      <div class="fg"><label>Contexto</label><textarea id="camp-ctx" rows="2" placeholder="Ej: Queremos llenar las cabañas en agosto que quedan libres después del receso invernal..."></textarea></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="generarCampana('instagram')">📸 Instagram/FB</button>
+        <button class="btn btn-wa" onclick="generarCampana('whatsapp')">💬 WhatsApp</button>
+        <button class="btn" onclick="generarCampana('email')">✉ Email</button>
+        <button class="btn btn-primary" onclick="generarCampana('google_copy')">📊 Copy Google Ads</button>
+      </div>
+      <div id="camp-resultado"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESEÑAS ===== -->
+<div id="panel-resenas" style="display:none;">
+  <div class="card">
+    <div class="card-header"><div class="card-title">⭐ Mensaje post check-out</div></div>
+    <div class="card-body">
+      <div class="row2">
+        <div class="fg"><label>Nombre del huésped</label><input type="text" id="r-nombre" placeholder="Ej: Martín García"></div>
+        <div class="fg"><label>WhatsApp</label><input type="text" id="r-tel" placeholder="+54 261..."></div>
+      </div>
+      <div class="row3">
+        <div class="fg"><label>Alojamiento</label>
+          <select id="r-alo">
+            <option>Cabaña Loft — Potrerillos</option>
+            <option>Cabaña Grande — Potrerillos</option>
+            <option>Departamento 2 — Mendoza</option>
+            <option>Departamento 3 — Mendoza</option>
+            <option>Depto Valle de Las Leñas</option>
+          </select>
+        </div>
+        <div class="fg"><label>Check-in</label><input type="date" id="r-ci"></div>
+        <div class="fg"><label>Check-out</label><input type="date" id="r-co"></div>
+      </div>
+      <div class="fg"><label>Observaciones de la estadía</label><textarea id="r-notas" placeholder="Ej: Familia con 2 hijos, disfrutaron el dique, pidieron ropa extra..."></textarea></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-pink" onclick="generarResena()">⭐ Mensaje de reseña</button>
+        <button class="btn btn-primary" onclick="generarRetorno()">🔄 Invitación a volver</button>
+      </div>
+      <div id="r-resultado"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PUBLICACIONES ===== -->
+<div id="panel-publicaciones" style="display:none;">
+  <div class="card">
+    <div class="card-header"><div class="card-title">📸 Plan de publicaciones del mes</div></div>
+    <div class="card-body">
+      <div class="row2">
+        <div class="fg"><label>Mes</label>
+          <select id="pub-mes">
+            <option>Julio 2026</option><option>Agosto 2026</option>
+            <option>Septiembre 2026</option><option>Octubre 2026</option>
+          </select>
+        </div>
+        <div class="fg"><label>Foco</label>
+          <select id="pub-foco">
+            <option value="todos">Todos los destinos</option>
+            <option value="potrerillos">Potrerillos</option>
+            <option value="mendoza">Mendoza Capital</option>
+            <option value="lenas">Las Leñas</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-pink btn-full" onclick="generarPublicaciones()">✨ Generar plan del mes →</button>
+      <div id="pub-resultado"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COMPETIDORES ===== -->
+<div id="panel-competidores" style="display:none;">
+  <div class="card">
+    <div class="card-header"><div class="card-title">📊 Análisis competitivo con IA</div></div>
+    <div class="card-body">
+      <div class="row2">
+        <div class="fg"><label>Zona</label>
+          <select id="comp-zona">
+            <option value="potrerillos">Potrerillos</option>
+            <option value="mendoza">Mendoza Capital</option>
+            <option value="lenas">Las Leñas</option>
+          </select>
+        </div>
+        <div class="fg"><label>Temporada</label>
+          <select id="comp-temp">
+            <option>Alta (Jul-Ago / Ene-Feb)</option>
+            <option>Baja</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="analizarCompetidores()">📊 Analizar mercado con IA</button>
+      <div id="comp-resultado"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EVENTOS ===== -->
+<div id="panel-eventos" style="display:none;">
+  <div class="card">
+    <div class="card-header"><div class="card-title">📅 Eventos y fechas clave</div></div>
+    <div class="card-body">
+      <div class="row2">
+        <div class="fg"><label>Zona</label>
+          <select id="ev-zona">
+            <option value="todos">Todas</option>
+            <option value="mendoza">Mendoza Ciudad</option>
+            <option value="potrerillos">Potrerillos</option>
+            <option value="lenas">Las Leñas / Malargüe</option>
+          </select>
+        </div>
+        <div class="fg"><label>Período</label>
+          <select id="ev-periodo">
+            <option>Próximos 30 días</option>
+            <option>Próximos 60 días</option>
+            <option>Próximos 90 días</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="buscarEventos()">🔍 Buscar eventos</button>
+      <div id="ev-resultado"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
 <script>
-// ===== GROQ KEY MANAGER =====
+// ============================================================
+// GROQ CONFIG
+// ============================================================
 (function(){
-  const KEY = localStorage.getItem('msn-groq-key')||'';
-  const input = document.getElementById('gc-key-input');
-  const status = document.getElementById('gc-status');
-  if(KEY && KEY.startsWith('gsk_')){
-    input.value = KEY;
-    status.textContent = '✅ Conectado';
-    status.className = 'gc-status ok';
+  const k=localStorage.getItem('msn-groq-key')||'';
+  const input=document.getElementById('gc-key-input');
+  const status=document.getElementById('gc-status');
+  if(k&&k.startsWith('gsk_')){
+    input.value=k;
+    status.textContent='✅ Conectado';
+    status.className='gc-status ok';
   }
 })();
 function gcGuardar(){
-  const v = document.getElementById('gc-key-input').value.trim();
-  const status = document.getElementById('gc-status');
-  if(v && v.startsWith('gsk_')){
+  const v=document.getElementById('gc-key-input').value.trim();
+  const status=document.getElementById('gc-status');
+  if(v&&v.startsWith('gsk_')){
     localStorage.setItem('msn-groq-key',v);
     status.textContent='✅ Conectado';
     status.className='gc-status ok';
-  } else if(v) {
-    status.textContent='⚠ Clave inválida';
+    toast('✅ API Key guardada');
+  }else if(v){
+    status.textContent='⚠ Clave inválida (debe empezar con gsk_)';
     status.className='gc-status warn';
   }
 }
 function gcBorrar(){
   localStorage.removeItem('msn-groq-key');
   document.getElementById('gc-key-input').value='';
-  const status = document.getElementById('gc-status');
-  status.textContent='⚠ Sin clave';
-  status.className='gc-status warn';
+  document.getElementById('gc-status').textContent='⚠ Sin clave';
+  document.getElementById('gc-status').className='gc-status warn';
 }
-</script>
 
-<div class="app">
-
-<!-- SIDEBAR -->
-<div class="sidebar">
-  <div class="sb-header">
-    <div class="sb-logo">Mendoza Sol y Nieve</div>
-    <div class="sb-title">Agente<br>Marketing</div>
-    <div class="sb-badge">Post check-out</div>
-  </div>
-  <div class="sb-nav">
-    <div class="sb-nav-title">Módulos</div>
-    <div class="nav-item active" id="nav-resenas" onclick="setTab('resenas')"><span>⭐</span> Reseñas post check-out</div>
-    <div class="nav-item" id="nav-campanas" onclick="setTab('campanas')"><span>📢</span> Campañas de estadía</div>
-    <div class="nav-item" id="nav-publicaciones" onclick="setTab('publicaciones')"><span>📸</span> Publicaciones IA</div>
-    <div class="nav-item" id="nav-eventos" onclick="setTab('eventos')"><span>📅</span> Eventos cercanos</div>
-    <div class="nav-item" id="nav-competidores" onclick="setTab('competidores')"><span>📊</span> Comparativo tarifas</div>
-    <div class="nav-item" id="nav-estadisticas" onclick="setTab('estadisticas')"><span>📈</span> Estadísticas</div>
-    <div class="sb-nav-title" style="margin-top:14px">Agentes MSN</div>
-    <div class="nav-item" style="opacity:.6;cursor:default;font-size:12px"><span>💵</span> Cotización</div>
-    <div class="nav-item" style="opacity:.6;cursor:default;font-size:12px"><span>📋</span> Recepción</div>
-    <div class="nav-item" style="opacity:.6;cursor:default;font-size:12px"><span>📈</span> Revenue</div>
-    <div class="nav-item" style="opacity:.6;cursor:default;font-size:12px"><span>🛎️</span> Concierge</div>
-    <div class="nav-item active"><span>💄</span> Marketing ← acá</div>
-  </div>
-  <div class="sb-stats">
-    <div class="sb-stat"><div class="sb-stat-val" id="stat-resenas">0</div><div class="sb-stat-lbl">Reseñas pedidas</div></div>
-    <div class="sb-stat"><div class="sb-stat-val" id="stat-campanas">0</div><div class="sb-stat-lbl">Campañas</div></div>
-  </div>
-</div>
-
-<!-- MAIN -->
-<div class="main">
-  <div class="topbar">
-    <div>
-      <div class="topbar-title" id="topbar-title">⭐ Reseñas post check-out</div>
-      <div class="topbar-sub">El momento justo en que el huésped está feliz es cuando hay que pedir la reseña</div>
-    </div>
-    <div style="margin-left:auto;display:flex;gap:8px">
-      <button class="btn btn-sm" id="btn-copiar-mkt" style="display:none" onclick="copiarTexto()">📋 Copiar</button>
-      <button class="btn btn-sm btn-primary" id="btn-guardar-mkt" style="display:none" onclick="guardarAccion()">💾 Guardar</button>
-    </div>
-  </div>
-  <div class="tab-bar">
-    <div class="tab active" id="tab-resenas" onclick="setTab('resenas')">⭐ Reseñas</div>
-    <div class="tab" id="tab-campanas" onclick="setTab('campanas')">📢 Campañas</div>
-    <div class="tab" id="tab-publicaciones" onclick="setTab('publicaciones')">📸 Publicaciones</div>
-    <div class="tab" id="tab-eventos" onclick="setTab('eventos')">📅 Eventos</div>
-    <div class="tab" id="tab-competidores" onclick="setTab('competidores')">📊 Comparativo</div>
-    <div class="tab" id="tab-estadisticas" onclick="setTab('estadisticas')">📈 Estadísticas</div>
-  </div>
-  <div class="content-area">
-
-    <!-- ===== RESEÑAS ===== -->
-    <div id="panel-resenas">
-      <div class="card">
-        <div class="card-title">👤 Datos del huésped que hizo check-out</div>
-        <div class="row2">
-          <div class="fg"><label>Nombre</label><input type="text" id="r-nombre" placeholder="Ej: Martín García"></div>
-          <div class="fg"><label>WhatsApp</label><input type="text" id="r-tel" placeholder="+54 261..."></div>
-        </div>
-        <div class="row3">
-          <div class="fg"><label>Alojamiento</label>
-            <select id="r-alo">
-              <option>Cabaña Loft — Potrerillos</option>
-              <option>Cabaña Standard — Potrerillos</option>
-              <option>Cabaña Grande — Potrerillos</option>
-              <option>Departamento 2 — Mendoza</option>
-              <option>Departamento 3 — Mendoza</option>
-              <option>Depto Valle de Las Leñas</option>
-            </select>
-          </div>
-          <div class="fg"><label>Check-in</label><input type="date" id="r-ci"></div>
-          <div class="fg"><label>Check-out</label><input type="date" id="r-co"></div>
-        </div>
-        <div class="fg"><label>¿Cómo estuvo la estadía? (observaciones internas)</label>
-          <textarea id="r-notas" placeholder="Ej: Familia con 2 hijos, disfrutaron mucho el dique, pidieron ropa extra, todo muy bien..."></textarea>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="generarMensajeResena()">⭐ Generar mensaje de reseña →</button>
-          <button class="btn btn-amber" onclick="generarMensajeRetorno()">🔄 Generar mensaje de retorno →</button>
-        </div>
-      </div>
-
-      <!-- TIMING ÓPTIMO -->
-      <div class="card">
-        <div class="card-title">⏰ Momento ideal para pedir la reseña</div>
-        <p style="font-size:13px;color:var(--txt2);margin-bottom:12px">El huésped está más feliz entre 2 y 6 horas después del check-out. Ese es el momento exacto para enviar el mensaje.</p>
-        <div class="timing-bar">
-          <div class="timing-step done"></div>
-          <div class="timing-step done"></div>
-          <div class="timing-step now"></div>
-          <div class="timing-step"></div>
-          <div class="timing-step"></div>
-          <div class="timing-step"></div>
-          <div class="timing-step"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txt3)">
-          <span>Check-out 10hs</span><span style="color:var(--pink);font-weight:600">Enviar 12–16hs ✓</span><span>24hs después</span>
-        </div>
-      </div>
-
-      <div id="panel-resena-resultado" style="display:none">
-        <div class="card">
-          <div class="card-title">💬 Mensaje generado</div>
-          <div class="ia-result" id="resena-texto"></div>
-          <div class="ia-actions">
-            <a id="btn-wa-resena" href="#" class="btn btn-green btn-sm" target="_blank" rel="noopener">📱 Abrir en WhatsApp</a>
-            <button class="btn btn-sm" onclick="copiarResena()">📋 Copiar texto</button>
-            <button class="btn btn-sm btn-primary" onclick="generarMensajeRetorno()">🔄 También generar retorno</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== CAMPAÑAS ===== -->
-    <div id="panel-campanas" style="display:none">
-      <div class="card">
-        <div class="card-title">📢 Armar campaña de la estadía</div>
-        <div class="row2">
-          <div class="fg"><label>Destino / alojamiento</label>
-            <select id="c-alo">
-              <option>Cabañas Potrerillos</option>
-              <option>Departamentos Mendoza Capital</option>
-              <option>Valle de Las Leñas</option>
-            </select>
-          </div>
-          <div class="fg"><label>Tipo de campaña</label>
-            <select id="c-tipo">
-              <option value="temporada">Temporada (baja/alta)</option>
-              <option value="feriado">Feriado largo</option>
-              <option value="promo">Promoción / descuento</option>
-              <option value="evento">Evento cercano</option>
-              <option value="retorno">Campaña de retorno</option>
-            </select>
-          </div>
-        </div>
-        <div class="row3">
-          <div class="fg"><label>Desde</label><input type="date" id="c-desde"></div>
-          <div class="fg"><label>Hasta</label><input type="date" id="c-hasta"></div>
-          <div class="fg"><label>Descuento (% opcional)</label><input type="number" id="c-descuento" placeholder="Ej: 15" min="0" max="50"></div>
-        </div>
-        <div class="fg"><label>Contexto adicional (evento, propuesta especial, etc.)</label>
-          <textarea id="c-contexto" rows="2" placeholder="Ej: Fin de semana largo del 9 de julio, vendimia, temporada de ski en Las Leñas..."></textarea>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="generarCampana('facebook')">📘 Copy para Facebook/Instagram</button>
-          <button class="btn btn-amber" onclick="generarCampana('whatsapp')">💬 Copy para WhatsApp Broadcast</button>
-          <button class="btn" onclick="generarCampana('email')">✉ Copy para Email</button>
-        </div>
-      </div>
-      <div id="panel-campana-resultado" style="display:none">
-        <div class="card">
-          <div class="card-title" id="c-resultado-title">📋 Campaña generada</div>
-          <div class="ia-result" id="campana-texto"></div>
-          <div class="ia-actions">
-            <button class="btn btn-sm" onclick="copiarCampana()">📋 Copiar</button>
-            <button class="btn btn-sm btn-primary" onclick="guardarCampana()">💾 Guardar campaña</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== PUBLICACIONES ===== -->
-    <div id="panel-publicaciones" style="display:none">
-      <div class="card">
-        <div class="card-title">📸 Sugerencias de publicaciones analizadas por IA</div>
-        <div class="row2">
-          <div class="fg"><label>Mes/período a analizar</label>
-            <select id="p-mes">
-              <option value="julio">Julio 2026</option>
-              <option value="agosto">Agosto 2026</option>
-              <option value="septiembre">Septiembre 2026</option>
-              <option value="octubre">Octubre 2026</option>
-            </select>
-          </div>
-          <div class="fg"><label>Destino foco</label>
-            <select id="p-destino">
-              <option value="todos">Todos los destinos</option>
-              <option value="potrerillos">Potrerillos</option>
-              <option value="mendoza">Mendoza Capital</option>
-              <option value="lenas">Valle de Las Leñas</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="generarSugerenciasPublicaciones()">✨ Analizar y sugerir publicaciones →</button>
-      </div>
-
-      <div id="panel-pub-resultado" style="display:none">
-        <div class="card">
-          <div class="card-title">📅 Plan de publicaciones sugerido</div>
-          <div id="pub-lista"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== EVENTOS ===== -->
-    <div id="panel-eventos" style="display:none">
-      <div class="card">
-        <div class="card-title">📅 Eventos cercanos a los alojamientos con fechas</div>
-        <div class="row2">
-          <div class="fg"><label>Zona</label>
-            <select id="e-zona">
-              <option value="todas">Todas las zonas</option>
-              <option value="mendoza">Mendoza Ciudad</option>
-              <option value="potrerillos">Potrerillos / Cordillera</option>
-              <option value="lenas">Las Leñas / Malargüe</option>
-            </select>
-          </div>
-          <div class="fg"><label>Período</label>
-            <select id="e-periodo">
-              <option value="30">Próximos 30 días</option>
-              <option value="60">Próximos 60 días</option>
-              <option value="90">Próximos 90 días</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="buscarEventosMkt()">🔍 Buscar eventos →</button>
-      </div>
-      <div id="panel-eventos-resultado" style="display:none">
-        <div class="card">
-          <div class="card-title" id="e-titulo">Eventos encontrados</div>
-          <div id="eventos-lista"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== COMPARATIVO ===== -->
-    <div id="panel-competidores" style="display:none">
-      <div class="card">
-        <div class="card-title">📊 Comparativo de tarifas — 5 alojamientos de la zona</div>
-        <div class="row3">
-          <div class="fg"><label>Zona</label>
-            <select id="k-zona">
-              <option value="potrerillos">Potrerillos</option>
-              <option value="mendoza">Mendoza Capital</option>
-              <option value="lenas">Las Leñas</option>
-            </select>
-          </div>
-          <div class="fg"><label>Tipo</label>
-            <select id="k-tipo">
-              <option value="cabaña">Cabaña / casa</option>
-              <option value="departamento">Departamento</option>
-              <option value="hotel">Hotel boutique</option>
-            </select>
-          </div>
-          <div class="fg"><label>Temporada</label>
-            <select id="k-temp">
-              <option value="alta">Alta (Jul-Ago / Ene-Feb)</option>
-              <option value="baja">Baja</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="generarComparativo()">📊 Generar comparativo →</button>
-      </div>
-      <div id="panel-comp-resultado" style="display:none">
-        <div class="card">
-          <div class="card-title">Comparativo de mercado — <span id="comp-zona-label"></span></div>
-          <div id="comp-tabla-wrap"></div>
-          <div id="comp-analisis" class="ia-result" style="margin-top:12px"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== ESTADÍSTICAS ===== -->
-    <div id="panel-estadisticas" style="display:none">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-val" id="est-ocupacion">—</div><div class="stat-lbl">Ocupación estimada</div><div class="stat-delta delta-pos" id="est-ocup-delta"></div></div>
-        <div class="stat-card"><div class="stat-val" id="est-noches">—</div><div class="stat-lbl">Noches vendidas (mes)</div><div class="stat-delta" id="est-noches-delta"></div></div>
-        <div class="stat-card"><div class="stat-val" id="est-resenas">—</div><div class="stat-lbl">Reseñas obtenidas</div><div class="stat-delta delta-pos" id="est-res-delta"></div></div>
-        <div class="stat-card"><div class="stat-val" id="est-campanas">—</div><div class="stat-lbl">Campañas activas</div><div class="stat-delta" id="est-camp-delta"></div></div>
-      </div>
-      <div class="card">
-        <div class="card-title">💡 Propuesta de publicación analizada por IA</div>
-        <div class="fg"><label>Contame brevemente cómo estuvo el mes</label>
-          <textarea id="est-contexto" rows="3" placeholder="Ej: Julio con alta ocupación en Las Leñas, la cabaña grande estuvo llena todos los fines de semana, recibimos varios turistas de Buenos Aires y Chile..."></textarea>
-        </div>
-        <button class="btn btn-primary" onclick="generarPropuestaPublicacion()">✨ Generar propuesta de publicación →</button>
-        <div id="est-resultado" class="ia-result" style="display:none;margin-top:12px"></div>
-      </div>
-    </div>
-
-  </div>
-</div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
 // ============================================================
-// ESTADO
+// LLAMAR IA — Groq primario, Claude fallback
 // ============================================================
-const stats = {resenas:0, campanas:0};
-let ultimoTexto = '';
+async function llamarIA(system, user, maxTokens){
+  maxTokens = maxTokens||900;
+  const groqKey = localStorage.getItem('msn-groq-key')||'';
+  
+  // Verificar que hay key
+  if(!groqKey || !groqKey.startsWith('gsk_')){
+    return '⚠ Necesitás configurar tu API Key de Groq en la barra superior (gsk_...). Es gratuita en console.groq.com';
+  }
 
-const GROQ_KEY = localStorage.getItem('msn-groq-key')||'';
+  try{
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+groqKey
+      },
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        max_tokens:maxTokens,
+        temperature:0.65,
+        messages:[
+          {role:'system',content:system},
+          {role:'user',content:user}
+        ]
+      })
+    });
+    if(!r.ok){
+      const err = await r.json().catch(()=>({}));
+      if(r.status===401) return '❌ API Key inválida o expirada. Verificá en console.groq.com';
+      if(r.status===429) return '⚠ Límite de Groq alcanzado. Esperá unos minutos e intentá de nuevo.';
+      throw new Error('Groq '+r.status+': '+(err?.error?.message||'Error desconocido'));
+    }
+    const d = await r.json();
+    return d.choices?.[0]?.message?.content||'Sin respuesta.';
+  }catch(e){
+    console.error('Groq error:',e);
+    // Fallback Claude
+    try{
+      const r2 = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,system,messages:[{role:'user',content:user}]})
+      });
+      const d2 = await r2.json();
+      return (d2.content?.[0]?.text)||'Sin respuesta.';
+    }catch(e2){
+      return '❌ Error de conexión: '+e.message+'. Verificá tu API Key de Groq.';
+    }
+  }
+}
+
+const SYSTEM_MSN = `Sos el agente de marketing de Mendoza Sol y Nieve (MSN), empresa familiar de alquileres turísticos en Mendoza, Argentina. Dueños: Liliana y Oscar Porcario.
+
+ALOJAMIENTOS:
+- Cabaña Loft (4 pax, mín 2 noches): ambiente tipo loft, cama matrimonial + sillón cama carrito. Baja U$S65, Alta U$S82
+- Cabaña Grande (7 pax, mín 2 noches): 3 dorm, chimenea, deck con vista a cordillera. Baja U$S79, Alta U$S99-130
+- Depto 2 y 3 Mendoza (4 pax, mín 1 noche): Gral. Espejo 333 frente a Plaza Independencia. Baja U$S46-48, Alta U$S53-56
+- Valle de Las Leñas (4 pax, mín 3 noches): solo temporada ski jul-ago. U$S180-200
+POTRERILLOS (Ruta 7 Km 1108, 80km de Mendoza): WiFi Starlink, parrilla privada, piscina (verano), Lago Potrerillos 14km, rafting desde el complejo, termas Cacheuta 20km, pet friendly mascotas pequeñas.
+TEMPORADAS: Baja (Mar-Jun/Sep-Nov) · Alta (Ene-Feb/1-5Jul/Ago/Dic) · Receso Invernal (6-31 Jul) · Verano (Dic)
+CONVENIO ACTIVO: Poder Judicial Mendoza (código JUDICIAL26, 10% descuento)
+WhatsApp: +54 9 261 654 3938 · Web: mendozasolynieve.com.ar
+
+Tono: cálido, auténtico, mendocino. Trato de vos. Sin corporativismos.`;
+
+let _ultimoTexto = '';
 
 // ============================================================
 // TABS
 // ============================================================
+const TABS = ['estrategia','google','meta','campana','resenas','publicaciones','competidores','eventos'];
+const TITLES = {
+  estrategia:'🎯 Estrategia de Marketing IA',
+  google:'📊 Google Ads',
+  meta:'📘 Meta Ads (Facebook/Instagram)',
+  campana:'📢 Crear campaña',
+  resenas:'⭐ Reseñas post check-out',
+  publicaciones:'📸 Plan de publicaciones',
+  competidores:'📊 Análisis competitivo',
+  eventos:'📅 Eventos y fechas clave'
+};
+
 function setTab(tab){
-  const tabs = ['resenas','campanas','publicaciones','eventos','competidores','estadisticas'];
-  tabs.forEach(t=>{
+  TABS.forEach(t=>{
     document.getElementById('panel-'+t).style.display = t===tab?'block':'none';
-    document.getElementById('tab-'+t)?.classList.toggle('active',t===tab);
-    document.getElementById('nav-'+t)?.classList.toggle('active',t===tab);
+    const nb = document.getElementById('nav-'+t);
+    if(nb) nb.classList.toggle('active', t===tab);
   });
-  const titles={resenas:'⭐ Reseñas post check-out',campanas:'📢 Campañas de estadía',publicaciones:'📸 Publicaciones IA',eventos:'📅 Eventos cercanos',competidores:'📊 Comparativo de tarifas',estadisticas:'📈 Estadísticas y propuestas'};
-  document.getElementById('topbar-title').textContent = titles[tab]||tab;
+  document.getElementById('topbar-title').textContent = TITLES[tab]||tab;
 }
 
 // ============================================================
-// LLAMADA A IA
+// SHOW RESULT
 // ============================================================
+function mostrarResultado(containerId, texto){
+  _ultimoTexto = texto;
+  document.getElementById('btn-copiar').style.display = 'block';
+  const el = document.getElementById(containerId);
+  el.innerHTML = `<div class="ia-result">${escHtml(texto)}</div>
+    <div class="ia-actions">
+      <button class="btn btn-sm" onclick="copiarTexto(\`${escJs(texto)}\`)">📋 Copiar</button>
+      <button class="btn btn-wa btn-sm" onclick="abrirWA(\`${escJs(texto)}\`)">💬 Enviar por WhatsApp</button>
+    </div>`;
+}
 
-const SYSTEM_MSN = `Sos el asistente de marketing de Mendoza Sol y Nieve (MSN), empresa familiar de alquileres turísticos en Mendoza, Argentina.
+function mostrarCargando(containerId){
+  document.getElementById(containerId).innerHTML = '<div class="ia-loading">Generando con IA...</div>';
+}
 
-Alojamientos:
-- Cabañas en Potrerillos (Ruta 7 Km 1108): Loft (4 pax), Standard (5 pax), Grande (7 pax). Pileta, parrilla, río, montaña.
-- Departamentos en Mendoza Capital (Gral. Espejo 333): Depto 2 y 3 (hasta 4 pax). A metros de Plaza Independencia.
-- Valle de Las Leñas: Depto para 4 pax. Solo temporada invernal julio-agosto.
-
-Tono: cálido, auténtico, mendocino. Nada de frases corporativas. Tratá de vos.
-Dueños: Liliana y Oscar.
-WhatsApp: +54 9 261 654 3938
-Web: mendozasolynieve.com.ar`;
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escJs(s){ return s.replace(/`/g,'\\`').replace(/\$/g,'\\$'); }
 
 // ============================================================
-// RESEÑAS POST CHECK-OUT
+// ESTRATEGIA COMPLETA
 // ============================================================
-async function generarMensajeResena(){
-  const nombre = document.getElementById('r-nombre').value || 'huésped';
+async function generarEstrategia(){
+  mostrarCargando('est-resultado');
+  const destino = document.getElementById('est-destino').value;
+  const periodo = document.getElementById('est-periodo').value;
+  const presupuesto = document.getElementById('est-presupuesto').value;
+  const objetivo = document.getElementById('est-objetivo').value;
+  const publico = document.getElementById('est-publico').value;
+  const ctx = document.getElementById('est-contexto').value;
+
+  const user = `Generá una estrategia de marketing COMPLETA y PRECISA para Mendoza Sol y Nieve.
+
+PARÁMETROS:
+- Destino: ${destino}
+- Período: ${periodo}
+- Presupuesto disponible: ${presupuesto ? 'ARS '+presupuesto+'/mes' : 'No definido (proponer distribución óptima)'}
+- Objetivo: ${objetivo}
+- Público objetivo: ${publico}
+- Contexto adicional: ${ctx||'Sin contexto adicional'}
+
+SITUACIÓN DE CUENTAS PUBLICITARIAS:
+- Google Ads: SUSPENDIDA (en proceso de reactivación con cuenta nueva)
+- Meta Ads (Facebook/Instagram): cuenta disponible, sin campañas activas
+- WhatsApp Business: activo, es el canal principal de conversión
+
+La estrategia debe incluir:
+1. DIAGNÓSTICO: situación actual y oportunidades del período
+2. CANALES RECOMENDADOS: con prioridad y justificación (dado que Google Ads está suspendida, priorizar Meta Ads y WhatsApp)
+3. META ADS: configuración exacta de la campaña (tipo, objetivo, audiencia, presupuesto diario, duración, formato)
+4. WHATSAPP / ORGÁNICO: acciones concretas, frecuencia, tipo de contenido
+5. COPY LISTO: un texto completo para Facebook/Instagram y uno para WhatsApp Broadcast
+6. MÉTRICAS A MONITOREAR: KPIs específicos para MSN
+7. CRONOGRAMA: semana a semana
+
+Sé preciso, práctico y accionable. Evitá generalidades.`;
+
+  const texto = await llamarIA(SYSTEM_MSN, user, 1200);
+  mostrarResultado('est-resultado', texto);
+}
+
+// ============================================================
+// PLAN REACTIVACIÓN
+// ============================================================
+async function generarPlanReactivacion(plataforma){
+  document.getElementById('plan-reactivacion').style.display = 'block';
+  document.getElementById('plan-reactivacion').innerHTML = '<div class="ia-loading">Generando plan...</div>';
+  
+  let user = '';
+  if(plataforma === 'google'){
+    user = `La cuenta de Google Ads de Mendoza Sol y Nieve fue suspendida por "Circumventing Systems" (cloaking/diferencias entre versiones del sitio). 
+
+Generá un plan de reactivación paso a paso:
+1. Pasos exactos para crear una cuenta nueva limpia (email: info@mendozasolynieve.com.ar)
+2. Configuración inicial correcta para evitar nueva suspensión
+3. Primeras 3 campañas recomendadas (palabras clave, copy, presupuesto inicial en ARS)
+4. Política de verificación de anunciante: qué documentación preparar
+5. Cronograma de 30 días para tener campañas activas
+
+Contexto: el sitio web actual es mendozasolynieve.com.ar, solo en español, sin diferencias entre versiones.`;
+  } else {
+    user = `Meta Ads de Mendoza Sol y Nieve tiene cuenta disponible pero sin campañas activas. Es el momento perfecto para arrancar.
+
+Generá el plan de primera campaña en Meta Ads:
+1. Configuración del Business Manager (pasos exactos)
+2. Pixel de Meta: verificar instalación (ya está en el sitio web)
+3. Primera campaña recomendada: tipo, objetivo, audiencia, presupuesto diario mínimo viable
+4. Estructura de conjuntos de anuncios para testear (2-3 audiencias)
+5. Formatos más efectivos para turismo en Argentina en Instagram/Facebook
+6. Copy e imagen para el primer anuncio (listo para usar)
+7. Cronograma semana 1: qué hacer cada día
+
+Foco en cabañas Potrerillos y departamentos Mendoza Capital.`;
+  }
+  
+  const texto = await llamarIA(SYSTEM_MSN, user, 1000);
+  document.getElementById('plan-reactivacion').innerHTML = `<div class="ia-result">${escHtml(texto)}</div>
+    <div class="ia-actions"><button class="btn btn-sm" onclick="copiarTexto(\`${escJs(texto)}\`)">📋 Copiar plan</button></div>`;
+}
+
+// ============================================================
+// GOOGLE ADS ANÁLISIS
+// ============================================================
+async function analizarGoogleAds(){
+  mostrarCargando('ga-resultado');
+  const imp = document.getElementById('ga-impresiones').value;
+  const clics = document.getElementById('ga-clics').value;
+  const ctr = document.getElementById('ga-ctr').value;
+  const costo = document.getElementById('ga-costo').value;
+  const conv = document.getElementById('ga-conv').value;
+  const kw = document.getElementById('ga-keywords').value;
+
+  if(!imp && !clics){ document.getElementById('ga-resultado').innerHTML='<div style="color:var(--amber);font-size:13px;padding:10px 0">⚠ Ingresá al menos algunos datos para analizar.</div>'; return; }
+
+  const cpa = costo && conv ? Math.round(parseInt(costo)/parseInt(conv)) : 'N/D';
+
+  const user = `Analizá estos datos históricos de Google Ads de Mendoza Sol y Nieve y generá recomendaciones:
+
+MÉTRICAS:
+- Impresiones: ${imp||'N/D'}
+- Clics: ${clics||'N/D'}
+- CTR: ${ctr||'N/D'}%
+- Costo total: ARS ${costo||'N/D'}
+- Conversiones (consultas): ${conv||'N/D'}
+- CPA (costo por consulta): ARS ${cpa}
+- Keywords que funcionaron: ${kw||'N/D'}
+
+CONTEXTO: La cuenta está actualmente suspendida. Necesitamos crear una cuenta nueva.
+
+Analizá:
+1. Evaluación de las métricas (¿son buenos o malos estos números para turismo en Mendoza?)
+2. Keywords con mayor potencial para mantener en la cuenta nueva
+3. Palabras clave negativas recomendadas
+4. Estructura de campaña optimizada para la cuenta nueva
+5. Estimación de resultados con un presupuesto de ARS 50.000/mes`;
+
+  const texto = await llamarIA(SYSTEM_MSN, user, 900);
+  mostrarResultado('ga-resultado', texto);
+}
+
+async function planReactivacionGoogle(){
+  mostrarCargando('ga-reactiv-resultado');
+  const email = document.getElementById('ga-email-nuevo').value;
+  const presup = document.getElementById('ga-presup-diario').value;
+  const user = `Generá un plan detallado para reactivar Google Ads de Mendoza Sol y Nieve con cuenta nueva:
+Email: ${email}
+Presupuesto diario: ARS ${presup||'2000'}
+
+1. Pasos exactos para crear la cuenta nueva sin arrastrar la suspensión
+2. Verificación de anunciante: documentación (CUIT, monotributo de Liliana González)
+3. Estructura de campaña inicial (3 grupos de anuncios recomendados)
+4. 10 keywords de alta intención para cabañas Potrerillos y deptos Mendoza
+5. Copy para 3 anuncios responsivos
+6. Extensiones de anuncio recomendadas (llamada, ubicación, sitelinks)
+7. Configuración de conversiones (click en WhatsApp como conversión principal)`;
+
+  const texto = await llamarIA(SYSTEM_MSN, user, 1000);
+  mostrarResultado('ga-reactiv-resultado', texto);
+}
+
+// ============================================================
+// META ADS
+// ============================================================
+async function generarCampanaMeta(){
+  mostrarCargando('meta-resultado');
+  const destino = document.getElementById('meta-destino').value;
+  const tipo = document.getElementById('meta-tipo').value;
+  const presup = document.getElementById('meta-presup').value;
+  const duracion = document.getElementById('meta-duracion').value;
+  const fechas = document.getElementById('meta-fechas').value;
+  const audiencia = document.getElementById('meta-audiencia').value;
+
+  const user = `Generá una campaña COMPLETA de Meta Ads lista para implementar:
+
+CONFIGURACIÓN:
+- Destino: ${destino}
+- Tipo de campaña: ${tipo}
+- Presupuesto diario: ARS ${presup||'1500'}
+- Duración: ${duracion} días
+- Fechas a promover: ${fechas||'próximas semanas'}
+- Audiencia: ${audiencia}
+
+ENTREGABLES (todo listo para copiar y usar):
+1. Nombre de la campaña
+2. Objetivo en Meta Ads Manager (cuál elegir exactamente)
+3. Segmentación detallada: países, edades, intereses, comportamientos
+4. Formato de anuncio recomendado (carrusel/video/imagen estática)
+5. COPY PRINCIPAL (texto del anuncio, máx 125 caracteres para Facebook)
+6. TEXTO LARGO (para Instagram, máx 2200 caracteres)
+7. HEADLINE (título, máx 40 caracteres)
+8. DESCRIPCIÓN (máx 30 caracteres)
+9. CTA recomendado
+10. URL de destino y parámetros UTM
+11. Qué imagen/video usar (descripción de la composición ideal)
+12. Estimación de alcance y clics esperados con ese presupuesto`;
+
+  const texto = await llamarIA(SYSTEM_MSN, user, 1100);
+  mostrarResultado('meta-resultado', texto);
+}
+
+async function generarContenidoOrganico(){
+  mostrarCargando('org-resultado');
+  const mes = document.getElementById('org-mes').value;
+  const destino = document.getElementById('org-destino').value;
+
+  const user = `Creá un plan de contenido orgánico para redes sociales de Mendoza Sol y Nieve para ${mes}.
+Destino foco: ${destino==='todos'?'todos los alojamientos':destino}.
+
+Para cada publicación incluí:
+- Día y horario recomendado
+- Red social (Instagram/Facebook/ambas)
+- Formato (foto, carrusel, Reels, Stories)
+- Concepto y descripción visual
+- Caption completo listo para publicar (en tono MSN, cálido, de vos)
+- Hashtags (máx 15)
+
+Basate en la temporada de ${mes}, eventos de Mendoza y el comportamiento de la audiencia turística argentina.
+Generá entre 8 y 10 publicaciones distribuidas en el mes.`;
+
+  const texto = await llamarIA(SYSTEM_MSN, user, 1100);
+  mostrarResultado('org-resultado', texto);
+}
+
+// ============================================================
+// CREAR CAMPAÑA
+// ============================================================
+async function generarCampana(canal){
+  mostrarCargando('camp-resultado');
+  const alo = document.getElementById('camp-alo').value;
+  const tipo = document.getElementById('camp-tipo').value;
+  const desde = document.getElementById('camp-desde').value;
+  const hasta = document.getElementById('camp-hasta').value;
+  const desc = document.getElementById('camp-desc').value;
+  const ctx = document.getElementById('camp-ctx').value;
+
+  const canalLabel = {instagram:'Instagram/Facebook',whatsapp:'WhatsApp Broadcast',email:'Email marketing',google_copy:'Google Ads (copy)'}[canal];
+
+  const user = `Generá un texto de campaña para ${canalLabel} de Mendoza Sol y Nieve.
+
+CAMPAÑA:
+- Alojamiento: ${alo}
+- Tipo: ${tipo}
+- Período: ${desde||'próximas semanas'} ${hasta?'al '+hasta:''}
+- Descuento: ${desc?desc+'%':'Sin descuento'}
+- Contexto: ${ctx||'Sin contexto adicional'}
+
+${canal==='instagram'?'Para Instagram/Facebook: texto principal + hashtags + CTA. Máx 10 líneas. Incluí emoji. Tono cálido, mendocino.':''}
+${canal==='whatsapp'?'Para WhatsApp Broadcast: mensaje corto (máx 5 líneas), emoji, termina con link a web y teléfono. Muy directo y personal.':''}
+${canal==='email'?'Para Email: Asunto (máx 50 chars) + cuerpo completo con saludo, propuesta de valor, CTA y firma. Formal pero cálido.':''}
+${canal==='google_copy'?'Para Google Ads: Headline 1 (30 chars), Headline 2 (30 chars), Headline 3 (30 chars), Descripción 1 (90 chars), Descripción 2 (90 chars). Sin puntos al final.':''}`;
+
+  const texto = await llamarIA(SYSTEM_MSN, user, 700);
+  mostrarResultado('camp-resultado', texto);
+}
+
+// ============================================================
+// RESEÑAS
+// ============================================================
+async function generarResena(){
+  mostrarCargando('r-resultado');
+  const nombre = document.getElementById('r-nombre').value||'huésped';
   const alo = document.getElementById('r-alo').value;
   const notas = document.getElementById('r-notas').value;
   const tel = document.getElementById('r-tel').value;
 
-  document.getElementById('panel-resena-resultado').style.display='block';
-  document.getElementById('resena-texto').innerHTML = '<div class="loading"><span></span><span></span><span></span></div> Generando...';
-
-  const user = `Generá un mensaje de WhatsApp para pedir una reseña a ${nombre}, que acaba de hacer check-out de ${alo}.
-${notas ? 'Observaciones de la estadía: '+notas : ''}
-El mensaje debe ser breve (máximo 5 líneas), cálido, personal, y terminar con el link de Google Maps para dejar la reseña.
-Placeholder del link: [LINK_GOOGLE_MAPS]
-El momento de envío es 2-4 horas después del check-out, cuando el huésped está llegando a casa y aún tiene el viaje fresco.`;
+  const user = `Generá un mensaje de WhatsApp breve y cálido para pedir una reseña a ${nombre}, que acaba de hacer check-out de ${alo}.
+${notas?'Observaciones: '+notas:''}
+Máx 5 líneas. Personalizado. Incluir placeholder [LINK_GOOGLE_MAPS] al final.
+Enviarlo entre 2 y 4 horas después del check-out.`;
 
   const texto = await llamarIA(SYSTEM_MSN, user, 400);
-  ultimoTexto = texto;
-  document.getElementById('resena-texto').textContent = texto;
-  document.getElementById('btn-copiar-mkt').style.display='block';
-  document.getElementById('btn-guardar-mkt').style.display='block';
-  stats.resenas++;
-  document.getElementById('stat-resenas').textContent = stats.resenas;
-  
-  if(tel){
-    const url = 'https://wa.me/'+tel.replace(/\D/g,'')+`?text=${encodeURIComponent(texto)}`;
-    document.getElementById('btn-wa-resena').href = url;
-  }
-  mostrarToast('✅ Mensaje de reseña generado');
+  const tel_clean = tel.replace(/\D/g,'');
+  document.getElementById('r-resultado').innerHTML = `<div class="ia-result">${escHtml(texto)}</div>
+    <div class="ia-actions">
+      <button class="btn btn-sm" onclick="copiarTexto(\`${escJs(texto)}\`)">📋 Copiar</button>
+      ${tel_clean?`<a href="https://wa.me/${tel_clean}?text=${encodeURIComponent(texto)}" class="btn btn-wa btn-sm" target="_blank" rel="noopener">📱 Abrir WhatsApp</a>`:''}
+    </div>`;
+  _ultimoTexto = texto;
 }
 
-async function generarMensajeRetorno(){
-  const nombre = document.getElementById('r-nombre').value || 'huésped';
+async function generarRetorno(){
+  mostrarCargando('r-resultado');
+  const nombre = document.getElementById('r-nombre').value||'huésped';
   const alo = document.getElementById('r-alo').value;
   const notas = document.getElementById('r-notas').value;
 
-  document.getElementById('panel-resena-resultado').style.display='block';
-  document.getElementById('resena-texto').innerHTML = '<div class="loading"><span></span><span></span><span></span></div> Generando...';
-
-  const user = `Generá un mensaje de WhatsApp para invitar a ${nombre} a volver a ${alo} o a otro de nuestros alojamientos.
-${notas ? 'Observaciones de la estadía: '+notas : ''}
-El mensaje debe ser breve, personalizado, y mencionar que tienen preferencia como huéspedes anteriores. Podés mencionar una próxima temporada o un evento cercano (vendimia, ski, feriado largo). Cerrá con el link a la web y el WhatsApp.`;
+  const user = `Generá un mensaje de WhatsApp para invitar a ${nombre} a volver a MSN (estuvo en ${alo}).
+${notas?'Observaciones: '+notas:''}
+Breve, personal, menciona una próxima temporada o evento. Termina con web y WhatsApp. Máx 6 líneas.`;
 
   const texto = await llamarIA(SYSTEM_MSN, user, 400);
-  ultimoTexto = texto;
-  document.getElementById('resena-texto').textContent = texto;
-  mostrarToast('✅ Mensaje de retorno generado');
-}
-
-function copiarResena(){
-  const t = document.getElementById('resena-texto').textContent;
-  navigator.clipboard?.writeText(t).then(()=>mostrarToast('✅ Copiado'));
-}
-
-// ============================================================
-// CAMPAÑAS
-// ============================================================
-async function generarCampana(canal){
-  const alo = document.getElementById('c-alo').value;
-  const tipo = document.getElementById('c-tipo').value;
-  const desde = document.getElementById('c-desde').value;
-  const hasta = document.getElementById('c-hasta').value;
-  const descuento = document.getElementById('c-descuento').value;
-  const contexto = document.getElementById('c-contexto').value;
-
-  const canalLabels = {facebook:'Facebook e Instagram',whatsapp:'WhatsApp Broadcast',email:'Email marketing'};
-  document.getElementById('panel-campana-resultado').style.display='block';
-  document.getElementById('c-resultado-title').textContent = `📋 Campaña para ${canalLabels[canal]}`;
-  document.getElementById('campana-texto').innerHTML = '<div class="loading"><span></span><span></span><span></span></div> Generando campaña...';
-
-  const tipoLabels = {temporada:'de temporada',feriado:'de feriado largo',promo:'promocional',evento:'por evento',retorno:'de retorno de huéspedes'};
-
-  const user = `Generá una campaña ${tipoLabels[tipo]||''} de marketing para ${canal} sobre ${alo}.
-${desde&&hasta?`Período: ${desde} al ${hasta}.`:''}
-${descuento?`Descuento especial: ${descuento}%.`:''}
-${contexto?`Contexto: ${contexto}.`:''}
-
-Para ${canal==='facebook'?'Facebook/Instagram: incluí un texto principal, 3 hashtags relevantes y una llamada a la acción clara. Máximo 8 líneas.':''}
-Para ${canal==='whatsapp'?'WhatsApp Broadcast: mensaje corto, directo, con emoji, máximo 5 líneas. Termina con el link de consulta.':''}
-Para ${canal==='email'?'Email: asunto + cuerpo del email. Cálido, con propuesta de valor clara, cierre con link y WhatsApp.':''}`;
-
-  const texto = await llamarIA(SYSTEM_MSN, user, 600);
-  ultimoTexto = texto;
-  document.getElementById('campana-texto').textContent = texto;
-  stats.campanas++;
-  document.getElementById('stat-campanas').textContent = stats.campanas;
-  mostrarToast('✅ Campaña generada');
-}
-
-function copiarCampana(){
-  const t = document.getElementById('campana-texto').textContent;
-  navigator.clipboard?.writeText(t).then(()=>mostrarToast('✅ Copiado'));
-}
-
-function guardarCampana(){
-  mostrarToast('✅ Campaña guardada en historial');
-  document.getElementById('btn-guardar-mkt').style.display='none';
+  mostrarResultado('r-resultado', texto);
 }
 
 // ============================================================
 // PUBLICACIONES
 // ============================================================
-async function generarSugerenciasPublicaciones(){
-  const mes = document.getElementById('p-mes').value;
-  const destino = document.getElementById('p-destino').value;
+async function generarPublicaciones(){
+  mostrarCargando('pub-resultado');
+  const mes = document.getElementById('pub-mes').value;
+  const foco = document.getElementById('pub-foco').value;
+  const texto = await llamarIA(SYSTEM_MSN,
+    `Plan de publicaciones para redes de MSN — ${mes} — foco: ${foco==='todos'?'todos los destinos':foco}.
+Para cada publicación: día/hora · red · formato · concepto visual · caption listo · hashtags.
+8-10 publicaciones, distribuidas estratégicamente en el mes.`, 1000);
+  mostrarResultado('pub-resultado', texto);
+}
 
-  document.getElementById('panel-pub-resultado').style.display='block';
-  document.getElementById('pub-lista').innerHTML = '<div class="loading"><span></span><span></span><span></span></div> Analizando y generando plan...';
-
-  const user = `Analizá el mes de ${mes} en Mendoza, Argentina y creá un plan de publicaciones para redes sociales (Instagram/Facebook) de Mendoza Sol y Nieve.
-Destino foco: ${destino==='todos'?'todos los alojamientos':destino}.
-
-Para cada publicación sugerida incluí:
-- Día recomendado del mes
-- Red social (Instagram/Facebook/ambas)
-- Tema/concepto de la publicación
-- Texto sugerido (corto, para caption)
-- Hashtags
-
-Basate en: eventos de Mendoza en ese mes, temporadas turísticas, feriados, estacionalidad. Sugerí entre 6 y 8 publicaciones para el mes.
-Respondé en formato lista clara, sin markdown, separando cada publicación con una línea en blanco.`;
-
-  const texto = await llamarIA(SYSTEM_MSN, user, 1200);
-  document.getElementById('pub-lista').innerHTML = `<div style="font-size:13px;line-height:1.8;color:var(--txt);white-space:pre-wrap">${texto}</div>
-  <div style="margin-top:14px;display:flex;gap:8px">
-    <button class="btn btn-sm btn-primary" onclick="navigator.clipboard?.writeText(document.getElementById('pub-lista').innerText).then(()=>mostrarToast('✅ Copiado'))">📋 Copiar plan</button>
-  </div>`;
-  mostrarToast('✅ Plan de publicaciones generado');
+// ============================================================
+// COMPETIDORES
+// ============================================================
+async function analizarCompetidores(){
+  mostrarCargando('comp-resultado');
+  const zona = document.getElementById('comp-zona').value;
+  const temp = document.getElementById('comp-temp').value;
+  const texto = await llamarIA(SYSTEM_MSN,
+    `Análisis competitivo de alojamientos en ${zona}, Mendoza para temporada ${temp}.
+1. 5 competidores representativos con tarifas estimadas
+2. Posicionamiento de MSN vs competencia
+3. Ventajas competitivas de MSN a destacar en marketing
+4. Oportunidades de diferenciación
+5. Recomendación de precio para maximizar ocupación sin perder margen
+Respondé en formato claro y accionable.`, 900);
+  mostrarResultado('comp-resultado', texto);
 }
 
 // ============================================================
 // EVENTOS
 // ============================================================
-async function buscarEventosMkt(){
-  const zona = document.getElementById('e-zona').value;
-  const dias = document.getElementById('e-periodo').value;
-
-  document.getElementById('panel-eventos-resultado').style.display='block';
-  document.getElementById('eventos-lista').innerHTML = '<div class="loading"><span></span><span></span><span></span></div> Buscando eventos...';
-
-  const zonaLabels = {todas:'Mendoza, Potrerillos y Las Leñas',mendoza:'Mendoza Ciudad',potrerillos:'Potrerillos y cordillera',lenas:'Las Leñas y Malargüe'};
-
+async function buscarEventos(){
+  mostrarCargando('ev-resultado');
+  const zona = document.getElementById('ev-zona').value;
+  const periodo = document.getElementById('ev-periodo').value;
   const hoy = new Date().toLocaleDateString('es-AR');
-  const user = `Listá los eventos, festivales, feriados, ferias, eventos deportivos y actividades turísticas principales en ${zonaLabels[zona]||zona} para los próximos ${dias} días a partir del ${hoy}.
-
-Para cada evento incluí: nombre, fecha exacta o estimada, zona (mendoza/potrerillos/lenas), descripción breve (1 línea) y por qué es relevante para los huéspedes de MSN.
-
-Respondé solo con los eventos en este formato exacto:
-EVENTO: [nombre]
-FECHA: [fecha]
-ZONA: [zona]
-DESCRIPCION: [descripción 1 línea]
----`;
-
-  const texto = await llamarIA(SYSTEM_MSN, user, 1000);
-  document.getElementById('e-titulo').textContent = `Eventos encontrados — próximos ${dias} días`;
-
-  const eventos = texto.split('---').filter(e=>e.trim());
-  let html = '';
-  eventos.forEach(ev=>{
-    const nombre = ev.match(/EVENTO:\s*(.+)/i)?.[1]?.trim()||'Evento';
-    const fecha = ev.match(/FECHA:\s*(.+)/i)?.[1]?.trim()||'—';
-    const zona = ev.match(/ZONA:\s*(.+)/i)?.[1]?.trim()?.toLowerCase()||'mendoza';
-    const desc = ev.match(/DESCRIPCION:\s*(.+)/i)?.[1]?.trim()||'';
-    const zonaClass = zona.includes('potrer')?'zona-potrerillos':zona.includes('le')?'zona-lenas':'zona-mendoza';
-    const zonaLabel = zona.includes('potrer')?'Potrerillos':zona.includes('le')?'Las Leñas':'Mendoza';
-    html+=`<div class="evento-item">
-      <div class="evento-fecha">${fecha}</div>
-      <div>
-        <div class="evento-nombre">${nombre}</div>
-        ${desc?`<div style="font-size:11px;color:var(--txt3);margin-top:2px">${desc}</div>`:''}
-      </div>
-      <span class="evento-zona ${zonaClass}">${zonaLabel}</span>
-    </div>`;
-  });
-  document.getElementById('eventos-lista').innerHTML = html||`<div style="font-size:13px;color:var(--txt3);padding:10px 0">No se encontraron eventos específicos. Intentá ampliar el período de búsqueda.</div>`;
-  mostrarToast('✅ Eventos encontrados');
-}
-
-// ============================================================
-// COMPARATIVO COMPETIDORES
-// ============================================================
-async function generarComparativo(){
-  const zona = document.getElementById('k-zona').value;
-  const tipo = document.getElementById('k-tipo').value;
-  const temp = document.getElementById('k-temp').value;
-  const zonaLabels={potrerillos:'Potrerillos',mendoza:'Mendoza Capital',lenas:'Valle de Las Leñas'};
-  
-  document.getElementById('panel-comp-resultado').style.display='block';
-  document.getElementById('comp-zona-label').textContent = zonaLabels[zona]||zona;
-  document.getElementById('comp-tabla-wrap').innerHTML = '<div class="loading"><span></span><span></span><span></span></div> Analizando mercado...';
-  document.getElementById('comp-analisis').style.display='none';
-
-  const msnTarifas = {
-    potrerillos:{alta:'U$S 82–130/noche',baja:'U$S 65–100/noche'},
-    mendoza:{alta:'U$S 53–58/noche',baja:'U$S 46–53/noche'},
-    lenas:{alta:'U$S 180–200/noche',baja:'Solo temporada alta'},
-  };
-  const miTarifa = msnTarifas[zona]?.[temp]||'—';
-
-  const user = `Hacé un análisis comparativo de tarifas de alojamientos en ${zonaLabels[zona]}, Mendoza, Argentina para ${tipo}s en temporada ${temp}.
-
-Listá 5 alojamientos competidores reales o representativos de la zona (pueden ser de Booking.com, Airbnb o similares) con sus tarifas estimadas por noche para 2 personas.
-Mendoza Sol y Nieve cobra: ${miTarifa}.
-
-Para cada competidor incluí: nombre ficticio representativo, tarifa aproximada por noche (en U$S o ARS), y 1 característica diferencial.
-
-Respondé en formato JSON así (solo JSON, sin texto extra):
-{"competidores":[{"nombre":"...","tarifa_usd":0,"diferencial":"...","nivel":"alto|medio|bajo"}],"analisis":"párrafo breve de análisis comparativo"}`;
-
-  try{
-    const texto = await llamarIA(SYSTEM_MSN, user, 800);
-    const clean = texto.replace(/```json|```/g,'').trim();
-    const data = JSON.parse(clean);
-    
-    let html = `<table class="comp-table"><thead><tr><th>Alojamiento</th><th>Tarifa/noche</th><th>Diferencial</th><th>vs MSN</th></tr></thead><tbody>`;
-    const miUSD = parseInt(miTarifa.match(/\d+/)?.[0])||80;
-    
-    data.competidores?.forEach(c=>{
-      const diff = c.tarifa_usd - miUSD;
-      const diffClass = diff>0?'precio-bajo':diff<0?'precio-alto':'precio-medio';
-      const diffLabel = diff>0?`MSN es ${diff} más barato`:diff<0?`MSN es ${Math.abs(diff)} más caro`:'Similar';
-      html+=`<tr><td>${c.nombre}</td><td class="${diffClass}">U$S ${c.tarifa_usd}</td><td style="font-size:12px;color:var(--txt3)">${c.diferencial}</td><td style="font-size:11px">${diffLabel}</td></tr>`;
-    });
-    html+=`<tr class="msn"><td>🏔 Mendoza Sol y Nieve</td><td>${miTarifa}</td><td>Trato directo · sin comisiones</td><td style="font-size:11px;color:var(--accent)">← Nuestro precio</td></tr>`;
-    html+='</tbody></table>';
-    
-    document.getElementById('comp-tabla-wrap').innerHTML = html;
-    if(data.analisis){
-      document.getElementById('comp-analisis').textContent = data.analisis;
-      document.getElementById('comp-analisis').style.display='block';
-    }
-  } catch(e){
-    document.getElementById('comp-tabla-wrap').innerHTML = `<p style="font-size:13px;color:var(--txt2)">No se pudo generar el comparativo. Intentá nuevamente.</p>`;
-  }
-  mostrarToast('✅ Comparativo generado');
-}
-
-// ============================================================
-// ESTADÍSTICAS
-// ============================================================
-function generarEstadisticas(){
-  document.getElementById('est-ocupacion').textContent = '74%';
-  document.getElementById('est-ocup-delta').textContent = '↑ +8% vs mes anterior';
-  document.getElementById('est-noches').textContent = '42';
-  document.getElementById('est-noches-delta').textContent = '';
-  document.getElementById('est-resenas').textContent = stats.resenas;
-  document.getElementById('est-res-delta').textContent = stats.resenas>0?'↑ en curso':'Sin datos aún';
-  document.getElementById('est-campanas').textContent = stats.campanas;
-  document.getElementById('est-camp-delta').textContent = '';
-}
-
-async function generarPropuestaPublicacion(){
-  const contexto = document.getElementById('est-contexto').value;
-  if(!contexto){mostrarToast('⚠ Contanos brevemente cómo estuvo el mes',true);return;}
-
-  const res = document.getElementById('est-resultado');
-  res.style.display='block';
-  res.innerHTML='<div class="loading"><span></span><span></span><span></span></div> Analizando...';
-
-  const user = `Analizá esta información sobre el mes de Mendoza Sol y Nieve y proponé UNA publicación concreta para redes sociales (Instagram/Facebook) que maximice el engagement.
-
-Contexto del mes: ${contexto}
-
-La propuesta debe incluir:
-- Mejor momento para publicar (día de la semana y horario)
-- Formato recomendado (foto, video, carrusel, reels)
-- Caption completo listo para publicar
-- 5 hashtags relevantes
-- Por qué este contenido va a funcionar bien (1 línea)
-
-Basate en tendencias de turismo argentino y comportamiento de la audiencia de MSN.`;
-
-  const texto = await llamarIA(SYSTEM_MSN, user, 700);
-  res.textContent = texto;
-  mostrarToast('✅ Propuesta generada');
+  const texto = await llamarIA(SYSTEM_MSN,
+    `Listá eventos, festivales, feriados y actividades turísticas en ${zona==='todos'?'Mendoza, Potrerillos y Las Leñas':zona} para los ${periodo} a partir del ${hoy}.
+Para cada uno: nombre, fecha, zona, descripción breve, por qué es útil para MSN.
+Formato: uno por línea con separador ---`, 900);
+  mostrarResultado('ev-resultado', texto);
 }
 
 // ============================================================
 // UTILS
 // ============================================================
-function copiarTexto(){
-  navigator.clipboard?.writeText(ultimoTexto).then(()=>mostrarToast('✅ Copiado al portapapeles'));
+function copiarUltimo(){ copiarTexto(_ultimoTexto); }
+function copiarTexto(t){
+  navigator.clipboard?.writeText(t).then(()=>toast('✅ Copiado al portapapeles'));
 }
-
-function guardarAccion(){
-  mostrarToast('✅ Guardado correctamente');
-  document.getElementById('btn-guardar-mkt').style.display='none';
+function abrirWA(t){
+  window.open('https://wa.me/5492616543938?text='+encodeURIComponent(t),'_blank');
 }
-
-function mostrarToast(msg,error=false){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.style.background=error?'var(--red-bg)':'var(--green-bg)';
-  t.style.borderColor=error?'#fca5a5':'var(--green-border)';
-  t.style.color=error?'var(--red)':'var(--green)';
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
 }
 
 // Init
-generarEstadisticas();
-setTab('resenas');
+setTab('estrategia');
 </script>
 </body>
 </html>

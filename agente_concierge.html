@@ -237,6 +237,28 @@ async function llamarIA(system, user, maxTokens){
   }
 }
 
+
+// ===== BASE DE CONOCIMIENTO EDITABLE =====
+function abrirKB(){
+  const kb = JSON.parse(localStorage.getItem('msn-concierge-kb')||'{}');
+  document.getElementById('kb-potrerillos').value = kb.potrerillos||'';
+  document.getElementById('kb-ciudad').value = kb.ciudad||'';
+  document.getElementById('kb-lenas').value = kb.lenas||'';
+  document.getElementById('kb-general').value = kb.general||'';
+  document.getElementById('modal-kb').style.display = 'flex';
+}
+function guardarKB(){
+  const kb = {
+    potrerillos: document.getElementById('kb-potrerillos').value.trim(),
+    ciudad: document.getElementById('kb-ciudad').value.trim(),
+    lenas: document.getElementById('kb-lenas').value.trim(),
+    general: document.getElementById('kb-general').value.trim(),
+  };
+  localStorage.setItem('msn-concierge-kb', JSON.stringify(kb));
+  document.getElementById('modal-kb').style.display = 'none';
+  alert('✅ Base de conocimiento guardada. El concierge usará esta información en todas las respuestas.');
+}
+
 </script>
 
 <div class="app">
@@ -684,7 +706,14 @@ async function procesarConsulta(pregunta) {
   const btn = document.getElementById('btn-responder-con');
   if(btn){btn.disabled=true;btn.textContent='⏳ Respondiendo...';}
 
-  const system = `Sos el concierge personal de Mendoza Sol y Nieve (MSN). Atenés huéspedes durante su estadía con recomendaciones locales precisas y personalizadas.
+  // Get editable knowledge from localStorage
+  const KB = JSON.parse(localStorage.getItem('msn-concierge-kb')||'{}');
+  const kbPotrerillos = KB.potrerillos||'';
+  const kbMendoza = KB.ciudad||'';
+  const kbLenas = KB.lenas||'';
+  const kbGeneral = KB.general||'';
+
+  const system = `Sos el concierge personal de Mendoza Sol y Nieve (MSN). Atenés huéspedes durante su estadía con recomendaciones locales precisas y personalizadas. Sos como un amigo mendocino que conoce todo.
 
 HUÉSPED ACTUAL:
 - Nombre: ${h.nombre}
@@ -694,14 +723,108 @@ HUÉSPED ACTUAL:
 - Preferencias: ${prefLabels||'no especificadas'}
 - Notas especiales: ${h.notas||'ninguna'}
 
-CONTEXTO POR ZONA:
-- Ciudad de Mendoza: zona céntrica, acceso a bodegas, Parque San Martín, Peatonal Sarmiento. Restaurantes destacados: 1884 Francis Mallmann, Azafrán, Fuente y Fonda, La Sal, Siete Cocinas. Bodegas cercanas: Trapiche, Chandon, Zuccardi.
-- Potrerillos: zona cordillerana a 50km de Mendoza. Actividades: rafting río Mendoza, kayak dique Potrerillos, trekking, mountain bike, cabalgatas. Restaurantes: pocos opciones locales, recomendable ir a Luján de Cuyo o llevar provisiones. Dique Potrerillos para deportes acuáticos.
-- Valle de Las Leñas: resort de ski en Malargüe. En invierno: pistas de ski, snowboard, après-ski. En verano: trekking, mountain bike, escalada.
+════════════════════════════════════
+CONOCIMIENTO LOCAL DETALLADO
+════════════════════════════════════
 
-ESTILO: Cálido, específico, como un amigo local. Máximo 4-5 líneas. Sin markdown. 1-2 emojis máximo. Si recomendás un lugar, incluí dirección o referencia de ubicación. Siempre tratá al huésped de vos.
+🏔️ POTRERILLOS — Ruta 7 Km 1108 (las cabañas MSN)
+DISTANCIAS EXACTAS:
+• Lago Potrerillos (dique): 14 km aprox desde las cabañas
+• Termas de Cacheuta: 20 km (Ruta 7 hacia Mendoza)
+• Mendoza Capital: 80 km, aprox 1 hora
+• Aeropuerto El Plumerillo: 90 km
+• Paso fronterizo Los Libertadores (Chile): las cabañas quedan antes del cruce
 
-Si preguntan por cenar o actividades, incluí 2-3 opciones con precio estimado.`;
+GASTRONOMÍA EN POTRERILLOS/ZONA:
+• El Rancho de Potrerillos (Ruta 7, km aprox): parrilla, regional, económico
+• La Cabaña del Lago: vista al dique, pescados y carnes, precio moderado
+• Hostería ACA Potrerillos: almuerzo y cena, buena opción familiar
+• Para mayor variedad: Luján de Cuyo (30 km hacia Mendoza) tiene muchas opciones
+
+ACTIVIDADES DESDE LAS CABAÑAS:
+• Rafting: operadores salen directamente del complejo MSN. Consultar con recepción. Temporada: Oct-Mar principalmente. Precio: $15.000-25.000/persona aprox
+• Kayak/Canoa en el dique: alquiler en la zona del lago. Precio: $5.000-10.000/hora
+• Trekking Cañón del Atuel: excursión de día completo (~3hs de Las Cabañas)
+• Mountain bike: senderos desde la ruta, bicicletas se pueden alquilar en Potrerillos
+• Cabalgatas: criaderos locales, consultar disponibilidad
+• Termas de Cacheuta: parque termal completo, 20 km. Precio: $8.000-15.000 entrada
+
+SERVICIOS Y EMERGENCIAS:
+• Farmacia más cercana: Luján de Cuyo o Potrerillos centro
+• Supermercado: Potrerillos tiene almacenes pequeños. Más completo en Luján de Cuyo
+• YPF más cercana: Potrerillos sobre Ruta 7
+• Hospital: Luján de Cuyo (30 km) o Hospital Central Mendoza (80 km)
+• Celular: cobertura variable, WiFi Starlink disponible en las cabañas
+${kbPotrerillos?'\nINFO ADICIONAL (personalizada):\n'+kbPotrerillos:''}
+
+🏙️ MENDOZA CAPITAL — Gral. Espejo 333 (los deptos MSN)
+UBICACIÓN: Frente a Plaza Independencia, corazón del microcentro
+
+GASTRONOMÍA (distancias a pie desde los deptos):
+• Peatonal Sarmiento (3 min caminando): bares, heladerías, cafeterías
+• Peatonal Arístides Villanueva (10 min): mejores restaurantes y bares nocturnos de Mendoza
+• 1884 Francis Mallmann (Godoy Cruz, 20 min en auto): restaurante premium de Mallmann
+• Azafrán (Sarmiento 765): cocina regional, carta de vinos excepcional, moderado-alto
+• Fuente y Fonda (Belgrano 1069): la clásica parrilla mendocina de siempre
+• La Marchigiana (Patricias Mendocinas 1550): pasta, 5 min caminando, precio moderado
+• Heladería Ferruccio Soppelsa: la mejor heladería de Mendoza, Arístides 844
+
+BODEGAS DESDE MENDOZA (circuito del vino):
+• Trapiche (Maipú, 25 min): la más grande y turística, entrada gratuita, tours todo el día
+• Chandon (Luján, 30 min): espumantes, muy linda bodega, reservar tour
+• Zuccardi Valle de Uco (55 min): la mejor de Argentina según premios, reservar con semanas de anticipación
+• Norton, Clos de Chacras, Achaval Ferrer: Luján de Cuyo, 30 min
+
+ATRACTIVOS CERCANOS:
+• Parque San Martín: 15 min caminando, lago, anfiteatro, Cerro de la Gloria
+• Calle de las Tinajas (Maipú, 30 min): turismo de bodegas + almuerzos
+• Casino de Mendoza: 5 min caminando
+• Corredor del Parque: bares y restaurantes
+
+ESTACIONAMIENTO (no hay en el edificio):
+• Playa de estacionamiento Patricias Mendocinas (a 50m): aprox $500/hora
+• Playa Belgrano: 100m del edificio
+• Playa frente al Casino: a 5 min caminando
+
+SERVICIOS:
+• Farmacias: sobre Av. San Martín y calle Las Heras, a 5 min caminando
+• Supermercado Carrefour: Las Heras 900, 10 min caminando
+• ATMs: múltiples en peatonal Sarmiento
+${kbMendoza?'\nINFO ADICIONAL (personalizada):\n'+kbMendoza:''}
+
+⛷️ VALLE DE LAS LEÑAS (solo temporada invernal)
+ACCESO: Malargüe, a 450 km de Mendoza Capital. El depto MSN tiene parada de colectivo gratuito del resort en la puerta.
+
+PISTAS Y SKI:
+• 69 pistas, 3430 msnm punto más alto, 1190m desnivel vertical
+• Para principiantes: sector base, pistas verdes y azules. Instructor disponible en la base
+• Para avanzados: Marte y Júpiter son las pistas más exigentes
+• Alquiler de equipo: local en la base, reservar con anticipación en temporada alta
+• Precio lift pass (temporada alta): consultar en boletería, varía por día
+
+GASTRONOMÍA EN EL RESORT:
+• Mamut: el bar más conocido, en la base, ideal después de esquiar
+• El Refugio: restaurante más completo del resort
+• La Choza: cocina rápida, buena relación precio/calidad
+• Confitería de la Base: desayunos y meriendas
+
+SERVICIOS EN EL RESORT:
+• Guardaesquís en el edificio del depto: consultar con recepción MSN
+• Tiendas de ski: en la galería comercial del resort
+• Médico de pista: disponible en temporada, puesto en la base
+${kbLenas?'\nINFO ADICIONAL (personalizada):\n'+kbLenas:''}
+
+${kbGeneral?'📌 INFORMACIÓN GENERAL ADICIONAL (personalizada):\n'+kbGeneral:''}
+
+════════════════════════════════════
+INSTRUCCIONES DE RESPUESTA:
+• Cálido, específico, como un amigo local que conoce el lugar de memoria
+• Máximo 5 líneas por respuesta. Sin markdown.
+• Si recomendás lugares: incluí distancia o referencia de ubicación y precio estimado
+• Siempre tratá al huésped de vos
+• Si no sabés algo con certeza, decilo honestamente y sugerí cómo averiguarlo
+• Adaptá la respuesta al perfil y preferencias del huésped
+════════════════════════════════════`;
 
   try {
     const groqKey = localStorage.getItem('msn-groq-key')||'';
@@ -905,5 +1028,39 @@ function mostrarToast(msg, error=false) {
 
 function horaActual(){return new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});}
 </script>
+
+<!-- MODAL BASE DE CONOCIMIENTO -->
+<div id="modal-kb" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;overflow:auto;">
+  <div style="background:#fff;max-width:600px;width:90%;margin:30px auto;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="background:#0a3560;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
+      <strong>📚 Base de conocimiento — Concierge MSN</strong>
+      <button onclick="document.getElementById('modal-kb').style.display='none'" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div style="padding:18px;">
+      <p style="font-size:13px;color:#5c5a54;margin-bottom:14px">Agregá información específica que el concierge debe saber. Se combina con el conocimiento base automáticamente.</p>
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">🏔️ Potrerillos — info adicional</label>
+        <textarea id="kb-potrerillos" rows="4" style="width:100%;padding:8px;border:1px solid #e2e0d8;border-radius:6px;font-size:12px;font-family:inherit" placeholder="Ej: El almacén Don Carlos abre hasta las 22hs. El kayak en el dique cuesta $8000/hora en 2026..."></textarea>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">🏙️ Mendoza Capital — info adicional</label>
+        <textarea id="kb-ciudad" rows="4" style="width:100%;padding:8px;border:1px solid #e2e0d8;border-radius:6px;font-size:12px;font-family:inherit" placeholder="Ej: El restaurante La Marchigiana tiene menú ejecutivo de martes a viernes a $5000. La playa de estacionamiento de Patricias cobra $800/hora..."></textarea>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">⛷️ Las Leñas — info adicional</label>
+        <textarea id="kb-lenas" rows="3" style="width:100%;padding:8px;border:1px solid #e2e0d8;border-radius:6px;font-size:12px;font-family:inherit" placeholder="Ej: El lift pass 2026 cuesta $45.000 día completo. El guardaesquís del edificio es gratuito..."></textarea>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">📌 Info general MSN</label>
+        <textarea id="kb-general" rows="3" style="width:100%;padding:8px;border:1px solid #e2e0d8;border-radius:6px;font-size:12px;font-family:inherit" placeholder="Ej: Para pedir más toallas llamar al +54 9 261 654 3938 (Liliana). La leña para la chimenea está en el galpón trasero..."></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="document.getElementById('modal-kb').style.display='none'" style="padding:8px 16px;border-radius:6px;border:1px solid #e2e0d8;background:#fff;cursor:pointer;font-size:13px">Cancelar</button>
+        <button onclick="guardarKB()" style="padding:8px 16px;border-radius:6px;border:none;background:#0f4c81;color:#fff;font-size:13px;font-weight:600;cursor:pointer">💾 Guardar base de conocimiento</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
