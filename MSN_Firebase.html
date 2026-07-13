@@ -459,7 +459,8 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
         <span><span style="display:inline-block;width:12px;height:12px;background:#dcfce7;border:1px solid #86efac;border-radius:2px;vertical-align:middle"></span> Manual/Directo</span>
         <span><span style="display:inline-block;width:12px;height:12px;background:#fef9c3;border-bottom:2px solid #f59e0b;vertical-align:middle"></span> Sale</span>
         <span><span style="display:inline-block;width:12px;height:12px;background:#dcfce7;border-top:2px solid #16a34a;vertical-align:middle"></span> Entra</span>
-        <span><span style="display:inline-block;width:12px;height:12px;background:#ff6b00;border:2px solid #cc4400;vertical-align:middle"></span> ⚡ Libre post-checkout</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:linear-gradient(to bottom,#e0f2fe 55%,#ff6b00 55%);border:2px solid #cc4400;vertical-align:middle"></span> Checkout 10hs → libre 14hs</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:#ff6b00;border:2px solid #cc4400;vertical-align:middle"></span> ⚡ Libre todo el día</span>
         <span><span style="display:inline-block;width:12px;height:12px;background:#fef08a;border:2px solid #ca8a04;vertical-align:middle"></span> Hoy</span>
       </div>
       <div class="cal-wrap"><table class="cal-tbl" id="cal-tabla"></table></div>
@@ -533,24 +534,6 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 
 <!-- MUCAMAS -->
 <div id="sc-mucamas" class="sc"><div class="wrap">
-  <div class="card" style="margin-bottom:12px"><div class="ch" style="background:#fee2e2;color:#7f1d1d">🔄 Aviso de recambios (1 día de anticipación)</div><div class="cb">
-    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--bd)">
-      <div class="fg"><label>Fecha del recambio</label><input type="date" id="rec-fecha" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
-      <button class="btn pr" onclick="renderRecambios()">🔄 Calcular recambios</button>
-      <button class="btn sm" onclick="copiarWARecambiosCab()">📱 WA Ana María (Cabañas)</button>
-      <button class="btn sm" onclick="copiarWARecambiosDep()">📱 WA Irma (Deptos)</button>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="card">
-        <div class="ch" style="background:#fef3c7">🏔 Cabañas — <span id="rec-cab-nombre">Ana María</span></div>
-        <div class="cb" style="padding:8px"><div class="tbl-wrap" id="rec-tbl-cab"></div></div>
-      </div>
-      <div class="card">
-        <div class="ch" style="background:#dbeafe">🏢 Departamentos — <span id="rec-dep-nombre">Irma Porcario</span></div>
-        <div class="cb" style="padding:8px"><div class="tbl-wrap" id="rec-tbl-dep"></div></div>
-      </div>
-    </div>
-  </div></div>
   <div class="card"><div class="ch">🧹 Liquidación de Mucamas</div><div class="cb">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--bd)">
       <div class="fg"><label>Desde</label><input type="date" id="muc-desde" style="padding:6px 9px;border:1px solid var(--bd2);border-radius:5px;font-size:12px;background:var(--bg2);color:var(--txt)"></div>
@@ -1708,7 +1691,7 @@ function goTo(id){
   if(id==='sc-convenios'){renderConvenios();}
   if(id==='sc-balance'){const hd=hoy();sv('bal-desde',hd.substring(0,8)+'01');sv('bal-hasta',hd);}
   if(id==='sc-gastos'){document.getElementById('g-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('g-hasta').value=hoy();renderGastos();}
-  if(id==='sc-mucamas'){document.getElementById('muc-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('muc-hasta').value=hoy();if(!gv('rec-fecha'))sv('rec-fecha',manana());document.getElementById('rec-cab-nombre').textContent=gv('muc-nombre-cab')||'Ana María';document.getElementById('rec-dep-nombre').textContent=gv('muc-nombre-dep')||'Irma Porcario';renderRecambios();}
+  if(id==='sc-mucamas'){document.getElementById('muc-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('muc-hasta').value=hoy();}
 }
 
 // ===== ALERTAS =====
@@ -2062,7 +2045,13 @@ function renderCal(){
       if(isOut&&isIn){
         h+='<td style="background:linear-gradient(to bottom,#fef9c3 50%,#dcfce7 50%);border-top:2px solid #16a34a;border-bottom:2px solid #f59e0b"><div class="cel"><div class="cel-out">↑'+isOut.nombre.split(' ')[0].substring(0,5)+'</div><div class="cel-in">↓'+isIn.nombre.split(' ')[0].substring(0,5)+'</div></div></td>';
       } else if(isOut){
-        h+='<td style="background:'+orig(isOut)+';border-bottom:2px solid #f59e0b"><div class="cel"><div class="cel-out">↑ SALE</div><div style="font-size:10px">'+isOut.nombre.substring(0,7)+'</div></div></td>';
+        // Día de checkout: sale a las 10hs, disponible desde 14hs — split visual
+        const nombreSale = isOut.nombre.split(' ')[0].substring(0,6);
+        h+='<td style="background:linear-gradient(to bottom,'+orig(isOut)+' 55%,#ff6b00 55%);border:2px solid #cc4400;cursor:pointer" title="↑ Sale '+isOut.nombre+' (checkout 10hs) — LIBRE desde 14hs para nueva reserva">'
+          +'<div class="cel">'
+          +'<div class="cel-out" style="font-size:10px;padding-top:2px">↑ '+nombreSale+'</div>'
+          +'<div style="color:#fff;font-weight:800;font-size:10px;text-align:center;line-height:1.2;margin-top:2px">LIBRE<br>14hs</div>'
+          +'</div></td>';
       } else if(isIn){
         const saldo=(isIn.total||0)-(isIn.sena||0);
         const o=isIn.origen==='BOOKING'?'BK':isIn.origen==='DESPEGAR'?'DP':'DR';
@@ -2078,7 +2067,9 @@ function renderCal(){
         // Detectar si es hoy
         const esHoyCell = fd===hoy();
         if(wasOut){
-          h+='<td style="background:#ff6b00;border:2px solid #cc4400;position:relative" title="⚡ LIBRE — checkout ayer · disponible desde las 10hs"><div class="cel" style="color:#fff;font-weight:700;font-size:11px;text-align:center;padding-top:8px">⚡ LIBRE</div></td>';
+          // Día libre completo después del checkout de ayer
+          h+='<td style="background:#ff6b00;border:2px solid #cc4400;cursor:pointer" title="⚡ LIBRE TODO EL DÍA — checkout fue ayer. Disponible para nueva reserva de entrada hoy.">'
+            +'<div class="cel" style="color:#fff;font-weight:800;font-size:10px;text-align:center;padding-top:4px;line-height:1.4">⚡ LIBRE<br>TODO<br>EL DÍA</div></td>';
         } else if(esHoyCell){
           h+='<td style="background:#fef08a;border:2px solid #ca8a04"><div class="cel-libre" style="color:#854d0e;font-weight:700">HOY</div></td>';
         } else {
@@ -2109,9 +2100,16 @@ function renderListado(){
   let html='';
   dias.forEach(dia=>{
     const outs=activos.filter(r=>r.cout1===dia||(r.cout2&&r.cout2===dia));
+    const libresHoy=activos.filter(r=>{
+      // Checkout ayer = libre hoy todo el día
+      const dp=new Date(dia+'T12:00:00');dp.setDate(dp.getDate()-1);
+      const ayer=dp.toISOString().split('T')[0];
+      return (r.cout1===ayer||r.cout2===ayer);
+    });
     const ins=activos.filter(r=>r.cin1===dia||(r.cin2&&r.cin2===dia));
     if(!outs.length&&!ins.length)return;
-    html+='<div class="day-card"><div class="day-head"><span>📅 '+fmtF(dia)+' — '+new Date(dia+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long'})+'</span><span>'+ins.length+' ingreso(s) · '+outs.length+' salida(s)</span></div>';
+    const libreAviso = outs.length>0 ? ' · 🟠 <strong>Libre desde 14hs</strong>' : (libresHoy.length>0 ? ' · ⚡ <strong>LIBRE TODO EL DÍA</strong>' : '');
+    html+='<div class="day-card"><div class="day-head"><span>📅 '+fmtF(dia)+' — '+new Date(dia+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long'})+'</span><span>'+ins.length+' ingreso(s) · '+outs.length+' salida(s)'+libreAviso+'</span></div>';
     outs.forEach(r=>{
       const u=r.cout2===dia?r.u2:r.u1;const saldo=(r.total||0)-(r.sena||0);
       const late=r.lateHora?'<span style="background:#fef3c7;color:#78350f;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px">Late CO '+r.lateHora+'</span>':'';
@@ -2278,74 +2276,6 @@ function renderBookingLiq(){
 <script>
 // ===== MUCAMAS =====
 window._mucamasData=null;
-// ===== AVISO DE RECAMBIOS (1 día de anticipación) =====
-function manana(){const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().split('T')[0];}
-function renderRecambios(){
-  let fecha=gv('rec-fecha');
-  if(!fecha){fecha=manana();sv('rec-fecha',fecha);}
-  const activos=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA');
-  const undsCAB=['Cabaña grande','Cabaña Loft','Cabaña Standard'];
-  const undsDEP=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'];
-  function movsUnidad(unidad){
-    let sale=null,entra=null;
-    activos.forEach(r=>{
-      if(r.u1===unidad){
-        if(r.cout1===fecha)sale={nombre:r.nombre,pax:r.pax||'—'};
-        if(r.cin1===fecha)entra={nombre:r.nombre,pax:r.pax||'—',cout:fmtF(r.cout1)};
-      }
-      if(r.u2&&r.u2===unidad){
-        if(r.cout2===fecha)sale={nombre:r.nombre,pax:r.pax||'—'};
-        if(r.cin2===fecha)entra={nombre:r.nombre,pax:r.pax||'—',cout:fmtF(r.cout2)};
-      }
-    });
-    return{unidad,sale,entra};
-  }
-  const dataCab=undsCAB.map(movsUnidad).filter(d=>d.sale||d.entra);
-  const dataDep=undsDEP.map(movsUnidad).filter(d=>d.sale||d.entra);
-  window._recambiosData={fecha,dataCab,dataDep};
-  function tbl(data){
-    if(!data.length)return '<div style="padding:10px;color:var(--txt3);font-size:12px">Sin recambios para el '+fmtF(fecha)+'.</div>';
-    let h='<table class="tbl"><thead><tr><th>Unidad</th><th>Sale (hoy)</th><th>Entra</th><th>Personas</th><th>Hasta</th></tr></thead><tbody>';
-    data.forEach(d=>{
-      const saleTxt=d.sale?('🔴 '+d.sale.nombre):'—';
-      const entraTxt=d.entra?('🟢 '+d.entra.nombre):'—';
-      const pax=d.entra?d.entra.pax:(d.sale?d.sale.pax:'—');
-      const hasta=d.entra?d.entra.cout:'—';
-      h+='<tr><td style="font-size:11px">'+d.unidad+'</td><td>'+saleTxt+'</td><td>'+entraTxt+'</td><td>'+pax+'</td><td>'+hasta+'</td></tr>';
-    });
-    return h+'</tbody></table>';
-  }
-  document.getElementById('rec-tbl-cab').innerHTML=tbl(dataCab);
-  document.getElementById('rec-tbl-dep').innerHTML=tbl(dataDep);
-}
-function copiarWARecambiosCab(){
-  const d=window._recambiosData;if(!d){alert('Calcule primero.');return;}
-  const nombre=gv('muc-nombre-cab')||'Ana María';
-  let txt='☀ *MENDOZA SOL Y NIEVE — CABAÑAS*\n*Recambio: '+fmtF(d.fecha)+'*\n\nHola *'+nombre+'*!\n\n';
-  if(!d.dataCab.length)txt+='Sin movimientos para mañana.\n';
-  d.dataCab.forEach(u=>{
-    txt+='🏠 *'+u.unidad+'*\n';
-    if(u.sale)txt+='  🔴 Sale: '+u.sale.nombre+'\n';
-    if(u.entra)txt+='  🟢 Entra: '+u.entra.nombre+' ('+u.entra.pax+' personas) · hasta '+u.entra.cout+'\n';
-    txt+='\n';
-  });
-  txt+='Gracias! ☀';
-  navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado')).catch(()=>prompt('Copie:',txt));
-}
-function copiarWARecambiosDep(){
-  const d=window._recambiosData;if(!d){alert('Calcule primero.');return;}
-  const nombre=gv('muc-nombre-dep')||'Irma Porcario';
-  let txt='☀ *MENDOZA SOL Y NIEVE — DEPARTAMENTOS*\n*Recambio: '+fmtF(d.fecha)+'*\n\nHola *'+nombre+'*!\n\n';
-  if(!d.dataDep.length)txt+='Sin movimientos para mañana.\n';
-  d.dataDep.forEach(u=>{
-    txt+='🏢 *'+u.unidad+'*\n';
-    if(u.sale)txt+='  🔴 Sale: '+u.sale.nombre+'\n';
-    if(u.entra)txt+='  🟢 Entra: '+u.entra.nombre+' ('+u.entra.pax+' personas) · hasta '+u.entra.cout+'\n';
-    txt+='\n';
-  });
-  txt+='Gracias! ☀';
-  navigator.clipboard.writeText(txt).then(()=>alert('✔ Copiado')).catch(()=>prompt('Copie:',txt));
-}
 function renderMucamas(){
   const desde=gv('muc-desde'),hasta=gv('muc-hasta');
   if(!desde||!hasta){alert('Ingrese rango de fechas.');return;}
