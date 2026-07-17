@@ -131,6 +131,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 @media print{.nav,.topbar,.btn-row,.no-print,#sync-status,#sync-bar{display:none!important}.sc.on{display:block!important}body{background:white}.wrap{padding:0;max-width:100%}}
 @media(max-width:700px){.fgrid{grid-template-columns:1fr 1fr}.fg.s3{grid-column:1/-1}.stats{grid-template-columns:1fr 1fr}.nav button{padding:8px 10px;font-size:11px}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div id="sync-bar"></div>
@@ -3634,9 +3635,165 @@ async function limpiarTarifasObsoletas(){
   }catch(e){ alert('Error: '+e.message); }
 }
 
+
+// ===== CARGA EXCEL DE TARIFAS =====
+function tarHandleDrop(e){
+  e.preventDefault();
+  document.getElementById('tar-drop-zone').style.background='#faf5ff';
+  const file = e.dataTransfer.files[0];
+  if(file) tarProcessExcel(file);
+}
+function tarHandleFile(e){
+  const file = e.target.files[0];
+  if(file) tarProcessExcel(file);
+}
+
+function tarProcessExcel(file){
+  const status = document.getElementById('tar-upload-status');
+  status.textContent = '⏳ Procesando...';
+  status.style.color = '#7c3aed';
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      if(typeof XLSX === 'undefined'){
+        status.textContent = '❌ Error: librería XLSX no cargada. Recargá la página.';
+        status.style.color = '#dc2626';
+        return;
+      }
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rawData = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+
+      // Find header row — scan first 20 rows
+      let headerRow = -1, colAlo=-1, colPax=-1, colBaja=-1, colAlta=-1;
+      let colFerLargo=-1, colRecInv=-1, colVerano=-1, colPlatBaja=-1, colPlatAlta=-1;
+
+      for(let ri=0; ri<Math.min(rawData.length,25); ri++){
+        const row = rawData[ri].map(v=>String(v||'').toLowerCase().trim());
+        const hasAlo  = row.some(v=>v.includes('alojamiento')||v.includes('cabaña')||v.includes('depto'));
+        const hasPax  = row.some(v=>v.includes('pax')||v.includes('persona'));
+        const hasBaja = row.some(v=>v.includes('baja'));
+        const hasAlta = row.some(v=>v.includes('alta')||v.includes('feriado'));
+        if(hasAlo&&hasPax&&hasBaja){
+          headerRow = ri;
+          colAlo       = row.findIndex(v=>v.includes('alojamiento')||v.includes('cabaña'));
+          colPax       = row.findIndex(v=>v.includes('pax')||v.includes('persona'));
+          colBaja      = row.findIndex(v=>v.includes('baja')&&!v.includes('plat'));
+          colAlta      = row.findIndex(v=>(v.includes('alta')||v.includes('feriado'))&&!v.includes('plat')&&!v.includes('rec')&&!v.includes('inv'));
+          colFerLargo  = row.findIndex(v=>v.includes('feriado')&&v.includes('largo'));
+          colRecInv    = row.findIndex(v=>v.includes('invierno')||v.includes('receso')||(v.includes('rec')&&v.includes('inv')));
+          colVerano    = row.findIndex(v=>v.includes('verano'));
+          colPlatBaja  = row.findIndex(v=>v.includes('plat')&&v.includes('baja'));
+          colPlatAlta  = row.findIndex(v=>v.includes('plat')&&(v.includes('alta')||v.includes('fer')));
+          break;
+        }
+      }
+
+      // Fallback: try numeric detection if headers not found
+      if(headerRow<0){
+        // Look for rows with alo name + numeric values
+        const ALO_NAMES=['departamento','cabaña','loft','grande','standard','vll','leñas'];
+        const dataRows=[];
+        for(let ri=0;ri<rawData.length;ri++){
+          const firstCell=String(rawData[ri][0]||'').toLowerCase();
+          if(ALO_NAMES.some(n=>firstCell.includes(n))){
+            dataRows.push(ri);
+          }
+        }
+        if(!dataRows.length){
+          status.textContent='❌ No se detectaron columnas. El Excel debe tener: Alojamiento, Pax, Baja, Alta.';
+          status.style.color='#dc2626'; return;
+        }
+        // Assume fixed column order from CALCULADORA_DE_TARIFAS format
+        headerRow=dataRows[0]-1; colAlo=0; colPax=1; colBaja=2; colAlta=3;
+        colFerLargo=3; colRecInv=4; colVerano=5; colPlatBaja=6; colPlatAlta=7;
+      }
+
+      if(colAlo<0||colPax<0||colBaja<0){
+        status.textContent='❌ Columnas no detectadas. Verificá que el Excel tenga: Alojamiento, Pax, Baja, Alta.';
+        status.style.color='#dc2626'; return;
+      }
+
+      // Parse data rows
+      const dataRows = rawData.slice(headerRow+1);
+      const nuevas = [];
+      let currentAlo = '';
+
+      dataRows.forEach(row=>{
+        const aloCell = String(row[colAlo]||'').trim();
+        const paxCell = row[colPax];
+        if(aloCell) currentAlo = aloCell;
+        const pax = parseInt(paxCell);
+        if(!currentAlo||isNaN(pax)||pax<1) return;
+        const baja     = parseFloat(row[colBaja])||0;
+        const alta     = parseFloat(row[colAlta])||0;
+        const ferLargo = colFerLargo>=0 ? parseFloat(row[colFerLargo])||alta : alta;
+        const recInv   = colRecInv>=0   ? parseFloat(row[colRecInv])||alta  : alta;
+        const verano   = colVerano>=0   ? parseFloat(row[colVerano])||alta  : alta;
+        const platBaja = colPlatBaja>=0 ? parseFloat(row[colPlatBaja])||Math.round(baja*1.15) : Math.round(baja*1.15);
+        const platAlta = colPlatAlta>=0 ? parseFloat(row[colPlatAlta])||Math.round(alta*1.15) : Math.round(alta*1.15);
+        if(!baja&&!alta) return;
+        nuevas.push({alo:currentAlo,pax,baja,alta,ferLargo,recInv,verano,platBaja,platAlta,
+          platFerLargo:platAlta,platRecInv:platAlta,platVerano:Math.round(verano*1.15)});
+      });
+
+      if(!nuevas.length){
+        status.textContent='❌ No se encontraron datos válidos en el archivo.';
+        status.style.color='#dc2626'; return;
+      }
+
+      // Update TARIFAS_PLANILLA in memory
+      window.TARIFAS_PLANILLA_EXCEL = nuevas;
+
+      // Refresh the preview table with Excel data
+      const preview = document.getElementById('preview-planilla');
+      let html = '<div style="background:#dcfce7;border:1px solid #86efac;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#15803d">'+
+        '✅ <strong>'+nuevas.length+' filas cargadas desde Excel.</strong> Revisá los valores y hacé clic en "Importar todas las tarifas".</div>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#f3f4f6">'+
+        '<th style="padding:5px 8px;text-align:left;border:1px solid #e5e7eb">Alojamiento</th>'+
+        '<th style="padding:5px 8px;border:1px solid #e5e7eb">Pax</th>'+
+        '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#16a34a">Baja U$S</th>'+
+        '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#dc2626">Alta U$S</th>'+
+        '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#7c3aed">Fer.Largo</th>'+
+        '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#0891b2">Rec.Inv</th>'+
+        '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#f97316">Verano</th>'+
+        '</tr></thead><tbody>';
+      nuevas.forEach((t,i)=>{
+        const bg=i%2===0?'#fff':'#f9fafb';
+        html+=`<tr style="background:${bg}">
+          <td style="padding:4px 8px;border:1px solid #e5e7eb;font-size:11px">${t.alo}</td>
+          <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center">${t.pax}</td>
+          <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#16a34a;font-weight:600">${t.baja||'—'}</td>
+          <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#dc2626;font-weight:600">${t.alta||'—'}</td>
+          <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#7c3aed">${t.ferLargo||'—'}</td>
+          <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#0891b2">${t.recInv||'—'}</td>
+          <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#f97316">${t.verano||'—'}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      preview.innerHTML = html;
+
+      status.textContent = '✅ '+nuevas.length+' filas detectadas — listas para importar';
+      status.style.color = '#15803d';
+
+    }catch(err){
+      status.textContent = '❌ Error al procesar: '+err.message;
+      status.style.color = '#dc2626';
+      console.error('Excel error:',err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 async function confirmarImportarPlanilla(){
   const btn=document.getElementById('btn-confirmar-import');
   btn.disabled=true;btn.textContent='⏳ Limpiando datos anteriores...';
+  // Use Excel data if loaded, otherwise use hardcoded TARIFAS_PLANILLA
+  const tarifasAImportar = window.TARIFAS_PLANILLA_EXCEL || TARIFAS_PLANILLA;
+  if(window.TARIFAS_PLANILLA_EXCEL){
+    console.log('📊 Importando desde Excel: '+tarifasAImportar.length+' filas');
+  }
   // Primero eliminar tarifas con temporada MEDIA o RECESO_INVERNAL (nombre viejo)
   try{
     const {collection,getDocs,deleteDoc,doc} = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
@@ -3666,7 +3823,7 @@ async function confirmarImportarPlanilla(){
     {key:'VERANO',       campo:'verano',   desde:'2026-12-01',hasta:'2027-02-28'},
   ];
   let total=0,errores=0;
-  for(const t of TARIFAS_PLANILLA){
+  for(const t of tarifasAImportar){
     for(const temp of TEMP_MAP){
       const noche=t[temp.campo];
       if(!noche)continue;
@@ -3842,6 +3999,152 @@ function exportarCSV(){
   window._db.forEach(r=>{c+=r.nro+';'+r.fecha+';'+r.tipo+';'+r.origen+';'+(r.pnr||'')+';'+(r.idDp||r.idExpedia||'')+';'+r.nombre+';'+(r.dni||'')+';'+r.pax+';'+(r.pais||'')+';'+(r.email||'')+';'+(r.telefono||'')+';'+(r.u1||'')+';'+r.cin1+';'+r.cout1+';'+r.n1+';'+r.p1+';'+(r.u2||'')+';'+(r.cin2||'')+';'+(r.cout2||'')+';'+(r.n2||0)+';'+(r.p2||0)+';'+r.total+';'+(r.sena||0)+';'+((r.total||0)-(r.sena||0))+';'+(r.lateHora||'')+';'+(r.lateValor||0)+';'+(r.precioUSD||0)+';'+(r.cotizUsd||0)+';'+(r.descMovilARS||0)+';'+(r.comisionPct||0)+';'+(r.comisionARS||0)+';'+(r.pagoDp||'')+';'+(r.liqDp||'')+';'+(r.fechaCanc||'')+';'+(r.medioPago||'')+';'+(r.notas||'').replace(/[\n\r;]/g,' ')+'\r\n';});
   const a=document.createElement('a');a.href=encodeURI(c);a.download='MSN_Reservas_'+hoy()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
+
+
+// ==================== MÓDULO RECAMBIOS MUCAMAS ====================
+
+function renderRecambios(){
+  let fecha = document.getElementById('rec-fecha')?.value;
+  if(!fecha){
+    // Default: tomorrow
+    const d=new Date(); d.setDate(d.getDate()+1);
+    fecha = d.toISOString().split('T')[0];
+    const input = document.getElementById('rec-fecha');
+    if(input) input.value = fecha;
+  }
+  
+  if(!window._db||!window._db.length){
+    document.getElementById('rec-tbl-cab').innerHTML='<div style="color:var(--txt3);padding:8px;font-size:12px">Sin datos cargados.</div>';
+    document.getElementById('rec-tbl-dep').innerHTML='<div style="color:var(--txt3);padding:8px;font-size:12px">Sin datos cargados.</div>';
+    return;
+  }
+
+  const activos = window._db.filter(r=>(r.tipo==='RESERVA CONFIRMADA')&&!r.cancelada&&!r.cancelado);
+  const undsCAB = ['Cabaña grande','Cabaña Loft','Cabaña Standard'];
+  const undsDEP = ['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'];
+
+  function movsUnidad(unidad){
+    let sale=null, entra=null;
+    activos.forEach(r=>{
+      // unidad primaria
+      if(r.u1===unidad){
+        if(r.cout1===fecha) sale  = {nombre:r.nombre, pax:r.pax||'—', noches:r.n1||'—'};
+        if(r.cin1===fecha)  entra = {nombre:r.nombre, pax:r.pax||'—', cout:fmtF(r.cout1)};
+      }
+      // unidad secundaria
+      if(r.u2===unidad){
+        if(r.cout2===fecha) sale  = {nombre:r.nombre, pax:r.pax||'—', noches:r.n2||'—'};
+        if(r.cin2===fecha)  entra = {nombre:r.nombre, pax:r.pax||'—', cout:fmtF(r.cout2)};
+      }
+    });
+    return {sale, entra};
+  }
+
+  function renderTabla(unds){
+    const rows = unds.map(u=>{
+      const {sale, entra} = movsUnidad(u);
+      const label = u.includes('grande')?'Cabaña Grande':u.includes('Loft')?'Cabaña Loft':u.includes('Standard')?'Cabaña Standard':u.includes('2')?'Depto 2':u.includes('3')?'Depto 3':u;
+      let html = '<div style="border:1px solid var(--bd);border-radius:8px;margin-bottom:8px;overflow:hidden">';
+      html += '<div style="padding:8px 12px;background:var(--bg3);font-weight:700;font-size:12px;color:var(--txt)">🏠 '+label+'</div>';
+      html += '<div style="padding:8px 12px;font-size:12px">';
+      if(sale){
+        html += '<div style="color:#dc2626;margin-bottom:4px">⬆ <strong>SALE:</strong> '+sale.nombre+' · '+sale.pax+' pax</div>';
+      }
+      if(entra){
+        html += '<div style="color:#15803d;margin-bottom:4px">⬇ <strong>ENTRA:</strong> '+entra.nombre+' · '+entra.pax+' pax · Egreso: '+entra.cout+'</div>';
+      }
+      if(!sale&&!entra){
+        html += '<div style="color:var(--txt3)">— Sin movimientos</div>';
+      }
+      if(sale&&entra){
+        html += '<div style="background:#fef3c7;border-radius:5px;padding:5px 8px;font-size:11px;color:#92400e;margin-top:4px">🔄 <strong>RECAMBIO:</strong> Limpiar entre 10:00 y 14:00 hs</div>';
+      } else if(sale&&!entra){
+        html += '<div style="background:#dcfce7;border-radius:5px;padding:5px 8px;font-size:11px;color:#15803d;margin-top:4px">🧹 Limpiar para dejar disponible</div>';
+      } else if(!sale&&entra){
+        html += '<div style="background:#dbeafe;border-radius:5px;padding:5px 8px;font-size:11px;color:#1e40af;margin-top:4px">🛏 Preparar para recibir huésped</div>';
+      }
+      html += '</div></div>';
+      return html;
+    });
+    return rows.join('');
+  }
+
+  document.getElementById('rec-tbl-cab').innerHTML = renderTabla(undsCAB);
+  document.getElementById('rec-tbl-dep').innerHTML = renderTabla(undsDEP);
+
+  // Save data for WA functions
+  window._recambiosData = {
+    fecha,
+    dataCab: undsCAB.map(u=>({unidad:u,...movsUnidad(u)})),
+    dataDep: undsDEP.map(u=>({unidad:u,...movsUnidad(u)})),
+  };
+}
+
+function copiarWARecambiosCab(){
+  const d = window._recambiosData;
+  if(!d){alert('Primero hacé clic en "Calcular recambios".');return;}
+  const nombre = document.getElementById('muc-nombre-cab')?.value || 'Ana María';
+
+  let txt = '☀ *MENDOZA SOL Y NIEVE — CABAÑAS*\n';
+  txt += '*Recambio: '+fmtF(d.fecha)+'*\n\n';
+  txt += 'Hola *'+nombre+'*!\n\n';
+
+  let hayMovs = false;
+  d.dataCab.forEach(u=>{
+    if(!u.sale&&!u.entra) return;
+    hayMovs = true;
+    const label = u.unidad.includes('grande')?'Cabaña Grande':u.unidad.includes('Loft')?'Cabaña Loft':u.unidad.includes('Standard')?'Cabaña Standard':u.unidad;
+    txt += '🏠 *'+label+'*\n';
+    if(u.sale)  txt += '   ⬆ Sale: '+u.sale.nombre+' ('+u.sale.pax+' pax)\n';
+    if(u.entra) txt += '   ⬇ Entra: '+u.entra.nombre+' ('+u.entra.pax+' pax) · Egreso: '+u.entra.cout+'\n';
+    if(u.sale&&u.entra) txt += '   🔄 _Recambio entre 10:00 y 14:00 hs_\n';
+    else if(u.sale)     txt += '   🧹 _Limpiar y dejar disponible_\n';
+    else if(u.entra)    txt += '   🛏 _Preparar para recibir_\n';
+    txt += '\n';
+  });
+
+  if(!hayMovs) txt += 'Sin movimientos para este día en cabañas.\n';
+  txt += '⏰ Check-out hasta las 10:00 hs · Check-in desde las 14:00 hs\n';
+  txt += '\nGracias, *Mendoza Sol y Nieve*';
+
+  navigator.clipboard.writeText(txt)
+    .then(()=>alert('✔ Mensaje copiado para '+nombre+'. Pegalo en WhatsApp.'))
+    .catch(()=>prompt('Copiá el mensaje:',txt));
+}
+
+function copiarWARecambiosDep(){
+  const d = window._recambiosData;
+  if(!d){alert('Primero hacé clic en "Calcular recambios".');return;}
+  const nombre = document.getElementById('muc-nombre-dep')?.value || 'Irma Porcario';
+
+  let txt = '☀ *MENDOZA SOL Y NIEVE — DEPARTAMENTOS*\n';
+  txt += '*Recambio: '+fmtF(d.fecha)+'*\n\n';
+  txt += 'Hola *'+nombre+'*!\n\n';
+
+  let hayMovs = false;
+  d.dataDep.forEach(u=>{
+    if(!u.sale&&!u.entra) return;
+    hayMovs = true;
+    const label = u.unidad.includes('2')?'Departamento 2':'Departamento 3';
+    txt += '🏢 *'+label+'*\n';
+    if(u.sale)  txt += '   ⬆ Sale: '+u.sale.nombre+' ('+u.sale.pax+' pax)\n';
+    if(u.entra) txt += '   ⬇ Entra: '+u.entra.nombre+' ('+u.entra.pax+' pax) · Egreso: '+u.entra.cout+'\n';
+    if(u.sale&&u.entra) txt += '   🔄 _Recambio entre 10:00 y 14:00 hs_\n';
+    else if(u.sale)     txt += '   🧹 _Limpiar y dejar disponible_\n';
+    else if(u.entra)    txt += '   🛏 _Preparar para recibir_\n';
+    txt += '\n';
+  });
+
+  if(!hayMovs) txt += 'Sin movimientos para este día en departamentos.\n';
+  txt += '⏰ Check-out hasta las 10:00 hs · Check-in desde las 14:00 hs\n';
+  txt += '\nGracias, *Mendoza Sol y Nieve*';
+
+  navigator.clipboard.writeText(txt)
+    .then(()=>alert('✔ Mensaje copiado para '+nombre+'. Pegalo en WhatsApp.'))
+    .catch(()=>prompt('Copiá el mensaje:',txt));
+}
+
+// ==================== FIN MÓDULO RECAMBIOS ====================
 
 // ==================== MÓDULO RECEPCIÓN CABAÑAS ====================
 function manana(){const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().split('T')[0];}
