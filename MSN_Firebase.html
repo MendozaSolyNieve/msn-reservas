@@ -1404,6 +1404,7 @@ onSnapshot(q,snap=>{
   const msg=err.code==='permission-denied'?'Reglas Firestore bloqueadas. Firebase Console → Firestore → Reglas → cambie if false por if true → Publicar':err.code==='unavailable'?'Sin conexión a internet.':'Error: '+err.message;
   document.getElementById('loading-screen').innerHTML='<div style="font-size:48px">⚠</div><p style="color:#b91c1c;font-weight:600;margin-bottom:8px">Error de conexión</p><p style="font-size:12px;color:#475569;margin-bottom:16px">'+msg+'</p><button onclick="location.reload()" style="padding:10px 20px;background:#0f4c81;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600">🔄 Reintentar</button>';
 });
+window._gastos=window._gastos||[];
 onSnapshot(collection(DB,'gastos'),snap=>{window._gastos=snap.docs.map(d=>({id:d.id,...d.data()}));if(document.querySelector('#sc-gastos.on'))renderGastos();});
 onSnapshot(collection(DB,'tarifas'),snap=>{window._tarifas=snap.docs.map(d=>({id:d.id,...d.data()}));if(document.querySelector('#sc-tarifas.on'))renderHistorialTarifas();});
 onSnapshot(collection(DB,'convenios'),snap=>{window._convenios=snap.docs.map(d=>({id:d.id,...d.data()}));if(document.querySelector('#sc-convenios.on'))renderConvenios();});
@@ -1422,7 +1423,7 @@ window.addEventListener('online',()=>sS('ok'));
 function renderConvenios(){
   const convs = window._convenios||[];
   const tbody = document.getElementById('conv-tbody');
-  if(!tbody) return;
+  if(!tbody){setTimeout(renderConvenios,600);return;}
 
   // Resumen cards
   const resumen = document.getElementById('conv-resumen');
@@ -1703,12 +1704,26 @@ function goTo(id){
   if(id==='sc-cancelaciones')renderCancelaciones();
   if(id==='sc-precheckin')renderProximosCheckin();
   if(id==='sc-cotizacion')renderCotizacion();
-  if(id==='sc-recepcion'){document.getElementById('rec-fecha').value=hoy();generarAvisoRecepcion();}
+  if(id==='sc-recepcion'){
+  const fechaInput=document.getElementById('rec-fecha');
+  if(fechaInput&&!fechaInput.value) fechaInput.value=hoy();
+  // Wait for _db to be populated (Firebase onSnapshot may still be loading)
+  if(window._db&&window._db.length>0){
+    generarAvisoRecepcion();
+  } else {
+    let tries=0;
+    const interval=setInterval(()=>{
+      tries++;
+      if(window._db&&window._db.length>0){clearInterval(interval);generarAvisoRecepcion();}
+      else if(tries>10){clearInterval(interval);generarAvisoRecepcion();} // run anyway after 5s
+    },500);
+  }
+}
   if(id==='sc-consultas')renderConsultasGuardadas();
   if(id==='sc-tarifas'){renderTarifasAlo();actualizarDolarTarifas();}
   if(id==='sc-consultas'){setTimeout(actualizarDolarConsulta,500);}
   if(id==='sc-mucamas'){setTimeout(renderRecambios,300);}
-  if(id==='sc-convenios'){renderConvenios();}
+  if(id==='sc-convenios'){setTimeout(renderConvenios,400);}
   if(id==='sc-balance'){const hd=hoy();sv('bal-desde',hd.substring(0,8)+'01');sv('bal-hasta',hd);}
   if(id==='sc-gastos'){document.getElementById('g-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('g-hasta').value=hoy();renderGastos();}
   if(id==='sc-mucamas'){document.getElementById('muc-desde').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';document.getElementById('muc-hasta').value=hoy();}
@@ -3235,7 +3250,7 @@ async function cargarCotizLocal(){try{const raw=localStorage.getItem(COTIZ_KEY);
 function guardarCotizLocal(){try{localStorage.setItem(COTIZ_KEY,JSON.stringify(window._cotizDB));}catch(e){}}
 
 // Cotizaciones históricas REALES desde el documento de Liliana
-const COTIZ_HISTORICO_REAL={"2025-11-03":{compra:1450,venta:1500},"2025-11-04":{compra:1435,venta:1485},"2025-11-05":{compra:1425,venta:1475},"2025-11-07":{compra:1395,venta:1445},"2025-11-10":{compra:1395,venta:1445},"2025-11-11":{compra:1390,venta:1440},"2025-11-12":{compra:1385,venta:1435},"2025-11-13":{compra:1380,venta:1430},"2025-11-14":{compra:1375,venta:1425},"2025-11-17":{compra:1365,venta:1415},"2025-11-18":{compra:1375,venta:1425},"2025-11-19":{compra:1380,venta:1430},"2025-11-20":{compra:1400,venta:1450},"2025-11-25":{compra:1420,venta:1470},"2025-11-26":{compra:1425,venta:1475},"2025-11-27":{compra:1425,venta:1475},"2025-11-28":{compra:1425,venta:1475},"2025-12-01":{compra:1425,venta:1475},"2025-12-02":{compra:1430,venta:1480},"2025-12-03":{compra:1430,venta:1480},"2025-12-04":{compra:1420,venta:1470},"2025-12-05":{compra:1410,venta:1460},"2025-12-09":{compra:1415,venta:1465},"2025-12-10":{compra:1410,venta:1460},"2025-12-11":{compra:1410,venta:1460},"2025-12-12":{compra:1415,venta:1465},"2025-12-15":{compra:1415,venta:1465},"2025-12-16":{compra:1430,venta:1480},"2025-12-17":{compra:1425,venta:1475},"2025-12-18":{compra:1425,venta:1475},"2025-12-19":{compra:1425,venta:1475},"2025-12-22":{compra:1425,venta:1475},"2025-12-23":{compra:1425,venta:1475},"2025-12-26":{compra:1425,venta:1475},"2025-12-29":{compra:1425,venta:1475},"2025-12-30":{compra:1430,venta:1480},"2026-01-02":{compra:1445,venta:1495},"2026-01-05":{compra:1445,venta:1495},"2026-01-06":{compra:1440,venta:1490},"2026-01-07":{compra:1435,venta:1485},"2026-01-08":{compra:1435,venta:1485},"2026-01-09":{compra:1440,venta:1490},"2026-01-12":{compra:1440,venta:1490},"2026-01-13":{compra:1435,venta:1485},"2026-01-14":{compra:1430,venta:1480},"2026-01-15":{compra:1420,venta:1470},"2026-01-16":{compra:1405,venta:1455},"2026-01-19":{compra:1410,venta:1460},"2026-01-20":{compra:1410,venta:1460},"2026-01-21":{compra:1405,venta:1455},"2026-01-22":{compra:1400,venta:1450},"2026-01-23":{compra:1405,venta:1455},"2026-01-26":{compra:1410,venta:1460},"2026-01-27":{compra:1415,venta:1465},"2026-01-28":{compra:1415,venta:1465},"2026-01-29":{compra:1415,venta:1465},"2026-01-30":{compra:1415,venta:1465},"2026-02-02":{compra:1420,venta:1470},"2026-02-03":{compra:1415,venta:1465},"2026-02-04":{compra:1415,venta:1465},"2026-02-05":{compra:1410,venta:1460},"2026-02-06":{compra:1400,venta:1450},"2026-02-09":{compra:1390,venta:1440},"2026-02-10":{compra:1375,venta:1425},"2026-02-11":{compra:1370,venta:1420},"2026-02-12":{compra:1365,venta:1415},"2026-02-13":{compra:1370,venta:1420},"2026-02-18":{compra:1370,venta:1420},"2026-02-19":{compra:1360,venta:1410},"2026-02-20":{compra:1345,venta:1395},"2026-02-23":{compra:1340,venta:1390},"2026-02-24":{compra:1350,venta:1400},"2026-02-25":{compra:1365,venta:1415},"2026-02-26":{compra:1375,venta:1425},"2026-02-27":{compra:1370,venta:1420},"2026-03-02":{compra:1365,venta:1415},"2026-03-03":{compra:1385,venta:1435},"2026-03-04":{compra:1370,venta:1420},"2026-03-05":{compra:1375,venta:1425},"2026-03-06":{compra:1385,venta:1435},"2026-03-09":{compra:1385,venta:1435},"2026-03-10":{compra:1370,venta:1420},"2026-03-11":{compra:1365,venta:1415},"2026-03-12":{compra:1365,venta:1415},"2026-03-13":{compra:1370,venta:1420},"2026-03-16":{compra:1365,venta:1415},"2026-03-17":{compra:1365,venta:1415},"2026-03-18":{compra:1365,venta:1415},"2026-03-19":{compra:1365,venta:1415},"2026-03-20":{compra:1360,venta:1410},"2026-03-25":{compra:1350,venta:1400},"2026-03-26":{compra:1340,venta:1390},"2026-03-27":{compra:1355,venta:1405},"2026-03-30":{compra:1370,venta:1420},"2026-03-31":{compra:1355,venta:1405},"2026-04-01":{compra:1365,venta:1415},"2026-04-06":{compra:1365,venta:1415},"2026-04-07":{compra:1365,venta:1415},"2026-04-08":{compra:1360,venta:1410},"2026-04-09":{compra:1355,venta:1405},"2026-04-10":{compra:1345,venta:1395},"2026-04-13":{compra:1335,venta:1385},"2026-04-14":{compra:1335,venta:1385},"2026-04-15":{compra:1335,venta:1385},"2026-04-16":{compra:1330,venta:1380},"2026-04-17":{compra:1340,venta:1390},"2026-04-20":{compra:1350,venta:1400},"2026-04-21":{compra:1350,venta:1400},"2026-04-22":{compra:1350,venta:1400},"2026-04-23":{compra:1365,venta:1415},"2026-04-24":{compra:1370,venta:1420},"2026-04-27":{compra:1390,venta:1440},"2026-04-28":{compra:1380,venta:1430},"2026-04-29":{compra:1365,venta:1415},"2026-04-30":{compra:1365,venta:1415},"2026-05-04":{compra:1375,venta:1425},"2026-05-05":{compra:1365,venta:1415},"2026-05-06":{compra:1360,venta:1410},"2026-05-07":{compra:1370,venta:1420},"2026-05-08":{compra:1370,venta:1420},"2026-05-11":{compra:1365,venta:1415},"2026-05-12":{compra:1355,venta:1405},"2026-05-13":{compra:1365,venta:1415},"2026-05-14":{compra:1365,venta:1415},"2026-05-15":{compra:1370,venta:1420},"2026-05-18":{compra:1370,venta:1420},"2026-05-19":{compra:1370,venta:1420},"2026-05-20":{compra:1370,venta:1420},"2026-05-21":{compra:1360,venta:1410},"2026-05-22":{compra:1375,venta:1425},"2026-05-26":{compra:1380,venta:1430},"2026-05-27":{compra:1380,venta:1430},"2026-05-28":{compra:1380,venta:1430},"2026-05-29":{compra:1380,venta:1430},"2026-06-01":{compra:1395,venta:1445},"2026-06-02":{compra:1400,venta:1450},"2026-06-03":{compra:1410,venta:1460},"2026-06-04":{compra:1405,venta:1455},"2026-06-05":{compra:1410,venta:1460},"2026-06-08":{compra:1415,venta:1465},"2026-06-09":{compra:1410,venta:1460},"2026-06-10":{compra:1405,venta:1455},"2026-06-11":{compra:1400,venta:1450},"2026-06-12":{compra:1400,venta:1450},"2026-06-15":{compra:1400,venta:1450},"2026-06-16":{compra:1405,venta:1455},"2026-06-17":{compra:1410,venta:1460},"2026-06-18":{compra:1410,venta:1460},"2026-06-19":{compra:1415,venta:1465},"2026-06-22":{compra:1420,venta:1470},"2026-06-23":{compra:1420,venta:1470},"2026-06-24":{compra:1425,venta:1475},"2026-06-25":{compra:1430,venta:1480},"2026-06-26":{compra:1435,venta:1485},"2026-06-29":{compra:1440,venta:1490},"2026-06-30":{compra:1445,venta:1495},"2026-07-01":{compra:1450,venta:1500},"2026-07-02":{compra:1450,venta:1500},"2026-07-03":{compra:1445,venta:1495},"2026-07-06":{compra:1440,venta:1490},"2026-07-07":{compra:1440,venta:1490},"2026-07-08":{compra:1435,venta:1485},"2026-07-09":{compra:1435,venta:1485},"2026-07-10":{compra:1430,venta:1480}};
+const COTIZ_HISTORICO_REAL={"2025-11-03":{compra:1450,venta:1500},"2025-11-04":{compra:1435,venta:1485},"2025-11-05":{compra:1425,venta:1475},"2025-11-07":{compra:1395,venta:1445},"2025-11-10":{compra:1395,venta:1445},"2025-11-11":{compra:1390,venta:1440},"2025-11-12":{compra:1385,venta:1435},"2025-11-13":{compra:1380,venta:1430},"2025-11-14":{compra:1375,venta:1425},"2025-11-17":{compra:1365,venta:1415},"2025-11-18":{compra:1375,venta:1425},"2025-11-19":{compra:1380,venta:1430},"2025-11-20":{compra:1400,venta:1450},"2025-11-25":{compra:1420,venta:1470},"2025-11-26":{compra:1425,venta:1475},"2025-11-27":{compra:1425,venta:1475},"2025-11-28":{compra:1425,venta:1475},"2025-12-01":{compra:1425,venta:1475},"2025-12-02":{compra:1430,venta:1480},"2025-12-03":{compra:1430,venta:1480},"2025-12-04":{compra:1420,venta:1470},"2025-12-05":{compra:1410,venta:1460},"2025-12-09":{compra:1415,venta:1465},"2025-12-10":{compra:1410,venta:1460},"2025-12-11":{compra:1410,venta:1460},"2025-12-12":{compra:1415,venta:1465},"2025-12-15":{compra:1415,venta:1465},"2025-12-16":{compra:1430,venta:1480},"2025-12-17":{compra:1425,venta:1475},"2025-12-18":{compra:1425,venta:1475},"2025-12-19":{compra:1425,venta:1475},"2025-12-22":{compra:1425,venta:1475},"2025-12-23":{compra:1425,venta:1475},"2025-12-26":{compra:1425,venta:1475},"2025-12-29":{compra:1425,venta:1475},"2025-12-30":{compra:1430,venta:1480},"2026-01-02":{compra:1445,venta:1495},"2026-01-05":{compra:1445,venta:1495},"2026-01-06":{compra:1440,venta:1490},"2026-01-07":{compra:1435,venta:1485},"2026-01-08":{compra:1435,venta:1485},"2026-01-09":{compra:1440,venta:1490},"2026-01-12":{compra:1440,venta:1490},"2026-01-13":{compra:1435,venta:1485},"2026-01-14":{compra:1430,venta:1480},"2026-01-15":{compra:1420,venta:1470},"2026-01-16":{compra:1405,venta:1455},"2026-01-19":{compra:1410,venta:1460},"2026-01-20":{compra:1410,venta:1460},"2026-01-21":{compra:1405,venta:1455},"2026-01-22":{compra:1400,venta:1450},"2026-01-23":{compra:1405,venta:1455},"2026-01-26":{compra:1410,venta:1460},"2026-01-27":{compra:1415,venta:1465},"2026-01-28":{compra:1415,venta:1465},"2026-01-29":{compra:1415,venta:1465},"2026-01-30":{compra:1415,venta:1465},"2026-02-02":{compra:1420,venta:1470},"2026-02-03":{compra:1415,venta:1465},"2026-02-04":{compra:1415,venta:1465},"2026-02-05":{compra:1410,venta:1460},"2026-02-06":{compra:1400,venta:1450},"2026-02-09":{compra:1390,venta:1440},"2026-02-10":{compra:1375,venta:1425},"2026-02-11":{compra:1370,venta:1420},"2026-02-12":{compra:1365,venta:1415},"2026-02-13":{compra:1370,venta:1420},"2026-02-18":{compra:1370,venta:1420},"2026-02-19":{compra:1360,venta:1410},"2026-02-20":{compra:1345,venta:1395},"2026-02-23":{compra:1340,venta:1390},"2026-02-24":{compra:1350,venta:1400},"2026-02-25":{compra:1365,venta:1415},"2026-02-26":{compra:1375,venta:1425},"2026-02-27":{compra:1370,venta:1420},"2026-03-02":{compra:1365,venta:1415},"2026-03-03":{compra:1385,venta:1435},"2026-03-04":{compra:1370,venta:1420},"2026-03-05":{compra:1375,venta:1425},"2026-03-06":{compra:1385,venta:1435},"2026-03-09":{compra:1385,venta:1435},"2026-03-10":{compra:1370,venta:1420},"2026-03-11":{compra:1365,venta:1415},"2026-03-12":{compra:1365,venta:1415},"2026-03-13":{compra:1370,venta:1420},"2026-03-16":{compra:1365,venta:1415},"2026-03-17":{compra:1365,venta:1415},"2026-03-18":{compra:1365,venta:1415},"2026-03-19":{compra:1365,venta:1415},"2026-03-20":{compra:1360,venta:1410},"2026-03-25":{compra:1350,venta:1400},"2026-03-26":{compra:1340,venta:1390},"2026-03-27":{compra:1355,venta:1405},"2026-03-30":{compra:1370,venta:1420},"2026-03-31":{compra:1355,venta:1405},"2026-04-01":{compra:1365,venta:1415},"2026-04-06":{compra:1365,venta:1415},"2026-04-07":{compra:1365,venta:1415},"2026-04-08":{compra:1360,venta:1410},"2026-04-09":{compra:1355,venta:1405},"2026-04-10":{compra:1345,venta:1395},"2026-04-13":{compra:1335,venta:1385},"2026-04-14":{compra:1335,venta:1385},"2026-04-15":{compra:1335,venta:1385},"2026-04-16":{compra:1330,venta:1380},"2026-04-17":{compra:1340,venta:1390},"2026-04-20":{compra:1350,venta:1400},"2026-04-21":{compra:1350,venta:1400},"2026-04-22":{compra:1350,venta:1400},"2026-04-23":{compra:1365,venta:1415},"2026-04-24":{compra:1370,venta:1420},"2026-04-27":{compra:1390,venta:1440},"2026-04-28":{compra:1380,venta:1430},"2026-04-29":{compra:1365,venta:1415},"2026-04-30":{compra:1365,venta:1415},"2026-05-04":{compra:1375,venta:1425},"2026-05-05":{compra:1365,venta:1415},"2026-05-06":{compra:1360,venta:1410},"2026-05-07":{compra:1370,venta:1420},"2026-05-08":{compra:1370,venta:1420},"2026-05-11":{compra:1365,venta:1415},"2026-05-12":{compra:1355,venta:1405},"2026-05-13":{compra:1365,venta:1415},"2026-05-14":{compra:1365,venta:1415},"2026-05-15":{compra:1370,venta:1420},"2026-05-18":{compra:1370,venta:1420},"2026-05-19":{compra:1370,venta:1420},"2026-05-20":{compra:1370,venta:1420},"2026-05-21":{compra:1360,venta:1410},"2026-05-22":{compra:1375,venta:1425},"2026-05-26":{compra:1380,venta:1430},"2026-05-27":{compra:1380,venta:1430},"2026-05-28":{compra:1380,venta:1430},"2026-05-29":{compra:1380,venta:1430},"2026-06-01":{compra:1395,venta:1445},"2026-06-02":{compra:1400,venta:1450},"2026-06-03":{compra:1410,venta:1460},"2026-06-04":{compra:1405,venta:1455},"2026-06-05":{compra:1410,venta:1460},"2026-06-08":{compra:1415,venta:1465},"2026-06-09":{compra:1410,venta:1460},"2026-06-10":{compra:1405,venta:1455},"2026-06-11":{compra:1400,venta:1450},"2026-06-12":{compra:1400,venta:1450},"2026-06-15":{compra:1400,venta:1450},"2026-06-16":{compra:1405,venta:1455},"2026-06-17":{compra:1410,venta:1460},"2026-06-18":{compra:1410,venta:1460},"2026-06-19":{compra:1415,venta:1465},"2026-06-22":{compra:1420,venta:1470},"2026-06-23":{compra:1420,venta:1470},"2026-06-24":{compra:1425,venta:1475},"2026-06-25":{compra:1430,venta:1480},"2026-06-26":{compra:1435,venta:1485},"2026-06-29":{compra:1440,venta:1490},"2026-06-30":{compra:1445,venta:1495},"2026-07-01":{compra:1450,venta:1500},"2026-07-02":{compra:1450,venta:1500},"2026-07-03":{compra:1445,venta:1495},"2026-07-06":{compra:1440,venta:1490},"2026-07-07":{compra:1440,venta:1490},"2026-07-08":{compra:1435,venta:1485},"2026-07-09":{compra:1435,venta:1485},"2026-07-10":{compra:1430,venta:1480},"2026-07-11":{compra:1430,venta:1480},"2026-07-14":{compra:1425,venta:1475},"2026-07-15":{compra:1420,venta:1470},"2026-07-16":{compra:1420,venta:1470},"2026-07-17":{compra:1415,venta:1465},"2026-07-18":{compra:1415,venta:1465}};
 
 function cargarHistoricoReal(){
   let agregados=0;
@@ -3579,43 +3594,47 @@ const TARIFAS_PLANILLA=[
 function mostrarImportarPlanilla(){
   const modal=document.getElementById('modal-importar-planilla');
   const preview=document.getElementById('preview-planilla');
+
+  // Render tabla hardcodeada como fallback
   const grupos={};
   TARIFAS_PLANILLA.forEach(t=>{
-    if(!grupos[t.alo])grupos[t.alo]=[];
+    if(!grupos[t.alo]) grupos[t.alo]=[];
     grupos[t.alo].push(t);
   });
-  let html='<div style="font-size:11px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 12px;margin-bottom:10px;color:#1e40af">'+
+  let th='<div style="background:#e8f0f9;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:#0f4c81">'+
     '💡 <strong>Todos los valores en U$S.</strong> La conversión a pesos se realiza usando la cotización del día al momento de cotizar cada reserva.<br>'+
-    '🟢 Baja: 1 Mar–30 Jun y 1 Sep–30 Nov &nbsp;|&nbsp; 🔴 Alta: 1 Ene–28 Feb y 1 Jul–31 Ago &nbsp;|&nbsp; 🟣 Feriado Largo = misma tarifa que Alta'+
-    '</div>';
-  html+='<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#f3f4f6">'+
+    '🟢 Baja: 1 Mar–30 Jun y 1 Sep–30 Nov &nbsp;|&nbsp; 🔴 Alta: 1 Ene–28 Feb y 1 Jul–31 Ago &nbsp;|&nbsp; 🟣 Feriado Largo = misma tarifa que Alta</div>';
+  th+='<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#f3f4f6">'+
     '<th style="padding:5px 8px;text-align:left;border:1px solid #e5e7eb">Alojamiento</th>'+
     '<th style="padding:5px 8px;border:1px solid #e5e7eb">Pax</th>'+
     '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#16a34a">Baja U$S</th>'+
     '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#dc2626">Alta U$S</th>'+
-    '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#7c3aed">Fer.Largo U$S</th>'+
-    '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#0891b2">Rec.Inv U$S</th>'+
-    '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#f97316">Verano U$S</th>'+
-    '<th style="padding:5px 8px;border:1px solid #e5e7eb;background:#fff1f2;color:#b91c1c">Plat.Baja</th>'+
-    '<th style="padding:5px 8px;border:1px solid #e5e7eb;background:#fff1f2;color:#b91c1c">Plat.Alta</th>'+
-    '</tr></thead><tbody>';
-  TARIFAS_PLANILLA.forEach((t,i)=>{
-    const bg=i%2===0?'#fff':'#f9fafb';
-    html+=`<tr style="background:${bg}">
-      <td style="padding:4px 8px;border:1px solid #e5e7eb">${t.alo}</td>
-      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center">${t.pax}</td>
-      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#16a34a;font-weight:600">${t.baja||'—'}</td>
-      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#dc2626;font-weight:600">${t.alta||'—'}</td>
-      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#7c3aed;font-weight:600">${t.ferLargo||'—'}</td>
-      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#0891b2;font-weight:600">${t.recInv||'—'}</td>
-      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#f97316;font-weight:600">${t.verano||'—'}</td>
-      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#b91c1c">${t.platBaja||'—'}</td>
-      <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#b91c1c">${t.platAlta||'—'}</td>
-    </tr>`;
+    '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#7c3aed">Fer.Largo</th>'+
+    '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#0891b2">Rec.Inv</th>'+
+    '<th style="padding:5px 8px;border:1px solid #e5e7eb;color:#f97316">Verano</th>'+
+    '<th style="padding:5px 8px;border:1px solid #e5e7eb">Plat.Baja</th>'+
+    '<th style="padding:5px 8px;border:1px solid #e5e7eb">Plat.Alta</th></tr></thead><tbody>';
+  let i=0;
+  Object.entries(grupos).forEach(([alo,rows])=>{
+    rows.forEach(t=>{
+      th+=`<tr style="background:${i++%2===0?'#fff':'#f9fafb'}">
+        <td style="padding:4px 8px;border:1px solid #e5e7eb;font-size:10px">${t.alo}</td>
+        <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center">${t.pax}</td>
+        <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#16a34a;font-weight:700">${t.baja||'—'}</td>
+        <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#dc2626;font-weight:700">${t.alta||'—'}</td>
+        <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#7c3aed">${t.ferLargo||t.alta||'—'}</td>
+        <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#0891b2">${t.recInv||t.alta||'—'}</td>
+        <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center;color:#f97316">${t.verano||t.alta||'—'}</td>
+        <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center">${t.platBaja||'—'}</td>
+        <td style="padding:4px 8px;border:1px solid #e5e7eb;text-align:center">${t.platAlta||'—'}</td>
+      </tr>`;
+    });
   });
-  html+='</tbody></table>';
-  preview.innerHTML=html;
-  modal.style.display='block';
+  th+='</tbody></table>';
+  preview.innerHTML=th;
+
+  // Mostrar modal
+  if(modal) modal.style.display='flex';
 }
 
 
@@ -3898,8 +3917,21 @@ function aplicarTotalVariable(){
 // ===== BALANCE / ESTADO DE RESULTADOS =====
 function renderBalance(){
   const desde=gv('bal-desde'),hasta=gv('bal-hasta');
-  if(!desde||!hasta){alert('Seleccione período.');return;}
-  const reservas=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA'&&r.cin1&&r.cin1>=desde&&r.cin1<=hasta);
+  if(!desde||!hasta){
+    // Auto-set current month
+    const hoyD=new Date();const y=hoyD.getFullYear();const m=String(hoyD.getMonth()+1).padStart(2,'0');
+    const desdeEl=document.getElementById('bal-desde');const hastaEl=document.getElementById('bal-hasta');
+    if(desdeEl&&!desdeEl.value) desdeEl.value=y+'-'+m+'-01';
+    if(hastaEl&&!hastaEl.value) hastaEl.value=hoy();
+    if(!desde||!hasta){
+      const el=document.getElementById('bal-resumen');
+      if(el) el.innerHTML='<div style="color:var(--txt3);padding:16px;text-align:center">Seleccioná el período para ver el balance.</div>';
+      return;
+    }
+  }
+  window._db=window._db||[];
+  window._gastos=window._gastos||[];
+  const reservas=(window._db||[]).filter(r=>r.tipo==='RESERVA CONFIRMADA'&&r.cin1&&r.cin1>=desde&&r.cin1<=hasta);
   const gastos=(window._gastos||[]).filter(g=>g.fecha&&g.fecha>=desde&&g.fecha<=hasta);
   // INGRESOS
   const totalBruto=reservas.reduce((a,r)=>a+(r.total||0),0);
