@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog — Mendoza Sol y Nieve | Guías de viaje y tips para tu estadía</title>
+<meta name="description" content="Guías de viaje, actividades y consejos para disfrutar Potrerillos, Mendoza Capital y Valle de Las Leñas. Blog oficial de Mendoza Sol y Nieve.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.mendozasolynieve.com.ar/blog.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mendoza Sol y Nieve">
+<meta property="og:url" content="https://www.mendozasolynieve.com.ar/blog.html">
+<meta property="og:title" content="Blog — Mendoza Sol y Nieve | Guías de viaje">
+<meta property="og:description" content="Todo lo que necesitás saber para disfrutar Potrerillos, Mendoza y Las Leñas.">
+<meta property="og:image" content="https://www.mendozasolynieve.com.ar/assets/img/pot-hero-deck.jpg">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-WRDWDD4L');</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-934992014"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-MDHKFN6J5D');gtag('config','AW-934992014');</script>
+<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','572989396234140');fbq('track','PageView');</script>
+
+<style>
+/* BLOG STYLES */
+.page-hero-simple{position:relative;height:280px;overflow:hidden;display:flex;align-items:center}
+.page-hero-simple img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 40%}
+.page-hero-simple .overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,30,60,.82),rgba(10,30,60,.55))}
+.page-hero-simple .content{position:relative;z-index:2;color:#fff}
+.page-hero-simple h1{color:#fff;margin-bottom:6px}
+.page-hero-simple p{color:rgba(255,255,255,.85)}
+
+/* FILTROS */
+.blog-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;align-items:center;}
+.bfil{padding:7px 16px;border-radius:20px;border:1px solid var(--border,#e2e0d8);background:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
+.bfil:hover{border-color:var(--azul,#0f4c81);}
+.bfil.active{background:var(--azul,#0f4c81);color:#fff;border-color:var(--azul,#0f4c81);}
+
+/* GRID */
+.blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.blog-card{background:#fff;border:1px solid var(--border,#e2e0d8);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .2s;text-decoration:none;color:inherit;display:block;}
+.blog-card:hover{box-shadow:0 8px 32px rgba(0,0,0,.1);transform:translateY(-3px);}
+.blog-card-img{height:200px;overflow:hidden;position:relative;}
+.blog-card-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+.blog-card:hover .blog-card-img img{transform:scale(1.05);}
+.blog-card-badge{position:absolute;top:12px;left:12px;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700;color:#fff;}
+.badge-pot{background:#16a34a;}
+.badge-mza{background:#1e40af;}
+.badge-len{background:#5b21b6;}
+.badge-gen{background:#c2410c;}
+.badge-fam{background:#be123c;}
+.blog-card-body{padding:18px;}
+.blog-card-cat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.cat-pot{color:#16a34a;}.cat-mza{color:#1e40af;}.cat-len{color:#5b21b6;}.cat-gen{color:#c2410c;}.cat-fam{color:#be123c;}
+.blog-card-title{font-size:17px;font-weight:700;line-height:1.4;margin-bottom:8px;color:var(--noche,#0f4c81);}
+.blog-card-desc{font-size:13px;color:var(--txt2,#5c5a54);line-height:1.6;margin-bottom:12px;}
+.blog-card-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--txt3,#9c9a94);}
+.read-more{color:var(--azul,#0f4c81);font-weight:600;font-size:12px;}
+
+/* ARTÍCULO INDIVIDUAL */
+.articulo-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;overflow-y:auto;padding:20px;}
+.articulo-overlay.open{display:block;}
+.articulo-box{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.art-hero{height:340px;position:relative;overflow:hidden;}
+.art-hero img{width:100%;height:100%;object-fit:cover;}
+.art-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,20,40,.75) 0%,transparent 60%);}
+.art-hero-content{position:absolute;bottom:0;left:0;right:0;padding:24px;color:#fff;}
+.art-badge{display:inline-block;padding:4px 12px;border-radius:10px;font-size:12px;font-weight:700;color:#fff;margin-bottom:8px;}
+.art-hero-content h2{font-size:clamp(1.4rem,3vw,2rem);color:#fff;line-height:1.3;}
+.art-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
+.art-body{padding:28px 32px 32px;}
+.art-meta{font-size:12px;color:var(--txt3,#9c9a94);margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;}
+.art-content{font-size:15px;line-height:1.9;color:var(--txt,#1a1917);}
+.art-content h3{font-size:20px;font-weight:700;color:var(--noche,#0f4c81);margin:28px 0 12px;}
+.art-content h4{font-size:16px;font-weight:700;color:var(--txt,#1a1917);margin:20px 0 8px;}
+.art-content p{margin-bottom:14px;}
+.art-content ul{padding-left:22px;margin-bottom:14px;}
+.art-content ul li{margin-bottom:6px;}
+.art-content .highlight{background:var(--amber-bg,#fef3c7);border-left:4px solid #f59e0b;padding:14px 16px;border-radius:0 8px 8px 0;margin:20px 0;font-size:14px;}
+.art-content .tip{background:#e8f0f9;border-left:4px solid var(--azul,#0f4c81);padding:14px 16px;border-radius:0 8px 8px 0;margin:20px 0;font-size:14px;}
+.art-cta{background:linear-gradient(135deg,#0a3560,#1e5fa8);border-radius:12px;padding:20px 24px;margin-top:28px;text-align:center;color:#fff;}
+.art-cta h4{color:#fff;margin-bottom:6px;font-size:16px;}
+.art-cta p{color:rgba(255,255,255,.85);font-size:13px;margin-bottom:14px;}
+
+@media(max-width:900px){.blog-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){
+  .blog-grid{grid-template-columns:1fr;}
+  .page-hero-simple{height:220px;}
+  .art-body{padding:18px 18px 24px;}
+  .art-hero{height:240px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="index.html" class="logo">
+      <img src="assets/img/logo-msyn.png" alt="Mendoza Sol y Nieve" width="160" height="54" loading="eager">
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="alojamientos.html">Alojamientos</a></li>
+      <li><a href="galeria.html">Galería</a></li>
+      <li><a href="promociones.html">Promociones</a></li>
+      <li><a href="blog.html" style="color:var(--acento)">Blog</a></li>
+      <li><a href="contacto.html">Contacto</a></li>
+      <li><a href="https://wa.me/5492616543938" class="btn btn-wa nav-cta" target="_blank" rel="noopener">💬 Consultar</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+  </div>
+</header>
+<nav class="mobile-menu" id="mobile-menu">
+  <button class="mobile-close" id="menu-close">✕</button>
+  <a href="index.html">Inicio</a>
+  <a href="alojamientos.html">Alojamientos</a>
+  <a href="galeria.html">Galería</a>
+  <a href="promociones.html">Promociones</a>
+  <a href="blog.html">Blog</a>
+  <a href="contacto.html">Contacto</a>
+  <a href="https://wa.me/5492616543938" class="btn btn-wa" target="_blank" rel="noopener">💬 Consultar</a>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero-simple">
+  <img src="assets/img/pot-hero-deck.jpg" alt="Blog Mendoza Sol y Nieve" loading="eager">
+  <div class="overlay"></div>
+  <div class="content wrap">
+    <h1>Blog de viajes</h1>
+    <p>Guías, tips y todo lo que necesitás saber para disfrutar Mendoza al máximo.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="wrap">
+    <!-- FILTROS -->
+    <div class="blog-filters">
+      <span style="font-size:13px;color:var(--txt2);font-weight:600;">Filtrar por:</span>
+      <button class="bfil active" onclick="filtrar('todos',this)">Todos</button>
+      <button class="bfil" onclick="filtrar('potrerillos',this)">🏔️ Potrerillos</button>
+      <button class="bfil" onclick="filtrar('mendoza',this)">🏙️ Mendoza Capital</button>
+      <button class="bfil" onclick="filtrar('lenas',this)">⛷️ Las Leñas</button>
+      <button class="bfil" onclick="filtrar('familia',this)">👨‍👩‍👧 Familias</button>
+      <button class="bfil" onclick="filtrar('general',this)">🗺️ Guías generales</button>
+    </div>
+
+    <!-- GRID DE ARTÍCULOS -->
+    <div class="blog-grid" id="blog-grid"></div>
+  </div>
+</section>
+
+<!-- ARTÍCULO OVERLAY -->
+<div class="articulo-overlay" id="art-overlay" onclick="cerrarArt(event)">
+  <div class="articulo-box" id="art-box">
+    <button class="art-close" onclick="cerrarArt(null,true)">✕</button>
+    <div class="art-hero">
+      <img id="art-img" src="" alt="">
+      <div class="art-hero-overlay"></div>
+      <div class="art-hero-content">
+        <div class="art-badge" id="art-badge"></div>
+        <h2 id="art-titulo"></h2>
+      </div>
+    </div>
+    <div class="art-body">
+      <div class="art-meta" id="art-meta"></div>
+      <div class="art-content" id="art-cuerpo"></div>
+      <div class="art-cta">
+        <h4>¿Listo para vivir esta experiencia?</h4>
+        <p>Reservá directo con los dueños. Contanos las fechas y la cantidad de personas y te respondemos en minutos.</p>
+        <button onclick="abrirConsultaBlog()" class="btn btn-wa" style="display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;font-size:14px;padding:11px 20px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Consultar disponibilidad
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA BAND -->
+<section class="cta-band">
+  <div class="wrap">
+    <h2>¿Te quedaste con ganas de venir?</h2>
+    <p>Tres destinos únicos en Mendoza. Reservá directo con los dueños, sin intermediarios.</p>
+    <div class="cta-btns">
+      <a href="https://wa.me/5492616543938" class="btn btn-wa btn-lg" target="_blank" rel="noopener">💬 Consultar por WhatsApp</a>
+      <a href="alojamientos.html" class="btn btn-lg" style="background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.3)">Ver alojamientos</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-grid">
+      <div>
+        <h4>Mendoza Sol y Nieve</h4>
+        <p>Cabañas y departamentos en Mendoza, Potrerillos y Valle de Las Leñas.</p>
+        <div class="f-social">
+          <a href="https://www.facebook.com/mendozasolynieve" target="_blank" rel="noopener" aria-label="Facebook"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+          <a href="https://www.instagram.com/mendozasolynieve" target="_blank" rel="noopener" aria-label="Instagram"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+          <a href="https://wa.me/5492616543938" target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <a href="https://wa.me/5492616543938" target="_blank">+54 9 261 654 3938</a>
+        <a href="mailto:info@mendozasolynieve.com.ar">info@mendozasolynieve.com.ar</a>
+      </div>
+      <div>
+        <h4>Destinos</h4>
+        <a href="mendoza.html">Mendoza Capital</a>
+        <a href="potrerillos.html">Potrerillos</a>
+        <a href="lenas.html">Valle de Las Leñas</a>
+      </div>
+    </div>
+    <div class="f-bottom">
+      <span>© 2026 Mendoza Sol y Nieve</span>
+      <span>Check-In 14:00 hs · Check-Out 10:00 hs</span>
+      <a href="sitemap.xml">Sitemap</a>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/5492616543938" class="wa-float" target="_blank" rel="noopener" aria-label="WhatsApp" style="position:fixed;bottom:24px;right:24px;z-index:999;width:56px;height:56px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.45);text-decoration:none">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRDWDD4L" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<script src="assets/js/script.js"></script>
+
+<script>
+// ============================================================
+// BASE DE DATOS DE ARTÍCULOS
+// ============================================================
+const ARTICULOS = [
+  {
+    id:1,
+    categoria:'potrerillos',
+    catLabel:'Potrerillos',
+    catClass:'pot',
+    titulo:'Rafting en Potrerillos: todo lo que tenés que saber antes de tirarte al río',
+    desc:'El río Mendoza ofrece una de las experiencias de rafting más emocionantes de Argentina. Te contamos cómo prepararte, qué nivel de dificultad tiene y cómo reservar desde nuestras cabañas.',
+    img:'assets/img/pot-aerea.jpg',
+    fecha:'10 de julio 2026',
+    lectura:'6 min',
+    waMsg:'Hola! Leí el artículo sobre rafting en Potrerillos y me gustaría consultar disponibilidad en las cabañas.',
+    zona:'potrerillos',
+    cuerpo:`
+<h3>El río Mendoza: el corazón de Potrerillos</h3>
+<p>El río Mendoza baja de la cordillera con una energía brutal, especialmente entre octubre y marzo cuando el deshielo está en su punto máximo. Esas aguas turbulentas crearon uno de los circuitos de rafting más reconocidos del país, y nuestras cabañas en Ruta 7 Km 1108 están literalmente a metros del río.</p>
+
+<div class="highlight">💡 <strong>Dato clave:</strong> Desde las cabañas MSN podés salir al rafting directamente del complejo. No necesitás trasladarte a ningún otro punto de partida.</div>
+
+<h3>Niveles de dificultad — ¿para quién es?</h3>
+<p>El tramo de rafting en Potrerillos tiene principalmente rápidos de <strong>Grado III y IV</strong>, lo que lo hace accesible pero con adrenalina garantizada. No necesitás experiencia previa — los guías te dan el briefing completo antes de lanzarte.</p>
+<ul>
+  <li><strong>Grado III:</strong> Rápidos moderados, algunas olas. Apto para toda la familia desde los 12 años.</li>
+  <li><strong>Grado IV:</strong> Tramos más intensos con turbulencias. Apto desde los 14 años en buenas condiciones físicas.</li>
+</ul>
+
+<h3>¿Cuándo es la mejor época?</h3>
+<p>La temporada fuerte va de <strong>octubre a marzo</strong>, cuando el caudal del río es mayor por el deshielo cordillerano. En invierno el río baja su nivel pero igualmente se puede hacer rafting, aunque con menos intensidad. Julio y agosto son meses buenos para combinar ski en Las Leñas con rafting suave en Potrerillos en el camino de regreso.</p>
+
+<h4>Temperatura del agua</h4>
+<p>El agua del río Mendoza viene directamente de la nieve derretida, por lo que está fría todo el año. Los operadores te proveen traje de neoprene en temporada de bajas temperaturas. En enero-febrero el río es más cálido y el equipo es más liviano.</p>
+
+<h3>Duración y precio estimado</h3>
+<ul>
+      </ul>
+
+<div class="tip">🎒 <strong>Tip MSN:</strong> Cuando reservás en nuestras cabañas te pasamos el contacto de los operadores de confianza con quienes trabajamos hace años. Podés coordinar la salida directamente desde el complejo sin moverte.</div>
+
+<h3>Qué llevar</h3>
+<ul>
+  <li>Ropa que pueda mojarse (no jeans)</li>
+  <li>Calzado cerrado que se pueda mojar (no ojotas)</li>
+  <li>Bloqueador solar resistente al agua</li>
+  <li>Cámara con buena protección o GoPro</li>
+  <li>Ropa de abrigo para después — el río es frío</li>
+</ul>
+
+<h3>¿Se puede hacer rafting con niños?</h3>
+<p>Sí, con la guía correcta el rafting es una experiencia increíble para familias con chicos. La mayoría de los operadores admiten niños desde los 10-12 años en los tramos más suaves. Para familias con niños menores, el kayak en el dique Potrerillos (a 14 km de nuestras cabañas) es una alternativa más tranquila y muy disfrutable.</p>
+
+<h3>Cómo reservar</h3>
+<p>La mejor manera de organizar el rafting es reservar primero las cabañas y después coordinamos el resto con vos por WhatsApp. Tenemos alianza con los mejores operadores de la zona y podemos ayudarte a armar un itinerario completo según los días que te quedás.</p>
+    `
+  },
+  {
+    id:2,
+    categoria:'mendoza',
+    catLabel:'Mendoza Capital',
+    catClass:'mza',
+    titulo:'La ruta del vino en Mendoza: bodegas que vale la pena visitar saliendo del centro',
+    desc:'Desde nuestros departamentos en Gral. Espejo 333 llegás a pie a las mejores bodegas de Luján de Cuyo y Maipú. Esta es la guía que armamos para nuestros huéspedes.',
+    img:'assets/img/mendoza-plaza-espejo.jpg',
+    fecha:'5 de julio 2026',
+    lectura:'8 min',
+    waMsg:'Hola! Vi el artículo sobre la ruta del vino y me gustaría reservar en los departamentos de Mendoza.',
+    zona:'ciudad',
+    cuerpo:`
+<h3>Mendoza: la capital mundial del Malbec</h3>
+<p>Ningún viaje a Mendoza está completo sin visitar al menos una bodega. La buena noticia para los huéspedes de nuestros departamentos en Gral. Espejo 333 es que las principales zonas vitivinícolas — Luján de Cuyo y Maipú — están a 25-35 minutos en auto desde el centro.</p>
+
+<div class="highlight">📍 <strong>Ubicación ideal:</strong> Desde nuestros deptos frente a Plaza Independencia llegás en 30 minutos a las bodegas más reconocidas del mundo. No necesitás ir hasta Valle de Uco para vivir una experiencia premium.</div>
+
+<h3>Las mejores bodegas por zona</h3>
+
+<h4>🍷 Luján de Cuyo (25-30 min desde el centro)</h4>
+<ul>
+      <li><strong>Vistalba:</strong> Carlos Pulenta, excelentes Malbec de altura. Tour y degustación completa.</li>
+  <li><strong>Carmelo Patti:</strong> El winemaker artesanal de Luján. Sin cita no entrás, pero vale cada paso.</li>
+</ul>
+
+<h4>🍇 Maipú (20-25 min desde el centro)</h4>
+<ul>
+  <li><strong>Trapiche:</strong> La más grande y turística. Tour gratuito, museo, degustación. Ideal para primera vez.</li>
+  <li><strong>Chandon:</strong> Espumantes de autor. El tour incluye degustación y es muy bien organizado. Reservar online.</li>
+    </ul>
+
+<h3>¿Cómo moverse?</h3>
+<p>Las opciones para recorrer las bodegas desde el centro son varias:</p>
+<ul>
+    <li><strong>Bicicleta (Maipú):</strong> Maipú es perfectamente recorrible en bici. Hay alquiler en el mismo distrito.</li>
+    <li><strong>Auto propio:</strong> Si alguien del grupo no toma vino, es la opción más libre y económica.</li>
+</ul>
+
+<div class="tip">🎯 <strong>Tip MSN:</strong> Si querés visitar Zuccardi Valle de Uco (la mejor bodega de Sudamérica según varios rankings), son 1 hora y 15 desde el centro. Reservá con meses de anticipación y elegí el menú de almuerzo — es una experiencia gastronómica completa, no solo una visita.</div>
+
+<h3>Temporada de vendimia</h3>
+<p>La <strong>Vendimia</strong> se celebra en Mendoza en los primeros días de marzo. Es la fiesta más grande de Argentina después del Carnaval, con desfiles, shows en el Teatro Griego Frank Romero Day del Parque San Martín y la coronación de la reina de la vendimia. Si podés venir en esta fecha, los departamentos de Gral. Espejo 333 te ponen a 10 minutos a pie de todo el centro de festejos.</p>
+
+<h3>Bodegas con almuerzo incluido</h3>
+<p>Para convertir la visita en una experiencia gastronómica completa, estas bodegas tienen restaurantes propios:</p>
+<ul>
+  <li><strong>1884 Francis Mallmann</strong> (en Bodega Escorihuela Gascón, Ciudad): el más famoso, reservar con meses de anticipación.</li>
+  <li><strong>Azafrán</strong> (Sarmiento 765, a 5 min de los deptos): no es bodega pero tiene la mejor carta de vinos mendocinos del centro.</li>
+  <li><strong>Casa Vigil / El Enemigo</strong> (Maipú): excelente menú de degustación con maridaje.</li>
+</ul>
+    `
+  },
+  {
+    id:3,
+    categoria:'lenas',
+    catLabel:'Las Leñas',
+    catClass:'len',
+    titulo:'Temporada de ski en Las Leñas 2026: fechas, precios y cómo llegar desde Mendoza',
+    desc:'Todo lo que necesitás saber para planificar tu temporada de ski en el resort más importante de Sudamérica. Desde cuándo abre hasta cómo llegar cómodamente.',
+    img:'assets/img/lenas-telesilla.jpg',
+    fecha:'1 de julio 2026',
+    lectura:'7 min',
+    waMsg:'Hola! Vi el artículo sobre Las Leñas y me gustaría consultar disponibilidad para la temporada de ski.',
+    zona:'lenas',
+    cuerpo:`
+<h3>Valle de Las Leñas: el ski más serio de Sudamérica</h3>
+<p>Cuando hablamos de ski en Argentina, Las Leñas es la referencia. Con 3.430 metros de altura en su punto más alto, 69 pistas y 1.190 metros de desnivel vertical, este resort ubicado en el departamento de Malargüe, Mendoza, no tiene comparación en todo el hemisferio sur.</p>
+
+<div class="highlight">⛷️ <strong>Datos del resort:</strong> 69 pistas · 13 medios de elevación · 3.430 msnm · 55 km de pistas señalizadas · Temporada principal: julio-agosto</div>
+
+<h3>Fechas de apertura 2026</h3>
+<p>La temporada oficial de ski en Las Leñas 2026 abre a partir del fin de semana del 20 de junio, dependiendo de las nevadas. El período de mayor demanda y mejores condiciones de nieve es julio y agosto, con cierre estimado en septiembre según las condiciones.</p>
+<ul>
+  <li><strong>Apertura estimada:</strong> Fin de semana del 20 de junio 2026 (sujeto a nevadas)</li>
+  <li><strong>Receso invernal (vacaciones de invierno):</strong> 6 al 31 de julio — temporada más concurrida</li>
+  <li><strong>Agosto:</strong> Excelente nieve, menos gente que julio — recomendado</li>
+  <li><strong>Cierre estimado:</strong> Septiembre o según condiciones de nieve</li>
+</ul>
+
+<h3>Precio del lift pass</h3>
+<p>El precio varía según temporada y tipo de pase. Al reservar con nosotros te pasamos toda la información actualizada para que lo compres online con anticipación y a mejor precio.</p>
+<h3>Cómo llegar desde Mendoza Capital</h3>
+<p>Las Leñas está a 342 km de Mendoza Capital, aproximadamente 4 horas 10 minutos por Ruta Nacional 40 Sur hasta Malargüe, luego ruta provincial hasta el resort. Las opciones para llegar:</p>
+<ul>
+  <li><strong>Auto propio:</strong> La opción más libre. Son aproximadamente 5 horas con buenas condiciones. Ruta pavimentada hasta el resort.</li>
+  <li><strong>Vuelos chárter:</strong> En temporada alta hay vuelos directos desde Buenos Aires (Aeroparque) al aeropuerto de Malargüe. Muy cómodo si venís de Buenos Aires.</li>
+  <li><strong>Ómnibus:</strong> Hay servicios directos desde la Terminal de Mendoza hasta el Valle de Las Leñas (aprox. 6 horas), con salidas diarias en época invernal.</li>
+</ul>
+
+<h3>Nuestro departamento — a 10 minutos de las pistas en colectivo gratuito</h3>
+<p>Nuestro departamento en Las Leñas tiene parada del colectivo gratuito del resort en la puerta, que te deja en la base de las pistas en 10 minutos. No es ski-in ski-out, pero el acceso es muy cómodo y completamente sin costo.</p>
+
+<h3>Pistas recomendadas por nivel</h3>
+<h4>Para principiantes 🟢</h4>
+<ul>
+  <li>Sector de la base — pistas de práctica y clases</li>
+  <li>Pista Venus (la más popular para principiantes)</li>
+  <li>Pista Neptuno — suave y larga, ideal para ganar confianza</li>
+</ul>
+<h4>Para nivel intermedio 🔵</h4>
+<ul>
+  <li>Pista Escorpio — la más larga del resort (7 km)</li>
+  <li>Pista Libra — mezcla de sectores, vista increíble</li>
+</ul>
+<h4>Para avanzados 🔴⚫</h4>
+<ul>
+  <li>Pista Marte — la más exigente, para skiers experimentados</li>
+  <li>Sectores fuera de pista (off-piste) — solo con guía</li>
+</ul>
+
+<h3>Après-ski y noches en Las Leñas</h3>
+<p>Una vez que guardás los esquíes, la vida en el resort continúa. El bar Mamut en la base es el punto de encuentro clásico después de las pistas. Para cenar, El Refugio y La Choza son las opciones más completas. Los fines de semana hay música en vivo y eventos en el resort.</p>
+    `
+  },
+  {
+    id:4,
+    categoria:'familia',
+    catLabel:'Familias',
+    catClass:'fam',
+    titulo:'Escapada en familia a Potrerillos: actividades para todas las edades',
+    desc:'Las cabañas de Potrerillos son perfectas para venir con chicos. Pileta en verano, rafting suave, trekking familiar y el lago a 14 km. Todo lo que podés hacer en un fin de semana.',
+    img:'assets/img/pot-grande-living.jpg',
+    fecha:'25 de junio 2026',
+    lectura:'5 min',
+    waMsg:'Hola! Leí el artículo de escapada familiar y quiero consultar por alojamiento en las cabañas al lado del río Mendoza, para fechas desde ..... hasta ... para ... personas',
+    zona:'potrerillos',
+    cuerpo:`
+<h3>Potrerillos con chicos: una escapada que no van a olvidar</h3>
+<p>Hay algo en Potrerillos que hace que los chicos no quieran volver a la ciudad. Quizás es el sonido del río, el WiFi satelital Starlink de las cabañas que garantiza conexión de alta velocidad, o la sensación de estar en la mitad de las montañas. Sea como sea, Potrerillos funciona como un reset familiar que todos necesitan.</p>
+
+<h3>Actividades para todas las edades</h3>
+
+<h4>Para los más chicos (4-10 años) 🧒</h4>
+<ul>
+  <li><strong>Pileta del complejo:</strong> Habilitada de diciembre a marzo. Los chicos pueden pasar horas ahí mientras disfrutás del solario.</li>
+  <li><strong>El río Mendoza:</strong> Imponente e impresionante a la vista. Por seguridad los niños no pueden ingresar al río ya que tiene un caudal muy fuerte. Sin embargo, contemplarlo desde la orilla y escuchar su sonido es parte de la experiencia de estar en la montaña.</li>
+  <li><strong>Trekking suave:</strong> Hay senderos accesibles desde la cabaña para caminatas de 1-2 horas con paisajes de cordillera. Los chicos lo viven como una aventura.</li>
+  <li><strong>Avistaje de fauna:</strong> Cóndores, guanacos, colibríes de colores y aves cordilleranas. Llevá binoculares — las sorpresas son constantes.</li>
+</ul>
+
+<h4>Para adolescentes (12-17 años) 🧗</h4>
+<ul>
+  <li><strong>Rafting nivel III:</strong> Apto desde los 12 años con guía especializado. La salida es directamente desde el complejo donde se ubican las cabañas — sin traslados adicionales.</li>
+  <li><strong>Mountain bike:</strong> Senderos de distintos niveles desde la ruta. Hay alquiler de bicicletas en Potrerillos.</li>
+  <li><strong>Kayak en el lago:</strong> El lago Potrerillos está a 14 km. Alquiler de kayak disponible en el área del dique.</li>
+</ul>
+
+<h4>Para los adultos 🍷</h4>
+<ul>
+  <li><strong>Termas de Cacheuta:</strong> A 20 km, parque termal completo con piletas de agua termal para toda la familia, zona de spa y restaurante. Una experiencia de relajación en plena cordillera, ideal para combinar con un día de montaña.</li>
+  <li><strong>Trekking medio:</strong> Subidas de 3-4 horas con vistas panorámicas a la cordillera y el embalse.</li>
+  <li><strong>Bodegas de Luján de Cuyo:</strong> A 50 km por Ruta 7, combinás la naturaleza de Potrerillos con una tarde de enoturismo.</li>
+</ul>
+
+<div class="highlight">🐾 <strong>Pet Friendly:</strong> Aceptamos mascotas pequeñas en las cabañas, consultar condiciones al reservar.</div>
+
+<h3>¿Qué cabaña elegir para venir en familia?</h3>
+<ul>
+  <li><strong>Cabaña Loft (hasta 4 personas):</strong> Ambiente único tipo loft. Cama matrimonial + sillón-cama con cama carrito. Ideal para parejas con 1-2 hijos pequeños.</li>
+  <li><strong>Cabaña Grande (hasta 7 personas):</strong> 3 dormitorios, chimenea, deck con vista a la cordillera. La mejor opción para familias grandes o dos familias amigas.</li>
+</ul>
+
+<h3>Qué llevar</h3>
+<ul>
+  <li>Ropa en capas — la temperatura en la montaña cambia rápido, incluso en verano</li>
+  <li>Protector solar factor 50 o más — la altura intensifica los rayos UV</li>
+  <li>Calzado de trekking para toda la familia</li>
+  <li>Binoculares para avistaje de cóndores</li>
+  <li>Provisiones para 1-2 comidas — el almacén más cercano es en Potrerillos centro</li>
+</ul>
+
+<h3>Servicios cerca de las cabañas</h3>
+<ul>
+  <li><strong>Restaurante Divarikata y Spa Vertientes:</strong> A aproximadamente 100 metros de las cabañas. El spa Vertientes requiere reserva previa — una excelente opción para un momento de relajación en la montaña.</li>
+  <li><strong>Lago Potrerillos:</strong> A 14 km aproximadamente. Alimentado por el agua de deshielo del cerro Aconcagua que trae el río Mendoza. En el lago se pueden practicar kitesurf, windsurf, buceo, bicicletas acuáticas, senderos de caminata, o simplemente admirar la belleza del lugar rodeado de montañas y lago.</li>
+</ul>
+
+<h3>Mínimo de noches recomendado</h3>
+<p>Para una escapada familiar lo ideal son <strong>3-4 noches</strong>. Con 2 noches llegás justo pero no alcanzás a relajarte del todo. Con 4 noches podés combinar rafting, termas, trekking y simplemente estar sin apuro.</p>
+    `
+  },
+  {
+    id:5,
+    categoria:'mendoza',
+    catLabel:'Mendoza Capital',
+    catClass:'mza',
+    titulo:'Qué hacer en Mendoza en 3 días: el itinerario perfecto desde Gral. Espejo 333',
+    desc:'Tres días en Mendoza Capital desde nuestros departamentos frente a Plaza Independencia. Bodegas, Parque San Martín, gastronomía en Arístides y una excursión a la montaña.',
+    img:'assets/img/mendoza-edificio-333.jpg',
+    fecha:'20 de junio 2026',
+    lectura:'7 min',
+    waMsg:'Hola! Leí el itinerario de 3 días en Mendoza y quiero consultar disponibilidad. Fechas de llegada: ... / Salida: ... / Cantidad de personas: ...',
+    zona:'ciudad',
+    cuerpo:`
+<h3>El itinerario perfecto para 3 días en Mendoza</h3>
+<p>Desde los departamentos en el centro urbano de Mendoza podés llegar caminando a la mayoría de los puntos de partida. Este es el itinerario que recomendamos a todos nuestros huéspedes.</p>
+
+<h3>Día 1 — Centro histórico y gastronomía</h3>
+<h4>Mañana</h4>
+<ul>
+  <li><strong>Plaza Independencia:</strong> Empezá por la plaza que tenés en la puerta. Hay feria artesanal todos los días. De noche, la Fuente de Aguas Danzantes ofrece shows diarios desde las 20:30 hasta las 22:00 hs — un espectáculo que no te podés perder. El diseño subterráneo con el Museo de Artes Visuales vale la visita.</li>
+  <li><strong>Peatonal Sarmiento:</strong> La calle peatonal del centro, a 3 minutos de los deptos a pie. Cafés, librerías, el punto de encuentro mendocino.</li>
+  <li><strong>Mercado Central de Mendoza:</strong> En Las Heras y Patricias Mendocinas. Fiambres, aceitunas, especias y los mejores empanadas mendocinas para el desayuno tardío.</li>
+</ul>
+<h4>Tarde</h4>
+<ul>
+  <li><strong>Parque San Martín:</strong> El pulmón verde de Mendoza. 15 minutos a pie desde los deptos. Lago, anfiteatro, Cerro de la Gloria con el monumento al Ejército de los Andes.</li>
+  <li><strong>Barrio Chino de la viña:</strong> La zona de chacras y viñedos dentro del parque. Tranquilo y muy mendocino.</li>
+</ul>
+<h4>Noche</h4>
+<ul>
+  <li><strong>Peatonal Arístides Villanueva:</strong> El boulevard gastronómico de Mendoza. A 10 minutos caminando de los deptos. Decenas de restaurantes, bares, vinos por copa.</li>
+  <li><strong>Recomendado:</strong> Fuente y Fonda para parrilla clásica, o una de las cervecerías artesanales del Barrio Bombal.</li>
+</ul>
+
+<h3>Día 2 — Ruta del vino en Maipú</h3>
+<h4>Mañana</h4>
+<ul>
+  <li>Salida a Maipú (25 min en remis desde los deptos). Trapiche es la primera parada obligada — tour gratuito, museo vitivinícola, degustación.</li>
+  <li>La Rural — Museo del Vino: la historia de la vitivinicultura mendocina en un edificio centenario.</li>
+</ul>
+<h4>Tarde</h4>
+<ul>
+  <li>Circuito de bodegas en bicicleta por el distrito de Maipú. Podés alquilar en la misma zona y recorrer a tu ritmo.</li>
+  <li>Chandon o Domaine Jean Bousquet para el cierre con espumantes.</li>
+</ul>
+<h4>Noche</h4>
+<ul>
+  <li>Cena en Azafrán (Sarmiento 765) — a 5 minutos de los deptos. La mejor carta de vinos regionales del centro. Reservar.</li>
+</ul>
+
+<h4>Alternativa día 2 — Chacras de Coria</h4>
+<p>A 15 minutos del centro, Chacras de Coria combina enoturismo boutique, cultura, gastronomía y experiencias al aire libre en un ambiente de pueblo con mucho encanto mendocino:</p>
+<ul>
+  <li><strong>Bodegas boutique:</strong> Clos de Chacras, Bodega Pulmary, Familia Cánepa Martín y Nieto Senetiner son de las más recomendadas. Muchas ofrecen almuerzos maridados con atención personalizada de los propios dueños.</li>
+  <li><strong>Centro del pueblo:</strong> Parroquia Nuestra Señora del Perpetuo Socorro, Paseo de las Artesanías, galerías de arte. Ideal para recorrer a pie.</li>
+  <li><strong>Cabalgatas El Durazno:</strong> Paseos a caballo por la precordillera con guía bilingüe, asado y vino incluidos. Muy familiar.</li>
+  <li><strong>Gastronomía:</strong> Cooking Class by Cristina Brino, A la Antigua (chocolates y licores artesanales), restaurantes de autor en casas históricas con terrazas y vinos locales.</li>
+  <li><strong>Tip:</strong> Dejá el auto y recorrela a pie — el ritmo tranquilo del pueblo es parte de la experiencia.</li>
+</ul>
+
+<h3>Día 3 — Excursión a la montaña</h3>
+<h4>Opción A: Potrerillos (80 km, 1 hora)</h4>
+<p>Día completo en nuestras cabañas de Potrerillos. Rafting si el nivel del grupo lo permite, kayak en el lago, caminatas. Regresás a los deptos por la noche.</p>
+<h4>Opción B: Alta Montaña (Ruta 7 a Chile)</h4>
+<p>La ruta más espectacular de Mendoza. Desde Potrerillos seguís hacia Uspallata, Las Cuevas y el Cristo Redentor en la frontera con Chile a 3.832 metros. Podés hacer el tramo hasta donde quieras y volver. No necesitás cruzar a Chile.</p>
+<h4>Opción C: Valle de Uco (1 hora y 15 min)</h4>
+<p>La ruta del vino premium de Mendoza. Zuccardi, Achaval Ferrer, Clos de los Siete. Reservar con anticipación para el almuerzo en alguna de las bodegas.</p>
+
+<div class="tip">🚗 <strong>Tip de movilidad:</strong> Para el día 3 de montaña o Valle de Uco conviene alquilar auto o contratar remis por el día. Desde los deptos hay varias agencias de remises a 5 minutos.</div>
+
+<div class="highlight">💡 <strong>¿Querés aprovechar al máximo?</strong> Combiná noches en los departamentos del centro de Mendoza con noches en las cabañas de Potrerillos. Son solo 80 km — podés pasar los primeros días explorando la ciudad, la ruta del vino y Chacras de Coria, y trasladarte después a las cabañas para vivir la montaña, el río y el silencio de la cordillera. Te organizamos todo desde una sola consulta.</div>
+    `
+  },
+  {
+    id:6,
+    categoria:'potrerillos',
+    catLabel:'Potrerillos',
+    catClass:'pot',
+    titulo:'Termas de Cacheuta desde Potrerillos: todo lo que necesitás saber',
+    desc:'Las Termas de Cacheuta son uno de los mejores planes para combinar con las cabañas de Potrerillos. Solo 20 km, aguas termales naturales y un parque acuático completo en la montaña.',
+    img:'assets/img/pot-pileta.jpg',
+    fecha:'15 de junio 2026',
+    lectura:'5 min',
+    waMsg:'Hola! Leí el artículo de Termas de Cacheuta y quiero consultar disponibilidad en Potrerillos.',
+    zona:'potrerillos',
+    cuerpo:`
+<h3>Cacheuta: termas naturales en la cordillera</h3>
+<p>A solo 20 km de nuestras cabañas en Potrerillos, las Termas de Cacheuta son uno de los planes más completos de la zona. Aguas termales naturales con propiedades relajantes, piletas climatizadas, spa, restaurante y vista a la cordillera. El complemento perfecto para quienes vienen a descansar.</p>
+
+<div class="highlight">📍 <strong>Distancia desde las cabañas MSN:</strong> 20 km por Ruta 7 hacia Mendoza. Aproximadamente 20-25 minutos en auto.</div>
+
+<h3>Las piletas y aguas termales</h3>
+<p>Cacheuta tiene varias piletas a distintas temperaturas, desde las más calientes (42°C para la zona de relajación) hasta temperaturas más moderadas para las piletas de natación. El agua termal natural que brota en la zona tiene propiedades sulfurosas, conocidas por sus beneficios para la piel y el sistema muscular.</p>
+<ul>
+  <li><strong>Pileta termal principal:</strong> 38-40°C, al aire libre con vista a la montaña</li>
+  <li><strong>Pileta olímpica:</strong> Temperatura ambiente, para natación activa</li>
+  <li><strong>Zona spa:</strong> Tratamientos faciales y corporales (reservar con anticipación)</li>
+  <li><strong>Toboganes:</strong> Sector familiar con toboganes y zona de juegos acuáticos</li>
+</ul>
+
+<h3>Precios estimados 2026</h3>
+<ul>
+        </ul>
+
+<h3>Combinaciones recomendadas desde las cabañas</h3>
+<h4>Plan día completo de descanso</h4>
+<p>Mañana tranquila en las cabañas + almuerzo + tarde en Cacheuta + vuelta para la cena en la cabaña con la parrilla prendida. El plan de descanso total.</p>
+
+<h4>Plan aventura + relax</h4>
+<p>Mañana de rafting en el río Mendoza desde las cabañas + almuerzo rápido + tarde de termas en Cacheuta para recuperar el cuerpo. Difícil de superar.</p>
+
+<div class="tip">💡 <strong>Tip MSN:</strong> En temporada alta (verano y receso invernal) Cacheuta se llena bastante. Recomendamos ir entre semana o llegar temprano en fin de semana. Los días de lluvia son idealmente vacíos — las termas calientes con lluvia de montaña son una experiencia única.</div>
+
+<h3>Historia de Cacheuta</h3>
+<p>El parque termal de Cacheuta tiene historia. A principios del siglo XX fue un balneario de lujo al que llegaban en tren los mendocinos más acomodados. La estación del ferrocarril transandino tenía parada exactamente ahí. Hoy queda poca evidencia de esa época, pero el paraje conserva una elegancia natural que no pasa de moda.</p>
+
+<h3>Cómo llegar desde las cabañas</h3>
+<p>En auto propio por Ruta 7 hacia Mendoza, son 20 km de una ruta que además es uno de los paisajes más impresionantes de la precordillera. El río Mendoza acompañó todo el camino. No hay transporte público directo — recomendamos ir en el propio auto o alquilar uno en Potrerillos.</p>
+    `
+  },
+  {
+    id:7,
+    categoria:'general',
+    catLabel:'Guías generales',
+    catClass:'gen',
+    titulo:'Cómo armar el viaje perfecto por los 3 destinos MSN en una semana',
+    desc:'Si tenés 7 días para recorrer Mendoza, esta combinación de cabañas en Potrerillos, departamentos en el centro y ski en Las Leñas es el itinerario definitivo.',
+    img:'assets/img/hero-potrerillos.jpg',
+    fecha:'10 de junio 2026',
+    lectura:'8 min',
+    waMsg:'Hola! Leí el artículo del itinerario de 7 días y quiero consultar disponibilidad combinando los tres destinos.',
+    zona:'todos',
+    cuerpo:`
+<h3>El itinerario definitivo: 7 días, 3 destinos, una misma calidez</h3>
+<p>Muy pocos destinos en Argentina te permiten combinar ciudad, montaña y ski de alta competencia en una sola semana. Mendoza, con nuestros tres alojamientos, es uno de ellos. Este es el itinerario que más recomendamos a los viajeros que vienen por primera vez y quieren aprovecharlo al máximo.</p>
+
+<h3>Día 1-2 — Mendoza Capital</h3>
+<p>Llegada a Mendoza. Te instalás en los deptos de Gral. Espejo 333, frente a Plaza Independencia. Primeras dos noches para conocer el centro, la peatonal Sarmiento, Arístides Villanueva y hacer una excursión a Maipú para la ruta del vino.</p>
+<div class="tip">🏙️ Dormís en: Departamento 2 o 3 — Gral. Espejo 333</div>
+
+<h3>Día 3-5 — Potrerillos</h3>
+<p>Trasladás todo a las cabañas de Potrerillos (80 km, 1 hora). Tres noches en la montaña para hacer rafting, kayak en el lago, termas en Cacheuta y simplemente descansar con la parrilla encendida y el sonido del río. Si tenés auto, el día 4 podés hacer la excursión de Alta Montaña por Ruta 7 hasta el Cristo Redentor.</p>
+<div class="tip">🏔️ Dormís en: Cabaña Loft o Cabaña Grande según el grupo</div>
+
+<h3>Día 6-7 — Valle de Las Leñas (temporada invernal)</h3>
+<p>Para los que vienen en julio-agosto, el cierre de viaje es Las Leñas. Desde Potrerillos son 3 horas y media por Ruta 40 Sur hasta Malargüe. Dos noches en nuestro departamento con parada de colectivo gratuito a las pistas. Dos días de ski y après-ski en el mejor resort de Sudamérica.</p>
+<div class="tip">⛷️ Dormís en: Departamento Valle de Las Leñas (solo temporada invernal)</div>
+
+<h3>Variante sin ski (todo el año)</h3>
+<p>Si tu viaje no cae en temporada de ski, podés reemplazar los días en Las Leñas con una excursión a <strong>Valle de Uco</strong> — las bodegas premium de Mendoza en la Cordillera. Zuccardi, Achaval Ferrer y Clos de los Siete están a 1 hora y 15 min desde Potrerillos por Ruta 40.</p>
+
+<h3>Logística del viaje</h3>
+<ul>
+  <li><strong>Movilidad:</strong> Conviene tener auto propio o alquilarlo para este itinerario. Te da libertad total para moverse entre destinos.</li>
+  <li><strong>Temporada:</strong> El itinerario completo con ski es solo julio-agosto. El resto del año Mendoza+Potrerillos funcionan perfectamente solos.</li>
+  <li><strong>Presupuesto estimado:</strong> La diferencia entre reservar con nosotros directo vs plataformas puede ser del 15-20% (sin comisiones de Booking o Airbnb).</li>
+</ul>
+
+<h3>Reservar los tres destinos</h3>
+<p>Podemos organizar todo desde una sola consulta por WhatsApp. Nos decís las fechas, la cantidad de personas y los destinos que querés, y te armamos la disponibilidad con precios para los tres alojamientos de una vez.</p>
+
+<div class="highlight">💬 <strong>Pro tip:</strong> Si reservás los tres destinos juntos, podemos ofrecerte condiciones especiales. Escribinos y lo vemos.</div>
+    `
+  },
+  {
+    id:8,
+    categoria:'lenas',
+    catLabel:'Las Leñas',
+    catClass:'len',
+    titulo:'Primera vez en Las Leñas: guía para principiantes en el ski',
+    desc:'¿Nunca esquiaste pero querés ir a Las Leñas? Esta guía es para vos. Clases, alquiler de equipo, pistas para principiantes y consejos para que el primer día no sea traumático.',
+    img:'assets/img/lenas-hero-nocturna.jpg',
+    fecha:'5 de julio 2026',
+    lectura:'6 min',
+    waMsg:'Hola! Leí la guía para principiantes en Las Leñas y quiero consultar disponibilidad.',
+    zona:'lenas',
+    cuerpo:`
+<h3>Primera vez en la nieve: cómo sobrevivir y disfrutar</h3>
+<p>Las Leñas no es solo para esquiadores expertos. Hay pistas verdes y azules perfectas para principiantes, instructores certificados, y el resort tiene toda la infraestructura para que tu primera vez en la nieve sea una experiencia y no un trauma.</p>
+
+<h3>Antes de llegar: alquilar el equipo</h3>
+<p>Si es tu primera vez, no compres equipo. El alquiler en Las Leñas es completo y de buena calidad:</p>
+<ul>
+    <li><strong>Casco:</strong> consultá precio actualizado — <strong>obligatorio para menores de 14 años, muy recomendado para todos</strong></li>
+    <li><strong>Tip:</strong> Reservar equipo online antes de llegar — en temporada alta hay filas largas en el alquiler</li>
+</ul>
+
+<h3>Clases de ski para principiantes</h3>
+<p>El resort tiene escuela de ski con instructores en español e inglés. Para la primera vez es absolutamente recomendable tomar al menos una clase el primer día:</p>
+<ul>
+      <li><strong>Clase privada de día completo:</strong> La mejor inversión si querés progresar rápido</li>
+</ul>
+
+<h3>Las pistas verdes: por dónde empezar</h3>
+<ul>
+  <li><strong>Zona de la base:</strong> Hay una pista de práctica para los primeros pasos. Es casi plana y tiene red de protección.</li>
+  <li><strong>Pista Venus:</strong> La más popular para principiantes. Accesible en telecabina desde la base.</li>
+  <li><strong>Pista Neptuno:</strong> Larga y suave, perfecta para ganar confianza y progresar. (Géminis es el nombre de uno de los hoteles del resort, no una pista)</li>
+</ul>
+
+<div class="highlight">⚠️ <strong>Error clásico del principiante:</strong> Subir en telecabina a los sectores altos el primer día. Quedarse en la base y dominar las pistas verdes es la clave para disfrutar y no salir lastimado.</div>
+
+<h3>Qué llevar y qué ponerse</h3>
+<ul>
+  <li><strong>Ropa interior térmica:</strong> Fundamental. Una capa base que absorba la humedad del sudor.</li>
+  <li><strong>Capa intermedia:</strong> Polar o lana, para el aislante térmico.</li>
+  <li><strong>Capa exterior:</strong> La campera y el pantalón de ski impermeable. Podés alquilarlos en el resort.</li>
+  <li><strong>Guantes impermeables:</strong> Los de tela o cuero común no sirven en la nieve.</li>
+  <li><strong>Gafas de ski:</strong> Protegen del viento y los reflejos de la nieve. No alcanza con anteojos de sol.</li>
+  <li><strong>Bloqueador solar factor 50+:</strong> La altura intensifica el sol. Aplicar en cara y cuello aunque esté nublado.</li>
+</ul>
+
+<h3>Altitude sickness (mal de altura)</h3>
+<p>Las Leñas llega a 3.430 metros sobre el nivel del mar. Algunas personas sienten mareos, dolor de cabeza o cansancio inusual el primer día. Los consejos:</p>
+<ul>
+  <li>Tomar mucha agua — la altura deshidrata más de lo normal</li>
+  <li>No hacer esfuerzos intensos el primer día</li>
+  <li>Si tenés síntomas fuertes, bajar a la base y descansar</li>
+  <li>Ibuprofeno o aspirina ayudan con el dolor de cabeza</li>
+</ul>
+    `
+  },
+  {
+    id:9,
+    categoria:'general',
+    catLabel:'Guías generales',
+    catClass:'gen',
+    titulo:'Temporadas en Mendoza: cuándo ir según lo que buscás',
+    desc:'¿Baja o alta temporada? ¿Invierno o verano? Te explicamos cómo funcionan las temporadas en Mendoza para que elijas la fecha perfecta para tu viaje y tu presupuesto.',
+    img:'assets/img/lenas-living.jpg',
+    fecha:'1 de junio 2026',
+    lectura:'5 min',
+    waMsg:'Hola! Leí el artículo sobre temporadas en Mendoza y quiero consultar disponibilidad.',
+    zona:'todos',
+    cuerpo:`
+<h3>Las temporadas en Mendoza: no hay una sola respuesta correcta</h3>
+<p>Una de las preguntas más frecuentes de nuestros huéspedes es cuándo es el mejor momento para venir. La respuesta depende de qué buscás: ski, sol, tranquilidad, precio o una combinación de todo. Te lo explicamos destino por destino.</p>
+
+<h3>🏔️ Potrerillos — Las temporadas</h3>
+<h4>Temporada alta (verano: dic-feb y receso invernal: 6-31 jul)</h4>
+<p>En verano Potrerillos está en su esplendor: el río está crecido para el rafting, la pileta está habilitada, y los fines de semana el lugar se llena de mendocinos. En julio es el receso invernal — también muy concurrido pero por otro perfil de turista que prefiere el frío y la montaña.</p>
+
+<h4>Temporada baja (marzo-junio / agosto-noviembre)</h4>
+<p>La temporada baja de Potrerillos es un secreto bien guardado. Menos gente, tarifas más accesibles, y la montaña igualmente impresionante. El rafting se puede hacer casi todo el año, las termas de Cacheuta son ideales en el frío, y la cabaña con chimenea encendida en mayo es una experiencia aparte.</p>
+
+<div class="tip">💡 <strong>Mejor relación precio-experiencia:</strong> Semanas de marzo-abril. Todavía hace calor, el río está bien, y hay mucha menos gente que en verano.</div>
+
+<h3>🏙️ Mendoza Capital — Las temporadas</h3>
+<h4>Vendimia (1ra semana de marzo)</h4>
+<p>La fiesta más grande de Mendoza. Toda la ciudad en modo festivo, desfiles, coronación de la reina, espectáculo en el Parque San Martín. Los departamentos en el centro están en el medio de todo. Precio: alta temporada.</p>
+
+<h4>Otoño (marzo-mayo)</h4>
+<p>Los viñedos se ponen rojos y amarillos — el mejor momento para el enoturismo. Temperaturas ideales para caminar el centro. Muy recomendado para parejas.</p>
+
+<h4>Invierno (jun-ago)</h4>
+<p>Mendoza Capital en invierno tiene temperaturas frías pero pocas nevadas en la ciudad. Los turistas de ski suelen quedarse en el centro una o dos noches antes o después de Las Leñas — los deptos de Gral. Espejo 333 son perfectos para eso.</p>
+
+<h4>Primavera (sept-nov)</h4>
+<p>Una de las mejores épocas. El campo está lleno de flores, las temperaturas son suaves y la ciudad está activa sin el caos del verano.</p>
+
+<h3>⛷️ Las Leñas — Una sola temporada</h3>
+<p>Las Leñas funciona solo en temporada de ski: julio-agosto principalmente, con apertura estimada en la segunda semana de julio y cierre en septiembre según las nevadas. No hay actividad invernal fuera de esos meses.</p>
+
+<h3>Nuestras tarifas por temporada</h3>
+<ul>
+  <li><strong>Temporada baja (mar-jun / sep-nov):</strong> Las tarifas más accesibles del año. Ideal para viajes con tiempo y presupuesto cuidado.</li>
+  <li><strong>Temporada alta (ene-feb / ago / dic):</strong> Mayor demanda, tarifas más altas. Reservar con anticipación.</li>
+  <li><strong>Receso invernal (6-31 julio):</strong> Temporada alta en Potrerillos y Las Leñas.</li>
+  <li><strong>Feriados largos:</strong> Alta demanda, reservar con mínimo 30 días de anticipación.</li>
+</ul>
+    `
+  },
+  {
+    id:10,
+    categoria:'familia',
+    catLabel:'Familias',
+    catClass:'fam',
+    titulo:'Ski en familia en Las Leñas: cómo organizarlo para que salga perfecto',
+    desc:'Llevar a los chicos al ski por primera vez es una experiencia que no olvidan. Te contamos cómo organizarlo, qué llevar, cuánto cuesta y por qué nuestro departamento es el punto de partida ideal.',
+    img:'assets/img/lenas-cocina.jpg',
+    fecha:'28 de junio 2026',
+    lectura:'6 min',
+    waMsg:'Hola! Leí el artículo de ski en familia y quiero consultar disponibilidad en Las Leñas.',
+    zona:'lenas',
+    cuerpo:`
+<h3>Ski con chicos: un antes y un después</h3>
+<p>Los chicos aprenden a esquiar increíblemente rápido — mucho más rápido que los adultos. Si tenés hijos entre 5 y 15 años y nunca los llevaste al ski, estás en el momento perfecto para hacerlo. Las Leñas tiene toda la infraestructura para que la primera vez sea un recuerdo imborrable.</p>
+
+<h3>¿A partir de qué edad?</h3>
+<ul>
+  <li><strong>Desde los 3 años:</strong> Algunos instructores trabajan con niños de 3-4 años en el sector de práctica de la base.</li>
+  <li><strong>5-7 años:</strong> Clases grupales en el jardín de nieve. Los chicos aprenden mientras juegan.</li>
+  <li><strong>8-12 años:</strong> La edad de oro para aprender ski. Progresión muy rápida.</li>
+  <li><strong>Adolescentes:</strong> Pueden estar en clases con adultos. Si ya esquían, suelen superar a los padres en 2-3 días.</li>
+</ul>
+
+<h3>Jardín de nieve y clases para niños</h3>
+<p>Las Leñas tiene un sector especialmente diseñado para los más chicos:</p>
+<ul>
+  <li>Pista de práctica con cintas transportadoras (no telesilla — para los más pequeños)</li>
+  <li>Instructores especializados en niños</li>
+    </ul>
+
+<h3>Logística familiar: cómo organizarlo</h3>
+<h4>Nuestro departamento como base</h4>
+<p>El departamento MSN en Las Leñas es la base ideal para una semana de ski familiar. Cocina equipada para preparar el desayuno y la merienda (ahorrar dinero en el resort), living comedor para el momento de calentarse al volver de las pistas, y la parada del colectivo gratuito del resort en la puerta del edificio.</p>
+
+<h4>Organización del día tipo</h4>
+<ul>
+  <li><strong>8:00 hs:</strong> Desayuno en el depto</li>
+  <li><strong>9:00 hs:</strong> Colectivo gratuito a las pistas (10 min)</li>
+  <li><strong>9:30-12:00 hs:</strong> Mañana de ski / clases para los chicos</li>
+  <li><strong>12:00-14:00 hs:</strong> Almuerzo en el resort o regreso al depto para almorzar (ahorra mucho dinero)</li>
+  <li><strong>14:00-16:30 hs:</strong> Tarde de ski hasta que el cuerpo aguante</li>
+  <li><strong>17:00 hs:</strong> Colectivo de regreso al depto, chocolate caliente</li>
+  <li><strong>19:00 hs:</strong> Après-ski suave o cena en el resort</li>
+</ul>
+
+<div class="highlight">💰 <strong>Tip de presupuesto:</strong> Preparar el desayuno y el almuerzo en el depto puede representar un ahorro significativo por día para una familia de 4. En una semana la diferencia es enorme.</div>
+
+<h3>Presupuesto estimado semana familiar (4 personas)</h3>
+<ul>
+  <li>Alojamiento (7 noches en depto MSN): consultar tarifas</li>
+          </ul>
+
+<p>Reservar directo con nosotros te ahorra las comisiones de plataformas. Escribinos por WhatsApp y te armamos una cotización personalizada para tu familia.</p>
+    `
+  },
+];
+
+// ============================================================
+// RENDER
+// ============================================================
+let filtroActivo = 'todos';
+
+function renderGrid(filtro){
+  const grid = document.getElementById('blog-grid');
+  const arts = filtro==='todos' ? ARTICULOS : ARTICULOS.filter(a=>a.categoria===filtro);
+  grid.innerHTML = arts.map(a=>`
+    <a class="blog-card" href="javascript:void(0)" onclick="abrirArt(${a.id})" data-cat="${a.categoria}">
+      <div class="blog-card-img">
+        <img src="${a.img}" alt="${a.titulo}" loading="lazy">
+        <span class="blog-card-badge badge-${a.catClass}">${a.catLabel}</span>
+      </div>
+      <div class="blog-card-body">
+        <div class="blog-card-cat cat-${a.catClass}">${a.catLabel.toUpperCase()}</div>
+        <div class="blog-card-title">${a.titulo}</div>
+        <div class="blog-card-desc">${a.desc}</div>
+        <div class="blog-card-meta">
+          <span>📅 ${a.fecha} · ⏱ ${a.lectura} de lectura</span>
+          <span class="read-more">Leer →</span>
+        </div>
+      </div>
+    </a>
+  `).join('');
+}
+
+function filtrar(cat, btn){
+  filtroActivo = cat;
+  document.querySelectorAll('.bfil').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid(cat);
+}
+
+function abrirArt(id){
+  const a = ARTICULOS.find(x=>x.id===id);
+  if(!a) return;
+  document.getElementById('art-img').src = a.img;
+  document.getElementById('art-img').alt = a.titulo;
+  document.getElementById('art-badge').textContent = a.catLabel;
+  document.getElementById('art-badge').className = 'art-badge badge-' + a.catClass;
+  document.getElementById('art-titulo').textContent = a.titulo;
+  document.getElementById('art-meta').innerHTML = `<span>📅 ${a.fecha}</span><span>⏱ ${a.lectura} de lectura</span><span class="blog-card-cat cat-${a.catClass}">${a.catLabel.toUpperCase()}</span>`;
+  document.getElementById('art-cuerpo').innerHTML = a.cuerpo;
+  const waZona = {potrerillos:'potrerillos',ciudad:'ciudad',lenas:'lenas'}[a.zona]||'';
+  document.getElementById('art-cta-wa').href = 'https://wa.me/5492616543938?text='+encodeURIComponent(a.waMsg);
+  document.getElementById('art-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // Store current article for consultation modal
+  window._artActual = a;
+  // Track
+  if(typeof fbq!=='undefined') fbq('track','ViewContent',{content_name:a.titulo,content_category:a.catLabel});
+}
+
+function cerrarArt(e, force){
+  if(force || (e&&e.target===document.getElementById('art-overlay'))){
+    document.getElementById('art-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') cerrarArt(null,true); });
+
+
+// ===== MODAL CONSULTA BLOG =====
+function abrirConsultaBlog(){
+  const a = window._artActual;
+  if(!a) return;
+  document.getElementById('cmod-origen-label').textContent = 'Artículo: '+a.titulo.substring(0,50)+'...';
+  document.getElementById('cmod-art-info').textContent = '📖 Llegaste desde el blog — '+a.catLabel+': "'+a.titulo.substring(0,60)+'..."';
+  document.getElementById('blog-consulta-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarConsulta(e, force){
+  if(force || (e && e.target === document.getElementById('blog-consulta-overlay'))){
+    document.getElementById('blog-consulta-overlay').style.display = 'none';
+    document.body.style.overflow = 'hidden'; // keep art overlay scroll
+  }
+}
+
+function enviarConsultaBlog(){
+  const nombre = document.getElementById('cmod-nombre').value.trim();
+  const ci = document.getElementById('cmod-ci').value;
+  const co = document.getElementById('cmod-co').value;
+  const pax = document.getElementById('cmod-pax').value;
+  const extra = document.getElementById('cmod-extra').value.trim();
+  const a = window._artActual;
+
+  // Validaciones
+  if(!nombre){ alert('Por favor ingresá tu nombre.'); return; }
+  if(!ci||!co){ alert('Por favor ingresá las fechas de llegada y salida.'); return; }
+  if(!pax){ alert('Por favor seleccioná la cantidad de personas.'); return; }
+
+  // Formatear fechas
+  const fmtD = d=>{ if(!d)return'—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+  const noches = Math.round((new Date(co)-new Date(ci))/(1000*60*60*24));
+
+  // Construir mensaje completo
+  let msg = 'Hola! Me llamo '+nombre+' y llego desde el Blog de Mendoza Sol y Nieve.
+';
+  msg += '📖 Artículo consultado: "'+a.titulo+'"
+';
+  msg += '📍 Categoría: '+a.catLabel+'
+
+';
+  msg += '📅 Fecha de llegada: '+fmtD(ci)+'
+';
+  msg += '📅 Fecha de salida: '+fmtD(co)+'
+';
+  msg += '🌙 Noches: '+noches+'
+';
+  msg += '👥 Personas: '+pax+'
+';
+  if(extra){
+    msg += '
+💬 Consulta adicional: '+extra+'
+';
+  }
+  msg += '
+Quedo a espera de su respuesta. ¡Gracias!';
+
+  window.open('https://wa.me/5492616543938?text='+encodeURIComponent(msg),'_blank');
+
+  // Track
+  if(typeof fbq!=='undefined') fbq('track','Contact',{content_name:'Blog: '+a.titulo});
+  if(typeof gtag!=='undefined') gtag('event','conversion',{'send_to':'AW-934992014'});
+
+  cerrarConsulta(null,true);
+}
+
+// Init
+renderGrid('todos');
+</script>
+
+<!-- MODAL CONSULTA DEL BLOG -->
+<div id="blog-consulta-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;overflow-y:auto;padding:20px;" onclick="cerrarConsulta(event)">
+  <div style="max-width:480px;margin:30px auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="background:#0a3560;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:15px;font-weight:700;">💬 Consultar disponibilidad</div>
+        <div style="font-size:12px;opacity:.75;margin-top:2px" id="cmod-origen-label">Blog Mendoza Sol y Nieve</div>
+      </div>
+      <button onclick="cerrarConsulta(null,true)" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:0;line-height:1;">✕</button>
+    </div>
+    <div style="padding:20px;">
+      <div style="background:#e8f0f9;border-radius:8px;padding:10px 13px;font-size:12px;color:#0f4c81;margin-bottom:16px;" id="cmod-art-info">
+        📖 Consultando desde el blog
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;">Nombre completo *</label>
+        <input type="text" id="cmod-nombre" placeholder="Tu nombre" style="width:100%;padding:9px 12px;border:1px solid #e2e0d8;border-radius:8px;font-size:14px;font-family:inherit;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;">Fecha llegada *</label>
+          <input type="date" id="cmod-ci" style="width:100%;padding:9px 12px;border:1px solid #e2e0d8;border-radius:8px;font-size:13px;font-family:inherit;">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;">Fecha salida *</label>
+          <input type="date" id="cmod-co" style="width:100%;padding:9px 12px;border:1px solid #e2e0d8;border-radius:8px;font-size:13px;font-family:inherit;">
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;">Cantidad de personas *</label>
+        <select id="cmod-pax" style="width:100%;padding:9px 12px;border:1px solid #e2e0d8;border-radius:8px;font-size:14px;font-family:inherit;background:#fff;">
+          <option value="">Seleccioná</option>
+          <option value="1">1 persona</option>
+          <option value="2">2 personas</option>
+          <option value="3">3 personas</option>
+          <option value="4">4 personas</option>
+          <option value="5">5 personas</option>
+          <option value="6">6 personas</option>
+          <option value="7">7 personas</option>
+        </select>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;">¿Qué información extra querés? (opcional)</label>
+        <textarea id="cmod-extra" rows="3" placeholder="Ej: Quiero más info sobre rafting, si aceptan mascotas, qué incluye el alojamiento..." style="width:100%;padding:9px 12px;border:1px solid #e2e0d8;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+      </div>
+      <button onclick="enviarConsultaBlog()" style="width:100%;padding:13px;background:#25D366;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Enviar consulta por WhatsApp
+      </button>
+      <p style="font-size:11px;color:#9c9a94;text-align:center;margin-top:10px;">Te respondemos en minutos · Sin intermediarios</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
