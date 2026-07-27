@@ -1583,7 +1583,7 @@ async function getDolarHoy(){
         _dolarCache={valor:v,fecha:hoyStr};
         // Auto-save to cotizDB
         if(window._cotizDB&&!window._cotizDB[hoyStr]){
-          window._cotizDB[hoyStr]={compra:d?.oficial?.value_buy||Math.round(v*0.97),venta:v,fuente:'Bluelytics/BNA automático'};
+          window._cotizDB[hoyStr]={compra:d?.oficial?.value_buy||Math.round(v*0.97),venta:v,fuente:'BNA oficial automático'};
           if(window.guardarCotizLocal)window.guardarCotizLocal();
           if(window.renderCotizacion)window.renderCotizacion();
         }
@@ -1598,7 +1598,7 @@ async function getDolarHoy(){
       if(v>0){
         _dolarCache={valor:v,fecha:hoyStr};
         if(window._cotizDB&&!window._cotizDB[hoyStr]){
-          window._cotizDB[hoyStr]={compra:d?.compra||Math.round(v*0.97),venta:v,fuente:'DolarAPI automático'};
+          window._cotizDB[hoyStr]={compra:d?.compra||Math.round(v*0.97),venta:v,fuente:'BNA oficial automático'};
           if(window.guardarCotizLocal)window.guardarCotizLocal();
           if(window.renderCotizacion)window.renderCotizacion();
         }
@@ -1865,23 +1865,19 @@ async function autoCompletarTarifa(){
   const prioridad=[temporada,'FERIADO_LARGO','ALTA','BAJA'];
   let tar=null;
   for(const tp of prioridad){
-    // Buscar con rango de fechas primero
-  let found=window._tarifas.filter(t=>t.alojamiento===alo&&Number(t.pax)===Number(pax)&&
-    (t.temporada===tp||(t.temporada==='RECESO_INV'&&tp==='ALTA'))&&
-    t.desde<=ci&&(!t.hasta||t.hasta>=ci));
-  // Fallback: sin rango de fechas (tarifas cargadas manualmente sin desde/hasta)
+    // PRIORIDAD: usar TARIFAS_PLANILLA hardcoded primero (fuente de verdad)
+  // Firestore puede tener fechas incorrectas por carga manual
+  const planRow=TARIFAS_PLANILLA.find(p=>p.alo===alo&&Number(p.pax)===Number(pax));
+  let found=[];
+  if(planRow){
+    const tempField=tp==='ALTA'?'alta':tp==='RECESO_INV'?'recInv':tp==='FERIADO_LARGO'?'ferLargo':tp==='VERANO'?'verano':'baja';
+    const val=planRow[tempField]||planRow.baja||0;
+    if(val>0) found=[{valorNoche:val,alojamiento:alo,pax:Number(pax),temporada:tp,fuente:'planilla'}];
+  }
+  // Si no está en planilla, buscar en Firestore (con o sin rango de fechas)
   if(!found.length){
     found=window._tarifas.filter(t=>t.alojamiento===alo&&Number(t.pax)===Number(pax)&&
       (t.temporada===tp||(t.temporada==='RECESO_INV'&&tp==='ALTA')));
-  }
-  // Fallback 2: usar TARIFAS_PLANILLA directamente (siempre disponible)
-  if(!found.length){
-    const planRow=TARIFAS_PLANILLA.find(p=>p.alo===alo&&Number(p.pax)===Number(pax));
-    if(planRow){
-      const tempField=tp==='ALTA'?'alta':tp==='RECESO_INV'?'recInv':tp==='VERANO'?'verano':'baja';
-      const val=planRow[tempField]||planRow.baja||0;
-      if(val>0) found=[{valorNoche:val,alojamiento:alo,pax,temporada:tp}];
-    }
   }
     if(found.length){tar=found.sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];break;}
   }
@@ -2971,9 +2967,19 @@ function mostrarResultado(disponibles,ocupadas,proximas,ci,co,noches,pax){
       // Buscar pax exacto primero, luego pax inmediato inferior si no existe
       let tarPax=null;
       for(let p=pax;p>=1;p--){
-        tarPax=(window._tarifas.filter(t=>t.alojamiento===u&&Number(t.pax)===p&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)).length?
-        window._tarifas.filter(t=>t.alojamiento===u&&Number(t.pax)===p&&t.desde<=ci&&(!t.hasta||t.hasta>=ci)):
-        window._tarifas.filter(t=>t.alojamiento===u&&Number(t.pax)===p)).sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
+        tarPax=(()=>{
+        // Priorizar TARIFAS_PLANILLA
+        const tp2=getTemporadaByFecha(ci);
+        const pr=TARIFAS_PLANILLA.find(x=>x.alo===u&&Number(x.pax)===p);
+        if(pr){
+          const tf=tp2==='ALTA'?'alta':tp2==='RECESO_INV'?'recInv':tp2==='FERIADO_LARGO'?'ferLargo':tp2==='VERANO'?'verano':'baja';
+          const vn=pr[tf]||pr.baja||0;
+          if(vn>0) return [{valorNoche:vn,alojamiento:u,pax:p,temporada:tp2,fuente:'planilla',fechaCarga:ci}];
+        }
+        // Fallback Firestore
+        const fs=window._tarifas.filter(t=>t.alojamiento===u&&Number(t.pax)===p);
+        return fs;
+      })().sort((a,b)=>b.fechaCarga.localeCompare(a.fechaCarga))[0];
         if(tarPax)break;
       }
       const cotiz=parseFloat(document.getElementById('cot-bk')?.value)||0;
@@ -3025,7 +3031,7 @@ function generarRespuesta(disponibles,ocupadas,proximas,ci,co,noches,pax,zona){
   if(disponibles.length){
     wa+='✅ Tenemos disponibilidad '+zonaTxt+':\n📅 *'+fmtF(ci)+' al '+fmtF(co)+'* ('+noches+' noches · '+pax+' personas)\n\n*Unidades disponibles:*\n';
     disponibles.forEach(u=>{const tar=getTarPax(u);wa+='🏠 '+u+fmtTarWA(tar)+'\n';});
-    if(cotiz>0)wa+='\n_Cotización U$S blue: $'+fmt(cotiz)+'_\n';
+    if(cotiz>0)wa+='\n_Cotización U$S BNA: $'+fmt(cotiz)+'_\n';
     wa+='\nPara confirmar necesitamos:\n• Nombre completo\n• DNI o pasaporte\n• Seña del 30% para reservar\n\n📲 Respondá para coordinar el pago.\n\n_Check-in 14hs · Check-out 10hs_\n+54 9 261 654 3938';
   }else{
     wa+='Lo sentimos, no tenemos disponibilidad '+zonaTxt+' para:\n📅 *'+fmtF(ci)+' al '+fmtF(co)+'*\n\n';
@@ -3036,7 +3042,7 @@ function generarRespuesta(disponibles,ocupadas,proximas,ci,co,noches,pax,zona){
   if(disponibles.length){
     email+='Contamos con disponibilidad para sus fechas:\n📅 '+fmtF(ci)+' al '+fmtF(co)+' ('+noches+' noches · '+pax+' personas)\n\nUnidades disponibles:\n';
     disponibles.forEach(u=>{const tar=getTarPax(u);email+='  • '+u+fmtTarEmail(tar)+'\n';});
-    if(cotiz>0)email+='\nCotización U$S blue: $'+fmt(cotiz)+'\n';
+    if(cotiz>0)email+='\nCotización U$S BNA: $'+fmt(cotiz)+'\n';
     email+='\nPara confirmar la reserva le solicitamos:\n  • Nombre completo del titular\n  • DNI o Pasaporte\n  • Seña del 30% del total\n\nDatos bancarios:\nBanco Supervielle | CA ARS | CBU: 0270093920005386120016 | Alias: OSCAR.PORCARIO\n\nCheck-in: 14:00 hs | Check-out: 10:00 hs\n';
   }else{
     email+='Lamentamos informarle que no contamos con disponibilidad para:\n📅 '+fmtF(ci)+' al '+fmtF(co)+'\n\n';
@@ -3604,10 +3610,10 @@ const TARIFAS_PLANILLA=[
   {alo:'Cabaña grande',pax:6,baja:95,alta:120,ferLargo:120,recInv:120,verano:120,platBaja:106,platAlta:130,platFerLargo:130,platRecInv:130,platVerano:130},
   {alo:'Cabaña grande',pax:7,baja:100,alta:130,ferLargo:130,recInv:130,verano:130,platBaja:115,platAlta:150,platFerLargo:150,platRecInv:150,platVerano:150},
   // LAS LEÑAS — solo alta/receso invernal (máx 4 pax · mín 3 noches)
-  {alo:'Departamento 4 pax VLL',pax:1,baja:0,alta:180,ferLargo:180,recInv:180,verano:0,platBaja:0,platAlta:220,platFerLargo:220,platRecInv:220,platVerano:0},
-  {alo:'Departamento 4 pax VLL',pax:2,baja:0,alta:180,ferLargo:180,recInv:180,verano:0,platBaja:0,platAlta:220,platFerLargo:220,platRecInv:220,platVerano:0},
-  {alo:'Departamento 4 pax VLL',pax:3,baja:0,alta:200,ferLargo:200,recInv:200,verano:0,platBaja:0,platAlta:240,platFerLargo:240,platRecInv:240,platVerano:0},
-  {alo:'Departamento 4 pax VLL',pax:4,baja:0,alta:200,ferLargo:200,recInv:200,verano:0,platBaja:0,platAlta:240,platFerLargo:240,platRecInv:240,platVerano:0},
+  {alo:'Departamento 4 pax VLL',pax:1,baja:200,alta:250,ferLargo:250,recInv:250,verano:0,platBaja:220,platAlta:270,platFerLargo:270,platRecInv:270,platVerano:0},
+  {alo:'Departamento 4 pax VLL',pax:2,baja:200,alta:250,ferLargo:250,recInv:250,verano:0,platBaja:220,platAlta:270,platFerLargo:270,platRecInv:270,platVerano:0},
+  {alo:'Departamento 4 pax VLL',pax:3,baja:220,alta:270,ferLargo:270,recInv:270,verano:0,platBaja:245,platAlta:295,platFerLargo:295,platRecInv:295,platVerano:0},
+  {alo:'Departamento 4 pax VLL',pax:4,baja:220,alta:270,ferLargo:270,recInv:270,verano:0,platBaja:245,platAlta:295,platFerLargo:295,platRecInv:295,platVerano:0},
 ];
 
 function mostrarImportarPlanilla(){
