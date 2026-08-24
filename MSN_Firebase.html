@@ -318,7 +318,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
                 <option>Departamento Ciudad de Mendoza 2</option>
                 <option>Departamento Ciudad de Mendoza 3</option>
                 <option>Cabaña grande</option><option>Cabaña Loft</option>
-                <option>Cabaña Standard</option><option>Departamento 4 pax VLL</option>
+                <option>⚠ Cabaña Backup (uso interno)</option><option>Departamento 4 pax VLL</option>
               </select>
             </div>
             <div class="fg"><label>Valor x noche base (ARS)</label><input type="number" id="f-p1" oninput="calcTot();renderNochesDetalle()"></div>
@@ -374,7 +374,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
                 <option>Departamento Ciudad de Mendoza 2</option>
                 <option>Departamento Ciudad de Mendoza 3</option>
                 <option>Cabaña grande</option><option>Cabaña Loft</option>
-                <option>Cabaña Standard</option><option>Departamento 4 pax VLL</option>
+                <option>⚠ Cabaña Backup (uso interno)</option><option>Departamento 4 pax VLL</option>
               </select>
             </div>
             <div class="fg"><label>Valor x noche 2</label><input type="number" id="f-p2" oninput="calcTot()"></div>
@@ -1173,7 +1173,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
             <option value="Departamento Ciudad de Mendoza 2">Dpto Mza 2</option>
             <option value="Departamento Ciudad de Mendoza 3">Dpto Mza 3</option>
             <option value="Cabaña grande">Cabaña Grande (7 camas)</option>
-            <option value="Cabaña Standard">Cabaña Standard (6 camas)</option>
+            <option value="Cabaña Backup">⚠ Backup (Cabaña Standard)</option>
             <option value="Cabaña Loft">Cabaña Loft (4 camas)</option>
             <option value="Departamento 4 pax VLL">Dpto Valle Las Leñas (4 camas)</option>
           </select>
@@ -1216,7 +1216,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
               <option value="Departamento Ciudad de Mendoza 2">Dpto Mza 2</option>
               <option value="Departamento Ciudad de Mendoza 3">Dpto Mza 3</option>
               <option value="Cabaña grande">Cab. Grande</option>
-              <option value="Cabaña Standard">Cab. Standard</option>
+              <option value="Cabaña Backup">⚠ Backup</option>
               <option value="Cabaña Loft">Cab. Loft</option>
               <option value="Departamento 4 pax VLL">Dpto VLL</option>
             </select>
@@ -2083,7 +2083,7 @@ function renderCal(){
   const[ano,mes]=[parseInt(fm.split('-')[0]),parseInt(fm.split('-')[1])];
   const dias=new Date(ano,mes,0).getDate();
   const undsN=['Dpto Mza 2','Dpto Mza 3','Cab. Grande','Cab. Loft','Cab. Std.','Dpto VLL'];
-  const undsF=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3','Cabaña grande','Cabaña Loft','Cabaña Standard','Departamento 4 pax VLL'];
+  const undsF=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3','Cabaña grande','Cabaña Loft','Cabaña Backup','Departamento 4 pax VLL'];
   const t=document.getElementById('cal-tabla');
   let h='<tr><th class="cu">Unidad</th>';
   for(let d=1;d<=dias;d++){
@@ -2243,7 +2243,7 @@ function renderStats(){
     '<div class="stat"><div class="st-l">Comisiones</div><div class="st-v" style="font-size:16px;color:var(--er)">$'+fmt(comTot)+'</div></div>'+
     '<div class="stat"><div class="st-l">Late Check-Outs</div><div class="st-v" style="font-size:16px;color:var(--wa)">$'+fmt(lateTot)+'</div></div>'+
     '<div class="stat"><div class="st-l">Cancelaciones</div><div class="st-v" style="color:var(--er)">'+canc.length+'</div></div>';
-  const unds=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3','Cabaña grande','Cabaña Loft','Cabaña Standard','Departamento 4 pax VLL'];
+  const unds=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3','Cabaña grande','Cabaña Loft','Cabaña Backup','Departamento 4 pax VLL'];
   let hu='<thead><tr><th>Unidad</th><th>Reservas</th><th>Noches</th><th>Pax</th><th class="num">Facturado</th><th class="num">Prom/noche</th></tr></thead><tbody>';
   unds.forEach(u=>{
     const rs=activos.filter(r=>r.u1===u||r.u2===u);
@@ -2343,7 +2343,7 @@ function renderMucamas(){
   const valDiaBase=parseFloat(gv('muc-val-dia'))||0,valDiaCab=parseFloat(gv('muc-val-dia-cab'))||valDiaBase;
   const valPasajeCab=parseFloat(gv('muc-val-pasaje-cab'))||0;
   const activos=window._db.filter(r=>r.tipo==='RESERVA CONFIRMADA');
-  const undsCAB=['Cabaña grande','Cabaña Loft','Cabaña Standard'];
+  const undsCAB=['Cabaña grande','Cabaña Loft','Cabaña Backup'];
   const undsDEP=['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'];
   function calcU(unidad,valCO,valDia){
     const reservas=activos.filter(r=>(r.u1===unidad||r.u2===unidad)&&r.cin1&&r.cin1<=hasta&&r.cout1&&r.cout1>=desde);
@@ -2700,7 +2700,7 @@ function procesarBK(){
     const valorNocheARS=precioARS>0?Math.round(precioARS/noches):0;
     const esMovil=dispositivo.includes('movil')||dispositivo.includes('móvil')||dispositivo.includes('mobile');
     const descARS=esMovil?Math.round(precioARS*0.15):0;
-    let alo='Cabaña Standard';
+    let alo='Cabaña Backup';
     if(tipoUnidadL.includes('mendoza work')||tipoUnidadL.includes('oficina'))alo='Departamento Ciudad de Mendoza 3';
     else if(tipoUnidadL.includes('plaza independencia'))alo='Departamento Ciudad de Mendoza 2';
     else if(tipoUnidadL.includes('loft')||habitacion.includes('loft'))alo='Cabaña Loft';
@@ -2746,7 +2746,7 @@ function procesarDP(){
     const tarifaNeta=cols[14]||'0';const totalCobrar=cols[19]||'0';
     const titular=cols[24]||'Pasajero Despegar';
     const nombreHab=(cols[26]||'').toLowerCase();const tipoCateg=(cols[27]||'').toLowerCase();
-    let alo='Cabaña Standard';
+    let alo='Cabaña Backup';
     if((nombreHab.includes('departamento 2'))&&tipoCateg.includes('executive'))alo='Departamento Ciudad de Mendoza 2';
     else if(nombreHab.includes('departamento 1')&&tipoCateg.includes('est'))alo='Departamento Ciudad de Mendoza 3';
     else if(nombreHab.includes('loft'))alo='Cabaña Loft';
@@ -2800,7 +2800,7 @@ function mapearHabExpedia(hab){
   if(h.includes('city studio')||h.includes('studio'))return'Departamento Ciudad de Mendoza 2';
   if(h.includes('deluxe cabin')||h.includes('delux cabin'))return'Cabaña grande';
   if(h.includes('loft'))return'Cabaña Loft';
-  return'Cabaña Standard';
+  return'Cabaña Backup';
 }
 function mapearEstadoExpedia(e){const s=(e||'').toLowerCase();if(s==='cancelled'||s==='canceled')return'CANCELADA';if(s==='no_show'||s==='noshow')return'NO_SHOW';return'RESERVA CONFIRMADA';}
 function parsearCSVExpediaLinea(linea){
@@ -2871,7 +2871,7 @@ function renderExpedia(){
 </script>
 <script>
 // ===== CONSULTAS =====
-const ALOJAMIENTOS_MSN={ciudad:['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'],potrerillos:['Cabaña grande','Cabaña Loft'] /* Standard: uso interno */,lenas:['Departamento 4 pax VLL']};
+const ALOJAMIENTOS_MSN={ciudad:['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'],potrerillos:['Cabaña grande','Cabaña Loft'] /* Backup (Cabaña 14): solo uso interno */,lenas:['Departamento 4 pax VLL']};
 function toggleListaConsultas(){const p=document.getElementById('lista-consultas-panel');if(p)p.style.display=p.style.display==='none'?'block':'none';renderConsultasGuardadas();}
 function renderConsultasGuardadas(){
   const consultas=window._db.filter(r=>r.tipo==='CONSULTA').sort((a,b)=>b.fecha.localeCompare(a.fecha));
@@ -2900,7 +2900,7 @@ async function guardarConsulta(){
   const zona=gv('cons-zona');
   let u1='';
   if(zona==='ciudad')u1='Departamento Ciudad de Mendoza 2';
-  else if(zona==='potrerillos')u1='Cabaña Standard';
+  else if(zona==='potrerillos')u1='Cabaña Backup';
   const r={
     id:String(Date.now()),nro:window._cnt++,fecha:hoy(),tipo:'CONSULTA',origen:'DIRECTO',
     nombre,email:gv('cons-email'),telefono:gv('cons-tel'),pax,
@@ -3461,7 +3461,7 @@ function renderTarifasAlo(){
   const alo=gv('tar-alo-sel')||'Departamento Ciudad de Mendoza 2';
   const pax=parseInt(gv('tar-pax-sel'))||2;
   const maxCamas={
-    'Cabaña grande':7,'Cabaña Standard':6,'Cabaña Loft':4,
+    'Cabaña grande':7,'Cabaña Backup':6,'Cabaña Loft':4,
     'Departamento Ciudad de Mendoza 2':4,'Departamento Ciudad de Mendoza 3':4,'Departamento 4 pax VLL':4
   };
   const max=maxCamas[alo]||4;
@@ -3608,11 +3608,11 @@ const TARIFAS_PLANILLA=[
   {alo:'Cabaña Loft',pax:3,baja:70,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:80,platAlta:98,platFerLargo:98,platRecInv:98,platVerano:98},
   {alo:'Cabaña Loft',pax:4,baja:70,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:80,platAlta:98,platFerLargo:98,platRecInv:98,platVerano:98},
   // POTRERILLOS — STANDARD (USO INTERNO — no publicada)
-  {alo:'Cabaña Standard',pax:1,baja:72,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:83,platAlta:103,platFerLargo:103,platRecInv:103,platVerano:103},
-  {alo:'Cabaña Standard',pax:2,baja:72,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:83,platAlta:103,platFerLargo:103,platRecInv:103,platVerano:103},
-  {alo:'Cabaña Standard',pax:3,baja:77,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:88,platAlta:108,platFerLargo:108,platRecInv:108,platVerano:108},
-  {alo:'Cabaña Standard',pax:4,baja:77,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:88,platAlta:108,platFerLargo:108,platRecInv:108,platVerano:108},
-  {alo:'Cabaña Standard',pax:5,baja:85,alta:110,ferLargo:110,recInv:110,verano:110,platBaja:105,platAlta:115,platFerLargo:115,platRecInv:115,platVerano:115},
+  {alo:'Cabaña Backup',pax:1,baja:72,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:83,platAlta:103,platFerLargo:103,platRecInv:103,platVerano:103},
+  {alo:'Cabaña Backup',pax:2,baja:72,alta:90,ferLargo:90,recInv:90,verano:90,platBaja:83,platAlta:103,platFerLargo:103,platRecInv:103,platVerano:103},
+  {alo:'Cabaña Backup',pax:3,baja:77,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:88,platAlta:108,platFerLargo:108,platRecInv:108,platVerano:108},
+  {alo:'Cabaña Backup',pax:4,baja:77,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:88,platAlta:108,platFerLargo:108,platRecInv:108,platVerano:108},
+  {alo:'Cabaña Backup',pax:5,baja:85,alta:110,ferLargo:110,recInv:110,verano:110,platBaja:105,platAlta:115,platFerLargo:115,platRecInv:115,platVerano:115},
   // POTRERILLOS — GRANDE (máx 7 pax · mín 2 noches)
   {alo:'Cabaña grande',pax:1,baja:79,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:91,platAlta:114,platFerLargo:114,platRecInv:114,platVerano:114},
   {alo:'Cabaña grande',pax:2,baja:79,alta:99,ferLargo:99,recInv:99,verano:99,platBaja:91,platAlta:114,platFerLargo:114,platRecInv:114,platVerano:114},
@@ -4101,7 +4101,7 @@ function renderRecambios(){
   }
 
   const activos = window._db.filter(r=>(r.tipo==='RESERVA CONFIRMADA')&&!r.cancelada&&!r.cancelado);
-  const undsCAB = ['Cabaña grande','Cabaña Loft','Cabaña Standard'];
+  const undsCAB = ['Cabaña grande','Cabaña Loft','Cabaña Backup'];
   const undsDEP = ['Departamento Ciudad de Mendoza 2','Departamento Ciudad de Mendoza 3'];
 
   function movsUnidad(unidad){
@@ -4124,7 +4124,7 @@ function renderRecambios(){
   function renderTabla(unds){
     const rows = unds.map(u=>{
       const {sale, entra} = movsUnidad(u);
-      const label = u.includes('grande')?'Cabaña Grande':u.includes('Loft')?'Cabaña Loft':u.includes('Standard')?'Cabaña Standard':u.includes('2')?'Depto 2':u.includes('3')?'Depto 3':u;
+      const label = u.includes('grande')?'Cabaña Grande':u.includes('Loft')?'Cabaña Loft':u.includes('Backup')?'⚠ Backup':u.includes('2')?'Depto 2':u.includes('3')?'Depto 3':u;
       let html = '<div style="border:1px solid var(--bd);border-radius:8px;margin-bottom:8px;overflow:hidden">';
       html += '<div style="padding:8px 12px;background:var(--bg3);font-weight:700;font-size:12px;color:var(--txt)">🏠 '+label+'</div>';
       html += '<div style="padding:8px 12px;font-size:12px">';
@@ -4174,7 +4174,7 @@ function copiarWARecambiosCab(){
   d.dataCab.forEach(u=>{
     if(!u.sale&&!u.entra) return;
     hayMovs = true;
-    const label = u.unidad.includes('grande')?'Cabaña Grande':u.unidad.includes('Loft')?'Cabaña Loft':u.unidad.includes('Standard')?'Cabaña Standard':u.unidad;
+    const label = u.unidad.includes('grande')?'Cabaña Grande':u.unidad.includes('Loft')?'Cabaña Loft':u.unidad.includes('Backup')?'⚠ Backup':u.unidad;
     txt += '🏠 *'+label+'*\n';
     if(u.sale)  txt += '   ⬆ Sale: '+u.sale.nombre+' ('+u.sale.pax+' pax)\n';
     if(u.entra) txt += '   ⬇ Entra: '+u.entra.nombre+' ('+u.entra.pax+' pax) · Egreso: '+u.entra.cout+'\n';
@@ -4234,7 +4234,7 @@ function nombreCabana(u1){
   const s=(u1||'').toLowerCase();
   if(s.includes('grande'))return'CABAÑA 15';
   if(s.includes('loft'))  return'CABAÑA 16';
-  if(s.includes('standard'))return'CABAÑA 14';
+  if(s.includes('backup'))return'CABAÑA 14';
   return u1||'CABAÑA';
 }
 
