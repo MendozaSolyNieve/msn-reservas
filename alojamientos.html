@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alojamientos en Mendoza — Cabañas y Departamentos | Mendoza Sol y Nieve</title>
+<meta name="description" content="Cabañas en Potrerillos, departamentos en Mendoza Capital y Valle de Las Leñas. Filtrá por experiencia y encontrá tu alojamiento ideal.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.mendozasolynieve.com.ar/alojamientos.html">
+<meta property="og:title" content="Alojamientos — Mendoza Sol y Nieve">
+<meta property="og:description" content="Cabañas en Potrerillos, departamentos en Mendoza Capital y Las Leñas.">
+<meta property="og:image" content="https://www.mendozasolynieve.com.ar/assets/img/og-home.jpg">
+<meta property="og:url" content="https://www.mendozasolynieve.com.ar/alojamientos.html">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-WRDWDD4L');</script>
+<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','572989396234140');fbq('track','PageView');</script>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <a href="index.html" class="logo">
+      <!-- Logo real: reemplazar con <img src="assets/img/logo.png" alt="Mendoza Sol y Nieve"> -->
+      <div class="logo-sun"></div>Mendoza Sol y Nieve
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="alojamientos.html">Alojamientos</a></li>
+      <li><a href="galeria.html">Galería</a></li>
+      <li><a href="promociones.html">Promociones</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contacto.html">Contacto</a></li>
+      <li><a href="https://wa.me/5492616543938" class="btn btn-wa nav-cta" target="_blank" rel="noopener" data-origin="nav" onclick="trackContact('nav')">💬 WhatsApp</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<nav class="mobile-menu" id="mobile-menu" aria-label="Menú móvil">
+  <button class="mobile-close" id="menu-close" aria-label="Cerrar menú">✕</button>
+  <a href="index.html">Inicio</a>
+  <a href="alojamientos.html">Alojamientos</a>
+  <a href="galeria.html">Galería</a>
+  <a href="promociones.html">Promociones</a>
+  <a href="blog.html">Blog</a>
+  <a href="contacto.html">Contacto</a>
+  <a href="https://wa.me/5492616543938" class="btn btn-wa" target="_blank" rel="noopener" data-origin="menu_mobile" onclick="trackContact('menu_mobile')">💬 WhatsApp</a>
+</nav>
+<section class="hero-s">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="index.html">Inicio</a> › <span>Alojamientos</span></div>
+    <h1>Nuestros <em class="h-em">alojamientos</em></h1>
+    <p class="lead">Elegí tu destino y encontrá el espacio ideal para tu viaje.</p>
+  </div>
+</section>
+
+<!-- FILTRO POR EXPERIENCIA -->
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="txt-c mb-24">
+      <div class="eyebrow dark" style="justify-content:center">Filtrá por experiencia</div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:40px">
+      <button class="gtab active" data-filtro="" onclick="filtrarAlo(this,'')">Todos</button>
+      <button class="gtab" data-filtro="ciudad" onclick="filtrarAlo(this,'ciudad')">🏙 Urbano · Ciudad</button>
+      <button class="gtab" data-filtro="naturaleza" onclick="filtrarAlo(this,'naturaleza')">🏔 Naturaleza · Potrerillos</button>
+      <button class="gtab" data-filtro="nieve" onclick="filtrarAlo(this,'nieve')">⛷ Nieve · Las Leñas</button>
+    </div>
+
+    <div class="cards" id="alo-cards">
+      <!-- MENDOZA 2 -->
+      <a href="mendoza.html" class="alo-card" data-exp="ciudad" style="text-decoration:none" onclick="trackVerAlojamiento('Dpto Mendoza 2')">
+        <div class="card">
+          <div class="card-img"><div class="card-ph">📷 Departamento 2 — Mendoza</div></div>
+          <div class="card-body">
+            <h3>Departamento 2 ambientes</h3>
+            <p>Gral. Espejo 333, M5500 Mendoza Capital. Ideal para parejas o viajes de trabajo. Cocina equipada, WiFi y todo el centro a mano.</p>
+            <div class="card-tags"><span class="tag">🏙 Ciudad</span><span class="tag">2 personas</span><span class="tag tag-v">Hasta 4 pax</span></div>
+            <div class="card-price"><div><div class="price-val">Desde U 46</div><div class="price-unit">por noche</div></div><span class="btn btn-primary btn-sm">Ver →</span></div>
+          </div>
+        </div>
+      </a>
+      <!-- MENDOZA 3 -->
+      <a href="mendoza.html" class="alo-card" data-exp="ciudad" style="text-decoration:none" onclick="trackVerAlojamiento('Dpto Mendoza 3')">
+        <div class="card">
+          <div class="card-img" style="background:linear-gradient(135deg,#D4A23C,#C4663B)"><div class="card-ph">📷 Departamento 3 — Mendoza</div></div>
+          <div class="card-body">
+            <h3>Departamento 3 ambientes</h3>
+            <p>Gral. Espejo 333, M5500 Mendoza Capital. Más espacio para familias o grupos. Living amplio y dos habitaciones.</p>
+            <div class="card-tags"><span class="tag">🏙 Ciudad</span><span class="tag">2–4 personas</span></div>
+            <div class="card-price"><div><div class="price-val">Desde U 48</div><div class="price-unit">por noche</div></div><span class="btn btn-primary btn-sm">Ver →</span></div>
+          </div>
+        </div>
+      </a>
+      <!-- LOFT -->
+      <a href="potrerillos.html" class="alo-card" data-exp="naturaleza" style="text-decoration:none" onclick="trackVerAlojamiento('Cabaña Loft')">
+        <div class="card">
+          <div class="card-img" style="background:linear-gradient(135deg,#1B3A4B,#6B7A4F)"><div class="card-ph">📷 Cabaña Loft</div></div>
+          <div class="card-body">
+            <h3>Cabaña Loft</h3>
+            <p>Potrerillos, frente al dique. Diseño moderno, ambiente íntimo. Perfecta para escapadas en pareja.</p>
+            <div class="card-tags"><span class="tag">🏔 Potrerillos</span><span class="tag">Hasta 4 pax</span></div>
+            <div class="card-price"><div><div class="price-val">Desde U 65</div><div class="price-unit">por noche</div></div><span class="btn btn-primary btn-sm">Ver →</span></div>
+          </div>
+        </div>
+      </a>
+            <!-- Cabaña Standard = Backup interno, no visible al público -->
+      <!-- GRANDE -->
+      <a href="potrerillos.html" class="alo-card" data-exp="naturaleza" style="text-decoration:none" onclick="trackVerAlojamiento('Cabaña Grande')">
+        <div class="card">
+          <div class="card-img" style="background:linear-gradient(135deg,#122831,#6B7A4F)"><div class="card-ph">📷 Cabaña Grande</div></div>
+          <div class="card-body">
+            <h3>Cabaña Grande</h3>
+            <p>La más grande de Potrerillos. Tres dormitorios, galería cubierta y asador. Para grupos de hasta 7 personas.</p>
+            <div class="card-tags"><span class="tag">🏔 Potrerillos</span><span class="tag tag-g">Hasta 7 pax</span></div>
+            <div class="card-price"><div><div class="price-val">Desde U 79</div><div class="price-unit">por noche</div></div><span class="btn btn-primary btn-sm">Ver →</span></div>
+          </div>
+        </div>
+      </a>
+      <!-- LEÑAS -->
+      <a href="lenas.html" class="alo-card" data-exp="nieve" style="text-decoration:none" onclick="trackVerAlojamiento('Las Leñas')">
+        <div class="card">
+          <div class="card-img" style="background:linear-gradient(135deg,#2D5FA7,#1B3A4B)"><div class="card-ph">📷 Valle de Las Leñas</div></div>
+          <div class="card-body">
+            <h3>Departamento Las Leñas</h3>
+            <p>A metros de las pistas. Temporada invernal junio–septiembre. Hasta 4 personas.</p>
+            <div class="card-tags"><span class="tag">⛷ Las Leñas</span><span class="tag tag-a">Solo invierno</span><span class="tag">Hasta 4 pax</span></div>
+            <div class="card-price"><div><div class="price-val">Temporada</div><div class="price-unit">consultar precio</div></div><span class="btn btn-primary btn-sm">Ver →</span></div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+<script>
+function filtrarAlo(btn, exp) {
+  document.querySelectorAll('.gtab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.alo-card').forEach(c => {
+    c.style.display = (!exp || c.dataset.exp === exp) ? '' : 'none';
+  });
+}
+</script>
+<!-- SELLOS OTAs — solo visual, sin links -->
+<section class="otas">
+  <div class="wrap">
+    <div class="otas-inner">
+      <span class="otas-label">Encontranos también en las principales plataformas del mundo</span>
+      <div class="otas-logos">
+        <span>Booking.com</span>
+        <span>Expedia</span>
+        <span>Airbnb</span>
+        <span>TripAdvisor</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<section class="cta-band">
+  <div class="wrap">
+    <h2>¿Listo para reservar?</h2>
+    <p>Escribinos directo y te confirmamos disponibilidad en minutos. Sin intermediarios.</p>
+    <div class="cta-btns">
+      <a href="https://wa.me/5492616543938" class="btn btn-wa btn-lg" target="_blank" rel="noopener" data-origin="cta_band" onclick="trackContact('cta_band')">💬 Escribir por WhatsApp</a>
+      <a href="contacto.html" class="btn btn-lg" style="background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.3)">✉ Formulario de contacto</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-grid">
+      <div>
+        <h4>Mendoza Sol y Nieve</h4>
+        <p>Cabañas y departamentos en Mendoza, Potrerillos y Valle de Las Leñas. Atención directa, sin intermediarios.</p>
+        <div class="f-social">
+          <a href="https://www.facebook.com/mendozasolynieve" target="_blank" rel="noopener" aria-label="Facebook">📘</a>
+          <a href="https://www.instagram.com/mendozasolynieve" target="_blank" rel="noopener" aria-label="Instagram">📷</a>
+          <a href="https://wa.me/5492616543938" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+        </div>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <a href="https://wa.me/5492616543938" target="_blank" rel="noopener">+54 9 261 654 3938</a>
+        <a href="mailto:info@mendozasolynieve.com.ar">info@mendozasolynieve.com.ar</a>
+      </div>
+      <div>
+        <h4>Destinos</h4>
+        <a href="mendoza.html">Mendoza Capital</a>
+        <a href="potrerillos.html">Potrerillos</a>
+        <a href="lenas.html">Valle de Las Leñas</a>
+      </div>
+    </div>
+    <div class="f-bottom">
+      <span>© 2026 Mendoza Sol y Nieve</span>
+      <span>Check-In 14:00 hs &nbsp;·&nbsp; Check-Out 10:00 hs</span>
+      <a href="sitemap.xml">Sitemap</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Botón flotante WhatsApp -->
+<a href="https://wa.me/5492616543938" class="wa-float" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp" data-origin="flotante" onclick="trackContact('flotante')">💬</a>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+  <button class="lb-close" onclick="lbClose()" aria-label="Cerrar">✕</button>
+  <button class="lb-nav lb-prev" onclick="lbPrev()" aria-label="Anterior">‹</button>
+  <img id="lb-img" src="" alt="Foto alojamiento" class="lb-img">
+  <button class="lb-nav lb-next" onclick="lbNext()" aria-label="Siguiente">›</button>
+</div>
+
+<!-- GTM Body (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRDWDD4L" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+<script src="assets/js/script.js"></script>
+</body></html>
